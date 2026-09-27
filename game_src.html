@@ -51,6 +51,9 @@ canvas{display:block;width:100vw;height:100vh;touch-action:none}
 #dlg .op{padding:4px 8px;border-radius:6px;cursor:pointer;font-size:15px}#dlg .op:hover{background:#e4dccb}#dlg .op b{display:inline-block;width:22px;opacity:.55}
 #bmenu{position:fixed;left:12px;top:96px;width:250px;max-height:70vh;overflow:auto;background:#f7f3eaf4;border:2px solid #2a2622;border-radius:10px 13px 9px 12px;padding:6px 8px;font-size:13px;color:#2a2622;box-shadow:2px 3px 0 #2a262244;display:none;z-index:6}#bmenu small{opacity:.6;margin-left:4px}
 #cut{position:fixed;inset:0;background:#15130f;z-index:10;display:none;overflow:hidden;cursor:pointer}
+#card{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);width:min(420px,90vw);background:#f7f3ea;border:3px solid #2a2622;border-radius:12px 16px 10px 14px;box-shadow:5px 6px 0 #2a262266;z-index:9;display:none;color:#2a2622;padding:14px 18px;text-align:center}
+#card img{height:110px;margin:4px auto;display:block}#card .kt{font-size:12px;letter-spacing:.3em;opacity:.6}#card .kn{font-size:24px;font-weight:bold;letter-spacing:.1em}#card .kf{font-size:15px;margin:8px 0;line-height:1.6;border-top:1.5px dashed #2a262288;border-bottom:1.5px dashed #2a262288;padding:6px 0}#card .kd{font-size:14px;opacity:.85}
+.hide{display:none!important}
 #cutimg{position:absolute;inset:0;background-size:cover;background-position:center;transition:opacity .6s}
 #cutcap{position:absolute;left:50%;bottom:5vh;transform:translateX(-50%);width:min(780px,88vw);background:#f7f3eaee;border:2px solid #2a2622;border-radius:10px 14px 9px 13px;padding:12px 22px;font-size:20px;color:#2a2622;line-height:1.7;min-height:34px;box-shadow:3px 4px 0 #0006}
 #cutcap .who{font-weight:bold;margin-right:8px;font-size:15px;letter-spacing:.2em}#cutcap i{opacity:.85}
@@ -58,18 +61,15 @@ canvas{display:block;width:100vw;height:100vh;touch-action:none}
 #cuthint{position:absolute;right:22px;bottom:2vh;color:#f3efe6aa;font-size:12px}
 </style></head><body>
 <canvas id="cv"></canvas>
-<div id="hud"><span id="tip" style="opacity:.8"></span></div><div id="cmd"></div><div id="order"></div><div id="appr"></div><div id="catalog"></div><div id="notes"></div><div id="dlg"></div><div id="bmenu"></div><div id="cut"><div id="cutimg"></div><div id="cutcap"></div><div id="cutskip">SKIP ▸▸</div><div id="cuthint">点击 / 空格 继续</div></div><div id="craft"></div><div id="inv"></div>
+<div id="hud"><span id="tip" style="opacity:.8"></span></div><div id="cmd"></div><div id="order"></div><div id="appr"></div><div id="catalog"></div><div id="notes"></div><div id="dlg"></div><div id="bmenu"></div><div id="cut"><div id="cutimg"></div><div id="cutcap"></div><div id="cutskip">SKIP ▸▸</div><div id="cuthint">点击 / 空格 继续</div></div><div id="card"></div><div id="inv"></div>
 <div id="side">
   <button class="sb" id="bCat"><b>收藏目录 (B)</b></button>
   <button class="sb" id="bBuild"><b>建造 (G)</b></button>
-  <button class="sb" id="bDemon">恶魔：D5 黑发</button>
-  <button class="sb" id="bRotL">⟲ 转视角 (Q)</button>
-  <button class="sb" id="bRotR">⟳ 转视角 (E)</button>
 </div>
 <div id="forms"></div>
 <button id="act">动作<br><small>空格</small></button>
-<div id="help">WASD / 点击地面 移动 · Q/E 转视角 · 滚轮 缩放<br>空格：采集 / 对话 / 放置 · B 收藏目录 · G 建造<br>1 人形(采花·捞网) · 2 狗(嗅·挖) · 3 独角兽(撞石·撞枯树) · 4 鸟(鸟巢·过河)</div>
-<div id="title"><h1>纸之魔女</h1><p>素描线稿 · 沙盒原型 v0.5</p><p style="font-size:15px;max-width:520px;text-align:center;line-height:1.9">她曾经是自由的魔女。<br>直到那天，她翻开了一本黑色的书。<br>……醒来时，她只记得一件事——<b>主人的命令</b>。</p><p style="font-size:13px;opacity:.7">探索纸之界 · 建造营地 · 收集献给主人 · 服从主人的命令</p><div class="go">开始游戏</div></div>
+
+<div id="title"><h1>纸之魔女</h1><p>素描线稿 · 沙盒原型 v0.6</p><p style="font-size:15px;max-width:520px;text-align:center;line-height:1.9">她曾经是自由的魔女。<br>直到那天，她翻开了一本黑色的书。<br>……醒来时，她只记得一件事——<b>主人的命令</b>。</p><p style="font-size:13px;opacity:.7">探索纸之界 · 建造营地 · 收集献给主人 · 服从主人的命令</p><div class="go">开始游戏</div></div>
 <script>
 "use strict";
 const ASSETS=__ASSETS__;
@@ -149,6 +149,7 @@ const STARS=[
 const SHEETS={ // side view facing direction in the sheet art (+1 = faces screen-right)
   heroine:{chibi:"heroine_A_chibi",normal:"heroine_A_chibi",sideDir:1,h:{chibi:2.3,normal:3.3}},
   demonD5:{chibi:"demon_D5_chibi",normal:"demon_D5_chibi",sideDir:-1,h:{chibi:2.45,normal:2.45}},
+  demonD6:{chibi:"demon_D6_chibi",normal:"demon_D6_chibi",sideDir:-1,h:{chibi:2.45,normal:2.45}},
   demonD4:{chibi:"demon_D4_chibi",normal:"demon_D4_chibi",sideDir:-1,h:{chibi:2.4,normal:2.4}},
 };
 const FORMS={
@@ -157,7 +158,7 @@ const FORMS={
   unicorn:{name:"独角兽",key:"3",speed:8.5,front:"animal_2",side:"animal_3",sideDir:-1,h:2.6},
   bird:{name:"鸟",key:"4",speed:10.5,front:"animal_5",side:"animal_4",sideDir:1,h:1.9,fly:2.6},
 };
-let PROP_MODE="chibi", DEMON="demonD5";
+let PROP_MODE="chibi", DEMON="demonD6";
 const hero={x:0,y:-2,z:0,face:0,form:"human",moving:0,bob:0,tf:null,dash:0,dig:0,vx:0,vy:0};
 const demon={x:-1.4,y:-8,face:0,moving:0,bob:0,idle:0,st:"read",t:0};
 let target=null; // click-to-move
@@ -194,10 +195,10 @@ function sparkle(x,y,z){ for(let i=0;i<16;i++){ const a=i/16*6.28; parts.push({x
 /* ---------------- input ---------------- */
 const K={}; addEventListener("keydown",e=>{ if(cut.on){ if(e.code==="Space"||e.code==="Enter"){ e.preventDefault(); nextLine(); } if(e.code==="Escape") endCut(); return; }
   if(dlg.open){ const m=e.code.match(/^Digit(\d)$/); if(m) pickOpt(+m[1]-1); if(e.code==="Escape") closeDialog(); if(e.code==="Space") e.preventDefault(); return; }
-  K[e.code]=1; if(e.repeat)return; if(e.code==="KeyG"){ if(placing){ placing=null; } openBuildMenu(); } if(e.code==="Escape"&&placing){ placing=null; note("取消建造"); }
+  K[e.code]=1; if(e.repeat)return; if(e.code==="KeyG"&&hasKey("mallet")){ if(placing){ placing=null; } openBuildMenu(); } if(e.code==="Escape"&&placing){ placing=null; note("取消建造"); }
   if(e.code==="KeyQ") rotCam(-1); if(e.code==="KeyE") rotCam(1);
   if(e.code==="Digit1") transform("human"); if(e.code==="Digit2") transform("dog"); if(e.code==="Digit3") transform("unicorn"); if(e.code==="Digit4") transform("bird");
-  if(e.code==="Space"){ e.preventDefault(); if(document.getElementById("appr").style.display==="flex") closeAppraisal(); else if(!S.paused) action(); } if(e.code==="KeyP") toggleProp(); if(e.code==="KeyC") toggleDemon(); if(e.code==="KeyB") openCatalog(); if(e.code==="Escape"){ closeBuildMenu(); closeAppraisal(); if(document.getElementById("catalog").style.display==="flex") openCatalog(); } });
+  if(e.code==="Space"){ e.preventDefault(); if(closeCard()){} else if(document.getElementById("appr").style.display==="flex") closeAppraisal(); else if(!S.paused) action(); } if(e.code==="KeyP") toggleProp(); if(e.code==="KeyC") toggleDemon(); if(e.code==="KeyB"&&hasKey("notebook")) openCatalog(); if(e.code==="Escape"){ closeBuildMenu(); closeAppraisal(); if(document.getElementById("catalog").style.display==="flex") openCatalog(); } });
 addEventListener("keyup",e=>{ K[e.code]=0; });
 function rotCam(d){ cam.yawT+=d*Math.PI/4; }
 let drag=null;
@@ -207,11 +208,9 @@ cv.addEventListener("pointermove",e=>{ if(!drag)return; const dx=e.clientX-drag.
 cv.addEventListener("pointerup",e=>{ if(drag&&!drag.moved&&drag.btn===0){ const g=unproj(e.clientX,e.clientY); if(g) target={x:g[0],y:g[1]}; } drag=null; });
 cv.addEventListener("wheel",e=>{ cam.distT=Math.max(11,Math.min(34,cam.distT*(e.deltaY>0?1.1:0.9))); },{passive:true});
 document.getElementById("act").onclick=()=>{ ac(); if(!S.paused) action(); }; document.getElementById("bCat").onclick=()=>{ ac(); openCatalog(); };
-document.getElementById("bRotL").onclick=()=>rotCam(-1);
-document.getElementById("bRotR").onclick=()=>rotCam(1);
 function toggleProp(){}
-function toggleDemon(){ DEMON=DEMON==="demonD5"?"demonD4":"demonD5"; document.getElementById("bDemon").textContent="恶魔："+(DEMON==="demonD5"?"D5 黑发":"D4（对比）"); }
-document.getElementById("bBuild").onclick=()=>{ac();openBuildMenu();}; document.getElementById("bDemon").onclick=toggleDemon;
+function toggleDemon(){}
+document.getElementById("bBuild").onclick=()=>{ac();openBuildMenu();};
 // form buttons
 { const box=document.getElementById("forms"); for(const k of Object.keys(FORMS)){ const b=document.createElement("div"); b.className="fb"; b.id="f_"+k; const src=k==="human"?ASSETS.heroine_A_chibi_0:ASSETS[FORMS[k].front]; b.innerHTML=`<i>${FORMS[k].key}</i><img src="${src}"><span>${FORMS[k].name}</span>`; b.onclick=()=>{ac();transform(k);}; box.appendChild(b); } }
 function updForms(){ for(const k of Object.keys(FORMS)) document.getElementById("f_"+k).classList.toggle("on",hero.form===k); }
@@ -219,14 +218,14 @@ updForms();
 
 /* ---------------- transformation (origami fold -> unfold) ---------------- */
 function inRiver(x,y){ return y>RIVER.y0&&y<RIVER.y1; }
-function transform(to){ if(hero.tf||hero.form===to) return;
+function transform(to){ if(hero.tf||hero.form===to||!formOK(to)||S.paused) return; if(S.order&&S.order.k==="quiet"){ S.order.broke=1; }
   if(hero.form==="bird"&&inRiver(hero.x,hero.y)&&to!=="bird"){ note("在河上无法变回"); return; }
   hero.tf={from:hero.form,to,t:0}; paperSnd(0.45,2600,0.28); setTimeout(()=>paperSnd(0.3,1800,0.25),300); setTimeout(()=>paperSnd(0.25,3200,0.3),520);
 }
 const TF_DUR=1.05;
 
 /* ---------------- actions ---------------- */
-function action(){ if(hero.tf) return; const f=hero.form; const nearM=Math.hypot(demon.x-hero.x,demon.y-hero.y)<3.2&&!demon.hidden;
+function action(){ if(hero.tf) return; if(S.order&&S.order.k==="quiet"){ S.order.broke=1; return; } const f=hero.form; const nearM=Math.hypot(demon.x-hero.x,demon.y-hero.y)<3.2&&!demon.hidden;
   if(placing){ confirmPlace(); return; }
   if(nearM){ openDialog(); return; }
   const nb=(id,r)=>builds.find(b=>b.bid===id&&Math.hypot(b.x-hero.x,b.y-hero.y)<r);
@@ -239,8 +238,8 @@ function action(){ if(hero.tf) return; const f=hero.form; const nearM=Math.hypot
   const it=nearestInteract(); if(it){ gather(it); return; }
   let best=null,bd=3; for(const e of ents){ if(e.say&&!e.gone){ const d=Math.hypot(e.x-hero.x,e.y-hero.y); if(d<bd){bd=d;best=e;} } }
   if(best){ say("sign",best.say,4); bubbles[bubbles.length-1].at=best; return; }
-  if(nearBank()){ if(!S.net){ note("需要捞网（左侧制作）"); return; } fish(); return; }
-  if(nearNestTree()){ note("树上有鸟巢——变成鸟 (4) 飞上去"); return; }
+  if(nearBank()){ if(!hasKey("net")){ note("要是有一张捞网就好了……（河岸边好像掉着什么）"); return; } fish(); return; }
+  if(nearNestTree()&&hasKey("quill")){ note("树上有鸟巢——变成鸟 (4) 飞上去"); return; }
   say("hero",pick(["嘿咻！","主人要的东西在哪里呢……","这里什么都没有～"]),1.4);
 }
 function pick(a){ return a[Math.floor(Math.random()*a.length)]; }
@@ -295,14 +294,42 @@ const COL={
  star:["折纸星星","item_11","special",4,"三处谜题：土堆 · 石阵 · 河对岸","……星星。好东西。"],
 };
 const COL_IDS=Object.keys(COL);
-const ITEMS={ twig:{n:"树枝",img:"item_2",mat:1}, grass:{n:"干草",img:"item_1",mat:1}, net:{n:"捞网",img:"col_relic_0",tool:1}, flint:{n:"燧石",img:"item_3",mat:1}, stone:{n:"石头",img:"item_4",mat:1}, log:{n:"木头",img:"item_5",mat:1}, stick:{n:"主人扔的树枝",img:"item_2",fetch:1} };
+const ITEMS={ k_horn:{n:"螺旋角",img:"key_1",key:"horn"}, k_quill:{n:"黑羽笔",img:"key_2",key:"quill"}, k_net:{n:"捞网",img:"col_relic_0",key:"net"}, twig:{n:"树枝",img:"item_2",mat:1}, grass:{n:"干草",img:"item_1",mat:1}, net:{n:"捞网",img:"col_relic_0",tool:1}, flint:{n:"燧石",img:"item_3",mat:1}, stone:{n:"石头",img:"item_4",mat:1}, log:{n:"木头",img:"item_5",mat:1}, stick:{n:"主人的书签",img:"col_relic_6",fetch:1}, bait:{n:"亮晶晶的东西",img:"col_treasure_3",bait:1} };
 for(const id of COL_IDS){ const c=COL[id]; ITEMS[id]={n:c[0],img:c[1],col:1,r:c[3],cat:c[2]}; }
 const RECIPES=[
   {id:"net",n:"捞网",need:{twig:3,grass:2},desc:"人形时在河边按空格打捞"},
   {id:"basket",n:"采集篮",need:{grass:6,twig:3},desc:"收藏袋从 10 格扩到 16 格",img:"col_relic_1",once:1},
 ];
+/* ---- v0.6: every mechanic is bound to an item (钥匙道具) ---- */
+const KEYS={
+ bag:{n:"收藏袋",img:"col_relic_1",f:"下方的收藏袋：捡到的东西都装在这里（10 格）。",d:"拿着。装满了再回来。"},
+ notebook:{n:"黑色手册",img:"key_5",f:"解锁：收藏目录（B）· 主人的鉴定 · 每日献礼单 · 她的身份卡。",d:"记下来。我要的东西，一样都不许漏。"},
+ collar:{n:"项圈",img:"key_0",f:"解锁：狗的形态（2）——嗅出埋藏点、刨土。\n铃铛一响，就是主人在叫你「过来」。",d:"戴上。……很合适。"},
+ horn:{n:"螺旋角",img:"key_1",f:"解锁：独角兽的形态（3）——冲撞石头、枯树，得到石头和木头。",d:"……土里埋着这种东西。拿去用。"},
+ quill:{n:"黑羽笔",img:"key_2",f:"解锁：鸟的形态（4）——飞过河、翻找高树上的鸟巢。",d:"羽毛。……别飞太远。"},
+ mallet:{n:"小木槌",img:"key_3",f:"解锁：建造（G）——在石门营地附近搭建扶手椅、帐篷、收藏柜……",d:"给我造一把像样的椅子。站着看书很累。"},
+ leash:{n:"牵绳",img:"key_4",f:"解锁：对话里的「请主人跟着我」。",d:"……偶尔可以陪你走一段。别得寸进尺。"},
+ whistle:{n:"银哨",img:"key_7",f:"解锁：每日「训练」——在对话里请主人训练你，三道命令，最后打分。",d:"以后每天练一次。做不好就一直练。"},
+ compass:{n:"星辰罗盘",img:"key_6",f:"解锁：屏幕边缘的指针，指向下一颗折纸星星。",d:"它指的方向，就是下一颗。别让我等。"},
+ net:{n:"捞网",img:"col_relic_0",f:"解锁：人形时在河边按空格打捞。",d:null},
+ basket:{n:"大篮子",img:"col_relic_1",f:"收藏袋从 10 格扩到 16 格。",d:"装得多一点，跑得少一点。……省得你在我眼前晃。"},
+};
+const cardQ=[];
+function hasKey(k){ return !!S.keys[k]; }
+function gainKey(k,quiet){ if(S.keys[k]) return; S.keys[k]=1; if(k==="basket"){ S.cap=16; while(S.inv.length<16) S.inv.push(null); buildInv(); } refreshUI(); if(quiet) return; cardQ.push(k); if(document.getElementById("card").style.display!=="block") showCard(); }
+function showCard(){ const k=cardQ.shift(); if(!k) return; const K=KEYS[k], el=document.getElementById("card"); S.paused=1; chime();
+  el.innerHTML=`<div class='kt'>得到了</div><img src="${ASSETS[K.img]}"><div class='kn'>${K.n}</div><div class='kf'>${K.f.replace(/\n/g,"<br>")}</div>${K.d?`<div class='kd'>主人：「${K.d}」</div>`:""}<div class='ab' onclick='closeCard()'>是，主人（空格）</div>`; el.style.display="block"; }
+function closeCard(){ const el=document.getElementById("card"); if(el.style.display!=="block") return false; el.style.display="none"; S.paused=0; if(cardQ.length) setTimeout(showCard,250); return true; }
+function formOK(f){ return f==="human"||(f==="dog"&&hasKey("collar"))||(f==="unicorn"&&hasKey("horn"))||(f==="bird"&&hasKey("quill")); }
+function refreshUI(){ const k=S.keys; const sh=(id,v)=>{ const e=document.getElementById(id); if(e) e.classList.toggle("hide",!v); };
+  sh("inv",k.bag); sh("bCat",k.notebook); sh("bBuild",k.mallet); sh("side",k.notebook||k.mallet);
+  let nf=0; for(const f of Object.keys(FORMS)){ const ok=formOK(f); nf+=ok; sh("f_"+f,ok); } sh("forms",nf>1); updCmd(); }
+function checkUnlocks(){ if(!started||cine.on) return; const rk=RANKS.findIndex(r=>r[1]===rankOf(S.favor)[1]);
+  if(rk>=1&&!hasKey("mallet")&&hasKey("notebook")) gainKey("mallet");
+  if(rk>=2&&!hasKey("basket")) gainKey("basket");
+  if(S.obey>=60&&hasKey("collar")&&!hasKey("leash")&&S.deliveries>=2) gainKey("leash"); }
 const RANKS=[[0,"流浪狗"],[15,"看门狗"],[45,"猎犬"],[100,"忠犬"],[200,"主人的爱犬"]];
-const S={day:1,clock:0.12,inv:[],cap:10,net:0,basket:0,favor:0,obey:50,found:{},given:{},quota:[],quotaDone:0,starsGiven:0,order:null,orderCD:40,fishCD:0,sniffT:0,praise:0,paused:0,sets:{}};
+const S={keys:{},deliveries:0,comeOK:0,trainDay:0,summonCD:150,day:1,clock:0.12,inv:[],cap:10,net:0,basket:0,favor:0,obey:50,found:{},given:{},quota:[],quotaDone:0,starsGiven:0,order:null,orderCD:40,fishCD:0,sniffT:0,praise:0,paused:0,sets:{}};
 const DAY_LEN=240;
 const gitems=[], floats=[], flora=[], bugs=[], digs=[];
 function invCount(id){ return S.inv.reduce((a,s)=>a+(s&&s.id===id?s.n:0),0); }
@@ -336,7 +363,7 @@ function genQuota(){ const r=rng(S.day*7919+3); const pool=COL_IDS.filter(id=>CO
   if(S.day===1){ q[0]={t:"一件「雏菊」",id:"daisy",n:1,c:0}; q[1]={t:"任意「花草」×3",cat:"flora",n:3,c:0}; q[2]={t:"一件稀有以上的收藏",minR:2,n:1,c:0}; }
   S.quota=q; S.quotaDone=0; updCmd(); }
 function quotaCount(id){ let hit=0; for(const q of S.quota){ if(q.c>=q.n) continue; const c=COL[id]; if(q.id===id||q.cat===c[2]||(q.minR&&c[3]>=q.minR)){ q.c++; hit=1; break; } } return hit; }
-function updCmd(){ const el=document.getElementById("cmd"); if(!el) return; let h="<b>今日献礼 · 第 "+S.day+" 天</b><br>";
+function updCmd(){ const el=document.getElementById("cmd"); if(!el) return; if(!started||(typeof cine!=="undefined"&&cine.on)){ el.style.display="none"; return; } el.style.display="block"; if(!hasKey("notebook")){ el.innerHTML="<b>主人的命令</b><br>"+(S.inv.some(s=>s&&ITEMS[s.id].col)?"把找到的东西献给主人（靠近主人按空格）":"去找点东西回来。花、石头……什么都行"); return; } let h="<b>今日献礼 · 第 "+S.day+" 天</b><br>";
   h+=S.quota.map(q=>(q.c>=q.n?"<s>":"")+(q.c>=q.n?"☑ ":"☐ ")+q.t+(q.n>1?" ("+Math.min(q.c,q.n)+"/"+q.n+")":"")+(q.c>=q.n?"</s>":"")).join("<br>");
   const st=S.starsGiven+invCount("star"); h+="<br><span style='opacity:.75'>折纸星星 "+S.starsGiven+"/3 已献上"+(invCount("star")?"（袋里 "+invCount("star")+"）":"")+"</span>"; el.innerHTML=h; }
 
@@ -353,10 +380,12 @@ function deliverAll(){ const list=[]; for(let i=0;i<S.inv.length;i++){ const s=S
   if(S.quota.length&&S.quota.every(q=>q.c>=q.n)&&!S.quotaDone){ S.quotaDone=1; S.favor+=15; bonus.push("今日献礼全部完成 · 满意度 +15"); }
   for(const cat of Object.keys(CATS)){ if(S.sets[cat]) continue; const ids=COL_IDS.filter(id=>COL[id][2]===cat); if(ids.every(id=>S.given[id])){ S.sets[cat]=1; S.favor+=30; bonus.push("「"+CATS[cat]+"」全部收齐 · 满意度 +30"); } }
   const rank1=rankOf(S.favor)[1]; if(rank1!==rank0) bonus.push("她的身份变成了：「"+rank1+"」");
+  S.deliveries++; const firstD=S.deliveries===1, secondD=S.deliveries===2; const gotStar=rows.some(r=>r.id==="star");
   showAppraisal(rows,tot,bonus); updCmd(); S.praise=2.5;
   if(S.starsGiven>=3&&!won){ won=true; winT=0; }
   const best=rows.reduce((a,b)=>COL[b.id][3]>COL[a.id][3]?b:a,rows[0]); const br=COL[best.id][3];
-  S._after=()=>{ say("demon",br>=4?"……今天的你，勉强配得上我的注视。":br>=3?"嗯。……好狗。":pick(["……就这些？算了。","放下。退后。","嗯。"]),3);
+  S._after=()=>{ say("demon",br>=4?"……今天的你，勉强配得上我的注视。":br>=3?"嗯。……好狗。":pick(["……就这些？算了。","放下。退后。","嗯。","……垃圾居多。下次挑一挑。"]),3);
+    if(firstD) gainKey("notebook"); if(secondD) gainKey("collar"); if(gotStar&&!hasKey("compass")&&S.starsGiven<3) gainKey("compass"); checkUnlocks();
  };
   return true; }
 function showAppraisal(rows,tot,bonus){ const el=document.getElementById("appr"); S.paused=1;
@@ -365,8 +394,9 @@ function showAppraisal(rows,tot,bonus){ const el=document.getElementById("appr")
     h+=`<div class='ar${past?" past":""}'><img src="${ASSETS[c[1]]}"><div><div class='an'>${c[0]}${r.n>1?" ×"+r.n:""} <span class='rr r${c[3]}'>${RAR[c[3]]}</span>${r.isNew?" <span class='nw'>新收藏</span>":""}${r.q?" <span class='nw'>献礼✓</span>":""}</div><div class='ac'>「${c[5]}」</div>${past?"<div class='ap'>（她歪了歪头，看着它被毁掉。眼里没有一丝留恋。）</div>":""}</div><div class='pt'>+${r.pts}</div></div>`; }
   h+="</div><div class='af'>满意度 +"+tot+(bonus.length?"<br>"+bonus.join("<br>"):"")+"<br><small>服从度 "+Math.round(S.obey)+" → 鉴定倍率 ×"+(0.6+S.obey/100).toFixed(2)+"（首次献上 ×2）</small></div><div class='ab' onclick='closeAppraisal()'>是，主人（空格）</div>";
   el.innerHTML=h; el.style.display="flex"; }
-function closeAppraisal(){ const el=document.getElementById("appr"); if(el.style.display!=="flex") return; el.style.display="none"; S.paused=0; if(S._after){ S._after(); S._after=null; } }
+function closeAppraisal_(){ const el=document.getElementById("appr"); if(el.style.display!=="flex") return; el.style.display="none"; S.paused=0; if(S._after){ S._after(); S._after=null; } }
 
+function closeAppraisal(){ closeAppraisal_(); }
 /* ---- catalog UI ---- */
 let catTab="flora", catSel=null;
 function openCatalog(){ const el=document.getElementById("catalog"); if(el.style.display==="flex"){ el.style.display="none"; S.paused=0; return; } S.paused=1; el.style.display="flex"; renderCatalog(); }
@@ -388,7 +418,7 @@ function buildInv(){ const box=document.getElementById("inv"); if(!box) return; 
   S.inv.forEach((s,i)=>{ const d=document.createElement("div"); const it=s&&ITEMS[s.id]; d.className="slot"+(it&&it.col?" c r"+it.r:""); d.innerHTML=(s?`<img src="${ASSETS[it.img]}"><span>${s.n>1?s.n:""}</span>`:"");
     if(s) d.title=it.n+(it.col?" · "+RAR[it.r]:" · 材料"); d.onclick=()=>{ ac(); useSlot(i); }; box.appendChild(d); });
   updCmd(); buildCraft(); }
-function buildCraft(){ const box=document.getElementById("craft"); if(!box) return; box.innerHTML="<b>制作</b>";
+function buildCraft(){ return; const box=null; box.innerHTML="<b>制作</b>";
   for(const rc of RECIPES){ const own=rc.id==="net"?S.net:S[rc.id]; const ok=!own&&has(rc.need); const d=document.createElement("div"); d.className="rc"+(ok?" ok":"")+(own?" own":"");
     d.innerHTML=`<img src="${ASSETS[rc.img||ITEMS[rc.id].img]}"><div><div class="rn">${rc.n}${own?" ✓":""}</div><div class="rq">${own?"已拥有":Object.entries(rc.need).map(([k,v])=>ITEMS[k].n+" "+invCount(k)+"/"+v).join(" · ")}</div><div class="rd">${rc.desc}</div></div>`;
     d.onclick=()=>{ ac(); craft(rc); }; box.appendChild(d); } }
@@ -419,6 +449,7 @@ function setupResources(){
   for(const e of ents) if(!e.puzzle&&!e.say&&Math.hypot(e.x+3.5,e.y-6)<3.2) e.gone=true, e.respawn=0;
   ents.push({t:"prop",kind:"arch",x:-3.5,y:6,h:4.4,rad:0,img:"bld_5",flip:false,alpha:1,say:"破碎的石门。\n回古宅的路，断了。"});
   for(let i=0;i<28;i++) spawnDig();
+  gitems.push({x:9,y:RIVER.y0-1.3,id:"k_net",n:1,z:0,vz:0,age:9});
   genQuota();
 }
 function isNight(){ return S.clock>=0.66&&S.clock<0.95; }
@@ -449,35 +480,75 @@ function nearDig(){ let best=null,bd=2.0; for(const d of digs){ if(d.rev<=0) con
 function breakRock(e){ e.gone=true; e.respawn=160; const big=e.kind==="boulder"; const n=big?2:1+(Math.random()<0.35?1:0); for(let i=0;i<n;i++) drop(e.x,e.y,wpick(big?BOULDER_TAB:ROCK_TAB),1); drop(e.x,e.y,"stone",1); if(big||Math.random()<0.5) drop(e.x,e.y,"stone",1);
   for(const b of bugs) if(b.id==="snail"&&Math.hypot(b.x-e.x,b.y-e.y)<2.5){ b.x+=1.5; } }
 
-/* ---- training commands (调教命令) ---- */
-const ORDERS=[
-  {k:"come",t:"过来。",T:0},{k:"sit",t:"坐下。（变成狗，别动）",T:8},{k:"stay",t:"别动。",T:4},{k:"fetch",t:"叼回来。",T:20},{k:"spin",t:"绕着我转一圈。",T:11},{k:"fly",t:"变成鸟，飞给我看。",T:8},
-];
-const PRAISE=["……还行。","嗯。勉强。","就这样。别得意。","……不算太蠢。","（伸手碰了一下她的头，又立刻收回）……可以了。"];
-const SCOLD=["……笨狗。","这都做不到？脑子呢。","废物。","连狗都不如。……哦，你就是狗。","我说的话，你听不懂吗。"];
-function issueOrder(){ const d=Math.hypot(hero.x-demon.x,hero.y-demon.y); let pool=ORDERS.filter(o=>!(o.k==="come"&&d<5)&&!(d>=12&&o.k!=="come")&&!(o.k==="fetch"&&(demon.y>RIVER.y0-4&&demon.y<RIVER.y1+4)));
-  if(inRiver(hero.x,hero.y)) pool=pool.filter(o=>o.k==="come"||o.k==="fly"); const o=pick(pool);
-  const ord={k:o.k,t:o.t,T:o.k==="come"?6+d/4:o.T,left:0,hold:0,ang:0,prevA:Math.atan2(hero.x-demon.x,hero.y-demon.y),grace:0.8};
-  ord.left=ord.T;
-  if(o.k==="fetch"){ let tx,ty,ok=false; for(let k=0;k<30&&!ok;k++){ const a=Math.random()*6.28, r=7+Math.random()*4; tx=demon.x+Math.cos(a)*r; ty=demon.y+Math.sin(a)*r; ok=!blocked(tx,ty,false)&&!inRiver(tx,ty); }
-    if(!ok){ ord.k="stay"; ord.t="别动。"; ord.T=ord.left=4; } else { gitems.push({x:demon.x,y:demon.y,id:"stick",n:1,z:1.6,vz:6,age:0,fly:{x0:demon.x,y0:demon.y,x1:tx,y1:ty,t:0}}); shards(demon.x,demon.y,1.4,4,2,"#e8dfcc"); } }
-  S.order=ord; say("demon",o.t.replace(/（.*）/,""),2.4); paperSnd(0.2,500,0.2); }
-function orderStep(dt){ const o=S.order; if(!o){ if(started&&!demon.hidden){ S.orderCD-=dt; if(S.orderCD<=0){ const dd=Math.hypot(hero.x-demon.x,hero.y-demon.y); if(dd>12&&demon.st!=="follow"&&Math.random()<0.6){ S.orderCD=20; return; } S.orderCD=50+Math.random()*40; issueOrder(); } } return; }
+/* ---- v0.6 training commands (调教命令) ---- */
+const CMDS={
+ come:{t:"过来。",st:"走到主人身边"},
+ sit:{t:"坐下。等着。",T:16,dog:1,st:"变成狗，在主人身边一动不动（6 秒）"},
+ fetch:{t:"叼回来。",T:22,dog:1,st:"变成狗，把书签叼回主人身边"},
+ bring:{t:"去拿来。",T:60,st:""},
+ leave:{t:"别碰。",T:20,st:"不许捡那个亮晶晶的东西"},
+ spot:{t:"站到那里。",T:25,st:"站到地上的圆圈里（5 秒）"},
+ spin:{t:"转圈。",T:12,dog:1,st:"变成狗，原地转两圈"},
+ quiet:{t:"安静。",T:15,st:"不许按空格、不许变身"},
+};
+const CMD_LINES={
+ come:{ok:["……嗯。铃一响就到，这才像话。","来了就行。站好。"],slow:["慢死了。下次我可不等。","……你是爬过来的？"],fail:["叫你过来。你耳朵是纸糊的？","算了。我不指望你。"]},
+ sit:{ok:["……还算坐得住。","嗯。就这样待着。"],fail:["我说的是等着。你那叫坐不住。","三秒都坐不住。……笨狗。"]},
+ fetch:{ok:["放下。……别把口水弄到书签上。","……叼回来了。勉强。"],fail:["一张书签都叼不回来。","你是去散步了吗。"]},
+ bring:{ok:["……这个。行吧。","放那儿。"],fail:["你绝对要说「我找找…」。……果然。","找不到就别回来。……开玩笑的，回来被骂。"]},
+ leave:{ok:["……忍住了。难得。","嗯。狗也能学会「别碰」。"],fail:["说了别碰。狗就是狗。","手伸得真快。……在这种地方倒是不笨。"]},
+ spot:{ok:["站好。……就这样。","嗯。那里。"],fail:["那里。不是那里。……算了。","连个圈都站不进去。"]},
+ spin:{ok:["转得挺开心的嘛。我可没说要看这么久。","……行了，停。晕了别倒在我脚边。"],fail:["转个圈都不会？","……你在原地发呆吗。"]},
+ quiet:{ok:["……你安静的时候，勉强能看。","嗯。就这样。一直这样最好。"],fail:["我说安静。你就是闲不住。","……吵。"]},
+};
+const BRING_POOL=["daisy","dandelion","twig","stone","grass","flint","thistle"];
+const GRADES=["低等偏下","低等","中等偏下","中等","中等偏上","上等"];
+const GRADE_LINE=["低等偏下。\n……我都懒得骂你了。","低等。\n你真的……脑子不太够用。","中等偏下。\n别用那种眼神看我，这已经是往高了打。","「我是不是中等」——对，中等。\n满意了？","中等偏上。\n……别得意，明天就掉回去。","上等。\n……今天就到这。别指望每天都有。"];
+function cmdPool(forTrain){ const d=Math.hypot(hero.x-demon.x,hero.y-demon.y); let p=Object.keys(CMDS).filter(k=>(!CMDS[k].dog||hasKey("collar"))&&!(k==="come"&&d<5)&&!(k==="fetch"&&(demon.y>RIVER.y0-4&&demon.y<RIVER.y1+4)));
+  if(!forTrain) p=p.filter(k=>k!=="come"); if(inRiver(hero.x,hero.y)) p=["come"]; return p; }
+function ring(){ const a=ac(); if(!a) return; for(let i=0;i<3;i++){ const o=a.createOscillator(), g=a.createGain(); o.type="sine"; o.frequency.value=2200+i*7; const t=a.currentTime+i*0.16; g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(0.09,t+0.01); g.gain.exponentialRampToValueAtTime(0.001,t+0.35); o.connect(g).connect(a.destination); o.start(t); o.stop(t+0.4); } }
+function freeSpot(cx0,cy0,r0,r1){ for(let k=0;k<40;k++){ const a=Math.random()*6.28, r=r0+Math.random()*(r1-r0); const x=cx0+Math.cos(a)*r, y=cy0+Math.sin(a)*r; if(!blocked(x,y,false)&&!inRiver(x,y)&&Math.abs(x)<WORLD-3&&Math.abs(y)<WORLD-3) return {x,y}; } return null; }
+function issueOrder(k,src){ const d=Math.hypot(hero.x-demon.x,hero.y-demon.y); if(!k) k=pick(cmdPool(false)); const C=CMDS[k];
+  const ord={k,t:C.t,T:k==="come"?6+d/4:C.T,left:0,hold:0,ang:0,prevF:hero.face,grace:0.8,src:src||"order",x0:hero.x,y0:hero.y};
+  if(k==="fetch"){ const p=freeSpot(demon.x,demon.y,7,11); if(!p) return issueOrder("quiet",src); gitems.push({x:demon.x,y:demon.y,id:"stick",n:1,z:1.6,vz:6,age:0,fly:{x0:demon.x,y0:demon.y,x1:p.x,y1:p.y,t:0}}); shards(demon.x,demon.y,1.4,4,2,"#e8dfcc"); }
+  if(k==="bring"){ const cand=BRING_POOL.filter(id=>!invCount(id)); ord.item=pick(cand.length?cand:BRING_POOL); ord.t="去拿「"+ITEMS[ord.item].n+"」来。"; }
+  if(k==="leave"){ const p=freeSpot(hero.x,hero.y,2.2,3.2)||{x:hero.x+2.5,y:hero.y}; gitems.push({x:p.x,y:p.y,id:"bait",n:1,z:0.8,vz:4,age:0}); }
+  if(k==="spot"){ const p=freeSpot(demon.x,demon.y,5,8)||freeSpot(hero.x,hero.y,4,7); if(!p) return issueOrder("quiet",src); ord.mx=p.x; ord.my=p.y; }
+  if(k==="come") ring();
+  ord.left=ord.T; S.order=ord; say("demon",ord.t,2.4); paperSnd(0.2,500,0.2); updOrder(); }
+function orderStep(dt){ const o=S.order;
+  if(!o){ if(S.train){ S.train.gap-=dt; if(S.train.gap<=0) nextTrain(); return; }
+    if(started&&!demon.hidden&&hasKey("collar")){ S.summonCD-=dt; if(S.summonCD<=0){ S.summonCD=150+Math.random()*70; if(demon.st!=="follow"&&Math.hypot(hero.x-demon.x,hero.y-demon.y)>6&&!inRiver(hero.x,hero.y)) issueOrder("come","summon"); } } return; }
   o.left-=dt; o.grace-=dt; const d=Math.hypot(hero.x-demon.x,hero.y-demon.y); let ok=false, fail=false;
   if(o.k==="come"){ if(d<2.9) ok=true; }
-  else if(o.k==="sit"){ if(hero.form==="dog"&&!hero.tf&&hero.moving<0.05){ o.hold+=dt; if(o.hold>2) ok=true; } else o.hold=0; }
-  else if(o.k==="stay"){ if(o.grace<=0&&(hero.moving>0.3||hero.tf)) fail=true; else if(o.left<=0) ok=true; }
+  else if(o.k==="sit"){ if(hero.form==="dog"&&!hero.tf&&hero.moving<0.05&&d<3.6){ o.hold+=dt; if(o.hold>=6) ok=true; } else if(o.hold>0.5){ fail=true; } else o.hold=0; }
   else if(o.k==="fetch"){ if(hero.carry&&d<2.9){ ok=true; hero.carry=0; } }
-  else if(o.k==="spin"){ const a=Math.atan2(hero.x-demon.x,hero.y-demon.y); let da=a-o.prevA; da=Math.atan2(Math.sin(da),Math.cos(da)); o.prevA=a; if(d<7) o.ang+=da; if(Math.abs(o.ang)>=Math.PI*2-0.05) ok=true; }
-  else if(o.k==="fly"){ if(hero.form==="bird"&&hero.z>1.6){ o.hold+=dt; if(o.hold>2) ok=true; } }
+  else if(o.k==="bring"){ if(d<2.9&&invCount(o.item)>0){ invTake(o.item,1); ok=true; } }
+  else if(o.k==="leave"){ if(o.broke) fail=true; else if(o.left<=0) ok=true; }
+  else if(o.k==="spot"){ if(Math.hypot(hero.x-o.mx,hero.y-o.my)<1.3&&hero.z<1){ o.hold+=dt; if(o.hold>=5) ok=true; } else o.hold=Math.max(0,o.hold-dt*2); }
+  else if(o.k==="spin"){ if(hero.form==="dog"&&!hero.tf){ let df=hero.face-o.prevF; df=Math.atan2(Math.sin(df),Math.cos(df)); if(Math.hypot(hero.x-o.x0,hero.y-o.y0)<4) o.ang+=df; else { o.x0=hero.x; o.y0=hero.y; o.ang=0; } if(Math.abs(o.ang)>=Math.PI*4-0.1) ok=true; } o.prevF=hero.face; }
+  else if(o.k==="quiet"){ if(o.broke) fail=true; else if(o.left<=0) ok=true; }
   if(!ok&&o.left<=0) fail=true;
-  if(ok){ S.obey=Math.min(100,S.obey+6); S.favor+=2; say("demon",pick(PRAISE),2.4); setTimeout(()=>say("hero",pick(["汪！","主人夸我了……！","嘿嘿……还有什么吩咐？","是！"]),1.6),1300); chime(); floatTxt(hero.x,hero.y,"服从度 +6"); endOrder(); }
-  else if(fail){ S.obey=Math.max(0,S.obey-8); say("demon",pick(SCOLD),2.6); setTimeout(()=>say("hero",pick(["对不起，主人！下次一定做到！","呜……是我不好，主人。","汪……（低下头）"]),1.8),1400); floatTxt(hero.x,hero.y,"服从度 -8"); endOrder(); }
+  if(ok||fail){ const fr=o.left/o.T; const fixed=o.k==="leave"||o.k==="quiet"||o.k==="sit"||o.k==="spot"; const sc=fail?0:fixed?3:fr>0.5?3:fr>0.2?2:1;
+    const L=CMD_LINES[o.k]; let line=fail?pick(L.fail):(sc===1&&L.slow?pick(L.slow):pick(L.ok));
+    if(o.src==="train"){ S.train.scores.push({k:o.k,t:o.t,sc}); }
+    else { const dObey=fail?-6:sc>=2?4:2; S.obey=Math.max(0,Math.min(100,S.obey+dObey)); if(!fail) S.favor+=1; floatTxt(hero.x,hero.y,"服从度 "+(dObey>0?"+":"")+dObey); if(o.k==="come"&&!fail){ S.comeOK++; if(!hasKey("whistle")&&hasKey("collar")) setTimeout(()=>gainKey("whistle"),2600); } }
+    say("demon",line,2.6); if(!fail) chime(); endOrder(); }
   updOrder(); }
-function endOrder(){ const o=S.order; S.order=null; if(o&&o.k==="fetch"){ for(let i=gitems.length-1;i>=0;i--) if(gitems[i].id==="stick") gitems.splice(i,1); hero.carry=0; } updOrder(); }
+function endOrder(){ const o=S.order; S.order=null; for(let i=gitems.length-1;i>=0;i--) if(gitems[i].id==="stick"||gitems[i].id==="bait") gitems.splice(i,1); hero.carry=0; if(S.train) S.train.gap=2.4; updOrder(); }
+function startTraining(){ const pool=cmdPool(true).filter(k=>k!=="come").sort(()=>Math.random()-0.5); S.train={list:pool.slice(0,3),i:0,scores:[],gap:2.2}; S.trainDay=S.day; say("demon","……训练。三道命令。\n一次做不好，就一直练到做好。",2.8); }
+function nextTrain(){ const T=S.train; if(T.i>=T.list.length){ finishTraining(); return; } issueOrder(T.list[T.i++],"train"); }
+function finishTraining(){ const T=S.train; S.train=null; const tot=T.scores.reduce((a,b)=>a+b.sc,0); const gi=tot<=1?0:tot<=3?1:tot<=5?2:tot===6?3:tot<=8?4:5;
+  S.obey=Math.max(0,Math.min(100,S.obey+(tot-4)*2)); S.favor+=tot; const el=document.getElementById("appr"); S.paused=1;
+  let h="<div class='ah'>今日训练 · 评分</div><div class='al'>"; for(const r of T.scores) h+=`<div class='ar'><div><div class='an'>「${r.t}」</div><div class='ac'>${r.sc?["","勉强","还行","利落"][r.sc]:"失败"}</div></div><div class='pt'>${"●".repeat(r.sc)}${"○".repeat(3-r.sc)}</div></div>`;
+  h+=`</div><div class='af'><div style='font-size:26px;letter-spacing:.2em'>「${GRADES[gi]}」</div>主人：「${GRADE_LINE[gi].replace(/\n/g,"<br>")}」<br><small>服从度 ${(tot-4)*2>=0?"+":""}${(tot-4)*2} · 满意度 +${tot}</small></div><div class='ab' onclick='closeAppraisal()'>是，主人（空格）</div>`;
+  el.innerHTML=h; el.style.display="flex"; }
 function updOrder(){ const el=document.getElementById("order"); if(!el) return; const o=S.order; if(!o){ el.style.display="none"; return; } el.style.display="block";
-  let st=""; if(o.k==="sit") st=hero.form!=="dog"?"变成狗 (2)":"保持不动 "+o.hold.toFixed(1)+"/2"; else if(o.k==="stay") st="不要移动"; else if(o.k==="come") st="走到主人身边"; else if(o.k==="fetch") st=hero.carry?"叼回主人身边！":hero.form!=="dog"?"变成狗 (2) 去叼树枝":"去叼树枝"; else if(o.k==="spin") st="绕主人一圈 "+Math.round(Math.abs(o.ang)/6.283*100)+"%"; else if(o.k==="fly") st=hero.form!=="bird"?"变成鸟 (4)":"飞在空中 "+o.hold.toFixed(1)+"/2";
-  el.innerHTML=`<b>主人的命令</b> ${o.t.replace(/（.*）/,"")}<br><small>${st}</small><div class='bar'><i style='width:${Math.max(0,o.left/o.T*100)}%'></i></div>`; }
+  let st=CMDS[o.k].st; if(CMDS[o.k].dog&&hero.form!=="dog") st="先变成狗 (2)";
+  else if(o.k==="sit") st="一动不动 "+o.hold.toFixed(1)+"/6"; else if(o.k==="fetch"&&hero.carry) st="叼回主人身边！"; else if(o.k==="bring") st="袋里有 "+invCount(o.item)+" · 带到主人身边"; else if(o.k==="spot") st="站在圈里 "+o.hold.toFixed(1)+"/5"; else if(o.k==="spin") st="转圈 "+Math.min(100,Math.round(Math.abs(o.ang)/(Math.PI*4)*100))+"%"; else if(o.k==="come") st="铃铛响了 — "+st;
+  const tr=o.src==="train"&&S.train?" <small>("+S.train.i+"/3)</small>":"";
+  el.innerHTML=`<b>${o.src==="train"?"训练":"主人的命令"}</b>${tr} ${o.t}<br><small>${st}</small><div class='bar'><i style='width:${Math.max(0,o.left/o.T*100)}%'></i></div>`; }
+function drawSpot(){ const o=S.order; if(!o||o.k!=="spot") return; const p=proj(o.mx,o.my,0); if(!p) return; cx.save(); cx.strokeStyle="#2a2622"; cx.lineWidth=2.5; cx.setLineDash([7,5]); cx.lineDashOffset=-time*20; cx.beginPath(); cx.ellipse(p.x,p.y,1.3*p.s,1.3*p.s*0.34,0,0,6.3); cx.stroke(); cx.setLineDash([]); cx.globalAlpha=Math.min(1,o.hold/5); cx.fillStyle="rgba(40,34,28,0.25)"; cx.beginPath(); cx.ellipse(p.x,p.y,1.3*p.s,1.3*p.s*0.34,0,0,6.3); cx.fill(); cx.restore(); }
 
 /* ---- per-frame tick ---- */
 function darkness(){ const c=S.clock; if(c<0.55) return 0; if(c<0.66) return (c-0.55)/0.11*0.45; if(c<0.93) return 0.45; return 0.45*(1-(c-0.93)/0.07); }
@@ -485,7 +556,7 @@ function phaseName(){ const c=S.clock; return c<0.55?"白天":c<0.66?"黄昏":c<
 let lastPhase="";
 function colStep(dt){
   S.clock+=dt/DAY_LEN; if(S.clock>=1){ S.clock-=1; S.day++; genQuota(); note("第 "+S.day+" 天 · 新的献礼单"); }
-  const ph=phaseName(); if(ph!==lastPhase){ if(ph==="黄昏"&&lastPhase&&Math.hypot(demon.x-hero.x,demon.y-hero.y)<14) setTimeout(()=>say("demon","天黑了。……月光花要开了。别空手回来。",3),200); lastPhase=ph; }
+  const ph=phaseName(); if(ph!==lastPhase){ lastPhase=ph; }
   if(S.fishCD>0) S.fishCD-=dt; if(S.sniffT>0) S.sniffT-=dt;
   for(const d of digs) if(d.rev>0) d.rev-=dt;
   for(const e of ents){ if(e.regrow>0){ e.regrow-=dt; if(e.regrow<=0) e.ready=1; } if(e.respawn>0){ e.respawn-=dt; if(e.respawn<=0){ e.gone=false; e.ready=1; } } if(e.shake>0) e.shake-=dt; if(e.nest&&e.nest.cd>0) e.nest.cd-=dt; }
@@ -501,18 +572,20 @@ function colStep(dt){
     if(g.fly){ g.fly.t+=dt/0.9; const t=Math.min(1,g.fly.t); g.x=g.fly.x0+(g.fly.x1-g.fly.x0)*t; g.y=g.fly.y0+(g.fly.y1-g.fly.y0)*t; g.z=1.6+Math.sin(t*Math.PI)*3.5-1.6*t; if(t>=1){ g.fly=null; g.z=0; g.vz=0; dirt(g.x,g.y,6); } continue; }
     if(g.vz||g.z>0){ g.z+=g.vz*dt; g.vz-=14*dt; if(g.z<=0){ g.z=0; g.vz=0; } }
     if(g.z===0&&g.age>0.6&&!hero.tf&&Math.hypot(g.x-hero.x,g.y-hero.y)<1.4&&hero.z<1){
+      if(g.id==="bait"){ if(S.order&&S.order.k==="leave"){ S.order.broke=1; } gitems.splice(i,1); continue; }
       if(g.id==="stick"){ if(hero.form==="dog"){ gitems.splice(i,1); hero.carry=1; say("hero","（叼住）",0.8); paperSnd(0.15,3000,0.15); } else if(!g.tip){ g.tip=1; note("要变成狗 (2) 才能叼回去"); } continue; }
+      if(ITEMS[g.id].key){ gitems.splice(i,1); gainKey(ITEMS[g.id].key); continue; }
       if(!invFull(g.id)){ gitems.splice(i,1); invAdd(g.id,g.n); floatTxt(g.x,g.y,"+"+g.n+" "+ITEMS[g.id].n); paperSnd(0.15,3000,0.15); } } }
   for(let i=floats.length-1;i>=0;i--){ floats[i].t+=dt; if(floats[i].t>1.6) floats.splice(i,1); }
   if(S.praise>0) S.praise-=dt;
   if(hero.swing>0) hero.swing-=dt; if(hero.sniff>0) hero.sniff-=dt; if(hero.fish>0) hero.fish-=dt;
   orderStep(dt);
-  S._t=(S._t||0)+dt; if(S._t>0.5){ S._t=0; buildCraftLite(); }
+  S._t=(S._t||0)+dt; if(S._t>0.5){ S._t=0; buildCraftLite(); checkUnlocks(); }
 }
 let _craftKey=""; function buildCraftLite(){ const k=S.inv.map(s=>s?s.id+s.n:"_").join()+S.net+S.basket; if(k!==_craftKey){ _craftKey=k; buildCraft(); updCmd(); } }
 
 /* ---- drawing ---- */
-function drawGItem(g){ const p=proj(g.x,g.y,g.z); if(!p) return; const p0=proj(g.x,g.y,0); shadow(p0,0.25); const it=ITEMS[g.id]; sprite(IMG[it.img],p,it.col?0.7:0.55,false,1,1,1,g.fly?time*12:Math.sin(g.x*3)*0.3);
+function drawGItem(g){ const p=proj(g.x,g.y,g.z); if(!p) return; const p0=proj(g.x,g.y,0); shadow(p0,0.25); const it=ITEMS[g.id]; if(it.key){ const q=proj(g.x,g.y,0.5+Math.sin(time*3)*0.15); if(q){ sprite(IMG[it.img],q,0.9,false); cx.strokeStyle='rgba(40,34,28,0.6)'; cx.lineWidth=1.2; for(let i=0;i<6;i++){ const a=i*1.05+time; cx.beginPath(); cx.moveTo(q.x+Math.cos(a)*q.s*0.55,q.y-q.s*0.45+Math.sin(a)*q.s*0.55); cx.lineTo(q.x+Math.cos(a)*q.s*0.75,q.y-q.s*0.45+Math.sin(a)*q.s*0.75); cx.stroke(); } } return; } sprite(IMG[it.img],p,it.col?0.7:0.55,false,1,1,1,g.fly?time*12:Math.sin(g.x*3)*0.3);
   if(it.col&&it.r>=2){ cx.strokeStyle="rgba(40,34,28,0.55)"; cx.lineWidth=1; for(let i=0;i<4;i++){ const a=i*1.57+time*1.5; const r1=p.s*0.45, r2=p.s*0.6; cx.beginPath(); cx.moveTo(p.x+Math.cos(a)*r1,p.y-p.s*0.35+Math.sin(a)*r1); cx.lineTo(p.x+Math.cos(a)*r2,p.y-p.s*0.35+Math.sin(a)*r2); cx.stroke(); } }
   if(g.id==="stick"){ const q=proj(g.x,g.y,g.z+1.1+Math.sin(time*6)*0.1); if(q){ cx.fillStyle="#2a2622"; cx.font="bold "+Math.round(q.s*0.5)+"px sans-serif"; cx.textAlign="center"; cx.fillText("!",q.x,q.y); } } }
 function drawFlora(f){ const p=proj(f.x,f.y,0); if(!p) return; const open=floraOpen(f); sprite(IMG[COL[f.id][1]],p,open?0.8:0.45,false,open?1:0.5,1,1,Math.sin(time*1.4+f.sw)*0.06);
@@ -535,14 +608,14 @@ function drawDarkness(){ const dk=darkness(); if(dk<=0.01) return; if(!darkC){ d
   cx.drawImage(darkC,0,0,W,H);
   const pd=proj(demon.x,demon.y,SHEETS[DEMON].h[PROP_MODE]*0.78); if(pd&&dk>0.3&&!demon.hidden){ cx.fillStyle=`rgba(255,240,230,${(dk-0.3)*2})`; for(const o of [-1,1]){ cx.beginPath(); cx.ellipse(pd.x+o*pd.s*0.12,pd.y,pd.s*0.05,pd.s*0.02,0,0,6.3); cx.fill(); } } }
 function drawFloats(){ cx.font="bold 15px "+getComputedStyle(document.body).fontFamily; cx.textAlign="center"; for(const f of floats){ const p=proj(f.x,f.y,f.z+f.t*1.2); if(!p) continue; cx.globalAlpha=Math.max(0,1-f.t/1.6); cx.fillStyle="#f7f3eacc"; const w=cx.measureText(f.text).width; cx.fillRect(p.x-w/2-4,p.y-14,w+8,19); cx.fillStyle="#2a2622"; cx.fillText(f.text,p.x,p.y); } cx.globalAlpha=1; }
-function drawHUD(){ const fam=getComputedStyle(document.body).fontFamily;
+function drawHUD(){ const fam=getComputedStyle(document.body).fontFamily; if(!started||cine.on) return; drawCompass(fam); if(hasKey("notebook")){
   // status card (top-left): rank, favour, obedience, collection
   const rk=rankOf(S.favor); const nx=RANKS.find(r=>r[0]>S.favor); cx.save(); cx.fillStyle="#f7f3eaee"; cx.strokeStyle="#2a2622"; cx.lineWidth=2; cx.beginPath(); cx.rect(10,10,214,78); cx.fill(); cx.stroke();
   cx.fillStyle="#2a2622"; cx.textAlign="left"; cx.textBaseline="alphabetic"; cx.font="12px "+fam; cx.fillText("她的身份",18,27); cx.font="bold 18px "+fam; cx.fillText("「"+rk[1]+"」",78,29);
   cx.font="12px "+fam; cx.fillText("满意度 "+S.favor+(nx?" / "+nx[0]:""),18,48);
   const bw=100; cx.strokeRect(116,39,bw,10); cx.fillStyle="#6a6258"; cx.fillRect(117,40,(bw-2)*Math.min(1,nx?(S.favor-rk[0])/(nx[0]-rk[0]):1),8);
   cx.fillStyle="#2a2622"; cx.fillText("服从度 "+Math.round(S.obey),18,66); cx.strokeRect(116,57,bw,10); cx.fillStyle=S.obey<30?"#8a4a42":"#2a2622"; cx.fillRect(117,58,(bw-2)*S.obey/100,8);
-  cx.fillStyle="#2a2622"; cx.fillText("收藏 "+COL_IDS.filter(id=>S.given[id]).length+"/"+COL_IDS.length+" · 袋 "+S.inv.filter(s=>s).length+"/"+S.cap,18,83); cx.restore();
+  cx.fillStyle="#2a2622"; cx.fillText("收藏 "+COL_IDS.filter(id=>S.given[id]).length+"/"+COL_IDS.length+" · 袋 "+S.inv.filter(s=>s).length+"/"+S.cap,18,83); cx.restore(); }
   // clock dial
   const x=W-58,y=46,r=32; cx.save(); cx.lineWidth=2; cx.strokeStyle="#2a2622";
   const seg=(a0,a1,col)=>{ cx.fillStyle=col; cx.beginPath(); cx.moveTo(x,y); cx.arc(x,y,r,-Math.PI/2+a0*6.283,-Math.PI/2+a1*6.283); cx.closePath(); cx.fill(); };
@@ -551,6 +624,8 @@ function drawHUD(){ const fam=getComputedStyle(document.body).fontFamily;
   cx.fillStyle="#f7f3eadd"; cx.fillRect(x-38,y+r+3,76,34); cx.fillStyle="#2a2622"; cx.font="bold 15px "+fam; cx.textAlign="center"; cx.fillText("第 "+S.day+" 天",x,y+r+16); cx.font="12px "+fam; cx.fillText(phaseName(),x,y+r+31); cx.restore();
 }
 
+function drawCompass(fam){ if(!hasKey("compass")) return; const s=STARS.find(q=>!q.got); if(!s) return; const p=proj(s.x,s.y,1); const cxp=W/2, cyp=H*0.55; let ang; if(p&&p.x>40&&p.x<W-40&&p.y>60&&p.y<H-120) return; const dx=s.x-hero.x, dy=s.y-hero.y; const sx=dx*cam.r[0]+dy*cam.r[1], sy=dx*Math.sin(cam.yaw)+dy*Math.cos(cam.yaw); ang=Math.atan2(sx,sy);
+  const R0=Math.min(W,H)*0.36, x=cxp+Math.sin(ang)*R0*1.3, y=cyp-Math.cos(ang)*R0; cx.save(); cx.translate(Math.max(30,Math.min(W-30,x)),Math.max(90,Math.min(H-130,y))); cx.rotate(ang); cx.fillStyle="#f7f3ea"; cx.strokeStyle="#2a2622"; cx.lineWidth=2; cx.beginPath(); cx.moveTo(0,-16); cx.lineTo(10,8); cx.lineTo(0,3); cx.lineTo(-10,8); cx.closePath(); cx.fill(); cx.stroke(); cx.restore(); }
 /* ================= v0.5: notes · demon AI · dialogue · base building · opening ================= */
 function note(t){ const box=document.getElementById("notes"); if(!box) return; const d=document.createElement("div"); d.className="nt"; d.textContent=t; box.appendChild(d); while(box.children.length>5) box.removeChild(box.firstChild); setTimeout(()=>{ d.style.opacity=0; },2600); setTimeout(()=>{ d.remove(); },3400); }
 const BASE={x:-1,y:2};
@@ -575,12 +650,11 @@ function demonAI(dt){ const dx=hero.x-demon.x, dy=hero.y-demon.y, d=Math.hypot(d
   else if(isNight()&&tent){ demon.st="sleep"; if(demonMoveTo({x:tent.x,y:tent.y+1.3},3.4,dt)){ demon.hidden=true; demon.x=tent.x; demon.y=tent.y+0.2; } }
   else { if(demon.st==="sleep"){ demon.st="read"; demon.y+=1.3; }
     if(demon.st==="read"){ const sp=readSpot(); if(demonMoveTo(sp,3.2,dt)){ if(sp.chair){ demon.sit=true; demon.x=sp.x; demon.y=sp.y; } if(demon.t<=0) demon.t=22+Math.random()*25; else if(demon.t<0.1){ demon.st="walk"; demon.dest=poiNear(); } demonFace(demon.x+Math.sin(cam.yaw+2.6),demon.y+Math.cos(cam.yaw+2.6),dt,2); } else if(demon.t<3) demon.t=3; }
-    else if(demon.st==="walk"){ if(demonMoveTo(demon.dest,3.0,dt)){ demon.st="look"; demon.t=5+Math.random()*5; if(d<14&&Math.random()<0.4) say("demon",pick(["……无聊的地方。","纸做的。全是纸做的。","嗯。","……（端详）"]),2); } }
+    else if(demon.st==="walk"){ if(demonMoveTo(demon.dest,3.0,dt)){ demon.st="look"; demon.t=5+Math.random()*5; } }
     else if(demon.st==="look"){ demon.moving=Math.max(0,demon.moving-dt*4); if(demon.t<=0){ if(Math.random()<0.45){ demon.st="walk"; demon.dest=poiNear(); } else { demon.st="read"; demon.t=0; } } }
     else demon.st="read"; }
   if((S.order||bubbles.some(b=>b.who==="demon"))&&!demon.hidden&&demon.st!=="walk") demonFace(hero.x,hero.y,dt,3);
   demon.bob+=dt*(demon.moving>0.1?7:1.5);
-  demon.idle+=dt; if(demon.idle>16+Math.random()*10){ demon.idle=0; if(d<12&&!demon.hidden) say("demon",pick(DEMON_IDLE),2.4); }
 }
 
 /* ---- Skyrim-style dialogue: she never speaks aloud; the player picks her lines ---- */
@@ -617,17 +691,18 @@ function showNode(n){ dlg.node=n; const el=document.getElementById("dlg"); el.st
   el.innerHTML=`<div class='dw'>主人</div><div class='dt'>${n.line.replace(/\n/g,"<br>")}</div><div class='do'>${n.opts.map((o,i)=>`<div class='op' onclick='pickOpt(${i})'><b>${i+1}</b>${o.t}</div>`).join("")}</div>`; }
 function pickOpt(i){ const o=dlg.node&&dlg.node.opts[i]; if(o){ paperSnd(0.1,2600,0.1); o.f(); } }
 function reply(line,opts){ showNode({line,opts:opts||[{t:"（继续说）",f:()=>showNode(rootNode(true))},{t:"「我去干活了。」（离开）",f:leave}]}); }
-function leave(){ closeDialog(); if(Math.random()<0.5) say("demon",pick(["嗯。","去。","……终于。"]),1.4); }
+function leave(){ closeDialog(); }
 function eff(e){ if(!e) return; if(e.obey){ S.obey=Math.min(100,S.obey+e.obey); } if(e.favor){ S.favor+=e.favor; } }
 function rootNode(back){ const o=[]; const hasCol=S.inv.some(s=>s&&ITEMS[s.id].col);
   if(hasCol) o.push({t:"「主人，这是今天找到的东西。」（献上收藏）",f:()=>{ closeDialog(); deliverAll(); }});
-  o.push({t:"「主人，有什么吩咐吗？」",f:()=>{ if(Math.random()<0.55){ closeDialog(); S.orderCD=999; setTimeout(()=>{ issueOrder(); },300); } else reply(pick(["献礼单上写着。自己看。","没有。别在我眼前晃。","……去给我找点像样的东西。别空着手回来。"])); }});
-  if(demon.st==="follow") o.push({t:"「主人可以回去休息了。」",f:()=>{ demon.st="read"; demon.t=0; reply("……本来就不想陪你。",[{t:"（离开）",f:closeDialog}]); }});
+  o.push({t:"「主人，有什么吩咐吗？我什么都愿意做。」",f:()=>{ if(Math.random()<0.6){ closeDialog(); setTimeout(()=>{ issueOrder(); },300); } else reply(pick(["献礼单上写着。自己看。","没有。别在我眼前晃。","……去给我找点像样的东西。别空着手回来。"])); }});
+  if(hasKey("whistle")&&S.trainDay!==S.day&&!S.train) o.push({t:"「主人……今天的训练，可以开始了吗？」",f:()=>{ closeDialog(); startTraining(); }});
+  if(!hasKey("leash")){} else if(demon.st==="follow") o.push({t:"「主人可以回去休息了。」",f:()=>{ demon.st="read"; demon.t=0; reply("……本来就不想陪你。",[{t:"（离开）",f:closeDialog}]); }});
   else o.push({t:"「主人……能陪我一起走走吗？」",f:()=>{ if(time<dlg.followCD){ reply("刚说过了。不去。"); return; } const p=0.25+S.obey/200+RANKS.findIndex(r=>r[1]===rankOf(S.favor)[1])*0.08;
     if(Math.random()<p){ demon.st="follow"; demon.followT=90+Math.random()*60; reply(pick(["……只陪你一会儿。别自作多情。","走吧。别让我等。","哼。……带路。"]),[{t:"「谢谢主人！」（离开）",f:closeDialog}]); }
     else { dlg.followCD=time+60; reply(pick(["不需要。","懒得动。","你自己去。我又不是你的狗。","……你配吗？"])); } }});
-  if(!builds.length) o.push({t:"「主人，我们要在这里住下吗？」",f:()=>reply("暂时。\n先给我造一把像样的椅子。帐篷、柜子……你看着办。\n（按 G 打开建造。材料：独角兽撞碎石头和枯树）")});
-  else if(S.starsGiven<3) o.push({t:"「星辰罗盘……还差几颗星星？」",f:()=>reply("还差 "+(3-S.starsGiven)+" 颗。\n……你在浪费我的时间。")});
+  if(!hasKey("mallet")){} else if(!builds.length) o.push({t:"「主人，我们要在这里住下吗？」",f:()=>reply("暂时。\n先给我造一把像样的椅子。帐篷、柜子……你看着办。\n（按 G 打开建造。材料：独角兽撞碎石头和枯树）")});
+  else if(S.starsGiven<3&&hasKey("compass")) o.push({t:"「星辰罗盘……还差几颗星星？」",f:()=>reply("还差 "+(3-S.starsGiven)+" 颗。\n……你在浪费我的时间。")});
   o.push({t:"（闲聊）……",f:()=>showNode(chatNode())});
   o.push({t:"「我去干活了。」（离开）",f:leave});
   return {line:greet(back),opts:o}; }
@@ -663,6 +738,7 @@ function drawGhost(){ if(!placing) return; const p=placePos(); const q=proj(p.x,
   cx.save(); cx.strokeStyle=ok?"#2a2622":"#9a3a30"; cx.setLineDash([6,5]); cx.lineWidth=2; cx.beginPath(); cx.ellipse(q.x,q.y,B.rad*1.3*q.s+8,(B.rad*1.3*q.s+8)*0.35,0,0,6.3); cx.stroke(); cx.restore(); sprite(IMG[B.img],q,B.h,false,ok?0.55:0.3); }
 function drawCabinetItems(e,p){ const ids=COL_IDS.filter(id=>S.given[id]&&id!=="star").sort((a,b)=>COL[b][3]-COL[a][3]).slice(0,6); ids.forEach((id,i)=>{ const row=Math.floor(i/2), col=i%2; const ox=(col-0.5)*0.42; const q=proj(e.x+cam.r[0]*ox,e.y+cam.r[1]*ox,e.h*(0.62-row*0.19)); if(q) sprite(IMG[COL[id][1]],q,0.34,false,e.alpha); }); }
 
+const cine={on:0};
 /* ---- opening cutscene (animated CG) ---- */
 const CUT=[
  {img:"cg_1",k:[0,0,6,-2],lines:[{n:"古宅。月亮升起的夜晚，这里的钟从来不走。"},{n:"宅子的主人，是一个不需要任何人的恶魔。"}]},
@@ -684,7 +760,7 @@ function renderCap(){ const cap=document.getElementById("cutcap"); const t=cut.f
 function cutTick(dt){ if(!cut.on) return; if(cut.typ<cut.full.length){ cut.typ+=dt*26; renderCap(); } }
 function endCut(){ if(!cut.on) return; cut.on=0; document.getElementById("cut").style.display="none"; beginGame(); }
 function beginGame(){ started=true; hero.x=-1; hero.y=2.5; hero.face=Math.PI; demon.x=-2.6; demon.y=4.8; demon.st="look"; demon.t=5; shards(hero.x,hero.y,1,20,4);
-  setTimeout(()=>say("demon","……吵死了，这里的风。\n今天的献礼写在上面。去找。",3.4),900); setTimeout(()=>note("靠近主人按 空格 对话 · G 建造 · B 收藏目录"),2500); updCmd(); }
+  refreshUI(); setTimeout(()=>{ gainKey("bag"); },700); setTimeout(()=>note("WASD / 点击地面 移动 · 空格 动作 · Q/E 转视角"),1800); updCmd(); }
 
 /* ---------------- update ---------------- */
 let last=performance.now(), time=0, started=false, won=false, winT=0;
@@ -699,18 +775,18 @@ function step(dt){
   else if(target){ const dx=target.x-hero.x, dy=target.y-hero.y, l=Math.hypot(dx,dy); if(l<0.3) target=null; else { mx=dx/l; my=dy/l; } }
   colStep(dt);
   const F=FORMS[hero.form]; const flying=!!F.fly;
-  if(hero.tf){ hero.tf.t+=dt; if(hero.tf.t>=TF_DUR*0.55&&!hero.tf.sw){ hero.tf.sw=1; hero.form=hero.tf.to; updForms(); shards(hero.x,hero.y,1.2,14,5); } if(hero.tf.t>=TF_DUR){ hero.tf=null; const L={human:"变回来了，主人！",dog:"汪！（摇尾巴）",unicorn:"咴——！",bird:"啾！"}; say("hero",L[hero.form],1.2); if(hero.form!=="human"&&Math.random()<0.5&&Math.hypot(demon.x-hero.x,demon.y-hero.y)<10) setTimeout(()=>say("demon",pick(["……狗的样子，最适合你。","嗯，还算有点用处。","别掉纸屑在我脚边。","变什么都一样。去干活。"]),2.2),700); } mx=my=0; }
+  if(hero.tf){ hero.tf.t+=dt; if(hero.tf.t>=TF_DUR*0.55&&!hero.tf.sw){ hero.tf.sw=1; hero.form=hero.tf.to; updForms(); shards(hero.x,hero.y,1.2,14,5); } if(hero.tf.t>=TF_DUR){ hero.tf=null; const L={human:"变回来了，主人！",dog:"汪！（摇尾巴）",unicorn:"咴——！",bird:"啾！"}; if(hero.form!=="human"&&!S["tf_"+hero.form]&&Math.hypot(demon.x-hero.x,demon.y-hero.y)<10){ S["tf_"+hero.form]=1; const fm=hero.form; setTimeout(()=>say("demon",{dog:"……狗的样子，最适合你。",unicorn:"……角是借来的。别弄坏。",bird:"飞得再高，也得回来。"}[fm],2.4),700); } } mx=my=0; }
   if(hero.dig>0){ hero.dig-=dt; mx=my=0; if(Math.random()<dt*14) dirt(hero.x+Math.sin(hero.face)*0.6,hero.y+Math.cos(hero.face)*0.6,2);
     if(hero.dig<=0&&hero.digAt){ const d=hero.digAt; hero.digAt=null; if(digs.includes(d)){ digs.splice(digs.indexOf(d),1); dirt(d.x,d.y,24); thud(); drop(d.x,d.y,d.id,1); say("hero",COL[d.id][2]==="past"?"汪？（旧东西……主人会要吗？）":"汪！挖到了！",1.6); setTimeout(spawnDig,60000); } }
-    else if(hero.dig<=0&&Math.hypot(hero.x-MOUND.x,hero.y-MOUND.y)<2.6&&!MOUND.dug){ MOUND.dug=1; MOUND.gone=true; STARS[0].hidden=false; STARS[0].pop=0; dirt(MOUND.x,MOUND.y,40); thud(); say("hero","找到了！",1.6); } }
+    else if(hero.dig<=0&&Math.hypot(hero.x-MOUND.x,hero.y-MOUND.y)<2.6&&!MOUND.dug){ MOUND.dug=1; MOUND.gone=true; STARS[0].hidden=false; STARS[0].pop=0; dirt(MOUND.x,MOUND.y,40); thud(); drop(MOUND.x+1,MOUND.y,"k_horn",1); say("hero","找到了！",1.6); } }
   let sp=F.speed;
   if(hero.dash>0){ hero.dash-=dt; sp=24; if(!(mx||my)){ mx=Math.sin(hero.face); my=Math.cos(hero.face); } }
   if(mx||my){ const nx=hero.x+mx*sp*dt, ny=hero.y+my*sp*dt; const bk=blocked(nx,ny,flying);
     if(!bk){ hero.x=nx; hero.y=ny; }
-    else { if(bk!==true&&bk.puzzle==="smash"&&hero.form==="unicorn"&&hero.dash>0&&!bk.gone){ bk.gone=true; shards(bk.x,bk.y,1,26,7,"#dcd6ca"); dirt(bk.x,bk.y,20); thud(); shake=0.35; hero.dash=0; drop(bk.x,bk.y,wpick(BOULDER_TAB),1); if(RING.every(b=>b.gone)||RING.filter(b=>!b.gone).length<=5){ if(!RING.msg){RING.msg=1; say("hero","撞开了！",1.4);} } }
+    else { if(bk!==true&&bk.puzzle==="smash"&&hero.form==="unicorn"&&hero.dash>0&&!bk.gone){ bk.gone=true; shards(bk.x,bk.y,1,26,7,"#dcd6ca"); dirt(bk.x,bk.y,20); thud(); shake=0.35; hero.dash=0; drop(bk.x,bk.y,wpick(BOULDER_TAB),1); if(RING.filter(b=>!b.gone).length<=5){ if(!RING.msg){RING.msg=1; drop(20,-8,"k_quill",1); note("石阵被撞开了");} } }
       else if(bk!==true&&(bk.kind==="dead"||bk.kind==="stump")&&hero.form==="unicorn"&&hero.dash>0&&!bk.gone){ bk.gone=true; bk.respawn=200; drop(bk.x,bk.y,"log",1); if(bk.kind==="dead"){ drop(bk.x,bk.y,"log",1); drop(bk.x,bk.y,"twig",1); } shards(bk.x,bk.y,1,14,5,"#e8dfcc"); thud(); shake=0.25; hero.dash=0; }
       else if(bk!==true&&(bk.kind==="rocks"||bk.kind==="boulder")&&!bk.puzzle&&hero.form==="unicorn"&&hero.dash>0&&!bk.gone){ breakRock(bk); shards(bk.x,bk.y,0.8,16,6,"#dcd6ca"); dirt(bk.x,bk.y,12); thud(); shake=0.25; hero.dash=0; }
-      else if(bk!==true&&bk.puzzle==="smash"&&hero.form!=="unicorn"&&!bk.tip){ bk.tip=1; note("推不动——需要独角兽的冲撞"); }
+      else if(bk!==true&&bk.puzzle==="smash"&&hero.form!=="unicorn"&&!bk.tip){ bk.tip=1; note(hasKey("horn")?"推不动——需要独角兽的冲撞":"推不动。要是有一只角……"); }
       if(!blocked(nx,hero.y,flying)) hero.x=nx; else if(!blocked(hero.x,ny,flying)) hero.y=ny; }
     const tf=Math.atan2(mx,my); let d=tf-hero.face; d=Math.atan2(Math.sin(d),Math.cos(d)); hero.face+=d*Math.min(1,dt*14); hero.moving=Math.min(1,hero.moving+dt*6); }
   else hero.moving=Math.max(0,hero.moving-dt*6);
@@ -718,7 +794,7 @@ function step(dt){
   const zt=flying?F.fly+Math.sin(time*3)*0.25:0; hero.z+=(zt-hero.z)*Math.min(1,dt*5);
   if(!flying&&inRiver(hero.x,hero.y)) { hero.y=hero.y<(RIVER.y0+RIVER.y1)/2?RIVER.y0-0.3:RIVER.y1+0.3; }
   // river tip
-  if(hero.form!=="bird"&&hero.y>RIVER.y0-1.4&&hero.y<RIVER.y0&&!step.riverTip){ step.riverTip=1; note("河太宽了——变成鸟 (4) 飞过去"); if(Math.hypot(demon.x-hero.x,demon.y-hero.y)<12) setTimeout(()=>say("demon","……变成鸟。这种事还要我教？",2.8),1400); }
+  if(hero.form!=="bird"&&hasKey("quill")&&hero.y>RIVER.y0-1.4&&hero.y<RIVER.y0&&!step.riverTip){ step.riverTip=1; note("河太宽了——变成鸟 (4) 飞过去"); if(Math.hypot(demon.x-hero.x,demon.y-hero.y)<12) setTimeout(()=>say("demon","……变成鸟。这种事还要我教？",2.8),1400); }
   demonAI(dt);
   // stars
   for(const s of STARS){ if(s.got||s.hidden) continue; if(s.pop!==undefined&&s.pop<1) s.pop+=dt*2;
@@ -738,12 +814,12 @@ function step(dt){
     if(placing) t="空格：放下"+BUILDS[placing.id].n+" · Esc 取消"; else if(nearM&&!demon.hidden) t=hasCol?"空格：和主人说话（可以献上收藏）":"空格：和主人说话";
     else if(hero.form==="human"&&builds.some(b=>b.bid==="cabinet"&&Math.hypot(b.x-hero.x,b.y-hero.y)<2.6)) t="空格：翻看收藏柜";
     else if(hero.form==="dog"&&isNight()&&builds.some(b=>b.bid==="doghouse"&&Math.hypot(b.x-hero.x,b.y-hero.y)<2.4)) t="空格：钻进狗窝睡到天亮";
-    else if(Math.hypot(hero.x-MOUND.x,hero.y-MOUND.y)<4&&!MOUND.dug) t=hero.form==="dog"?"按 空格 挖！":"松软的土…狗鼻子能闻到";
-    else if(Math.hypot(hero.x-20,hero.y+8)<7&&RING.some(b=>!b.gone)) t=hero.form==="unicorn"?"朝石头冲，按 空格 冲撞！":"石阵…需要独角兽的角";
+    else if(Math.hypot(hero.x-MOUND.x,hero.y-MOUND.y)<4&&!MOUND.dug) t=hero.form==="dog"?"按 空格 挖！":hasKey("collar")?"松软的土…狗鼻子能闻到":"松软的土…手挖不动";
+    else if(Math.hypot(hero.x-20,hero.y+8)<7&&RING.some(b=>!b.gone)) t=hero.form==="unicorn"?"朝石头冲，按 空格 冲撞！":"石阵…推不动。要是有一只角……";
     else if(hero.form==="dog") t=nearDig()?"空格：挖这里":"空格：嗅一嗅，找出埋藏点";
     else if(hero.form==="unicorn") t="空格：冲撞 · 石堆出矿石和石头 · 枯树出木头";
     else if(hero.form==="bird"){ const n=nearNestTree(); t=n&&hero.z>1.2?(n.nest.cd>0?"鸟巢是空的":"空格：翻找鸟巢"):"飞到有鸟巢的高树旁"; }
-    else { const ni=nearestInteract(); if(ni) t=ni.k==="flora"?(floraOpen(ni.o)?"空格：采 "+COL[ni.o.id][0]:"花苞合着…夜里才开"):"空格：采集 "+ITEMS[ni.o.res].n; else if(nearBank()) t=S.net?"空格：用网打捞河里的东西":"要捞网才能打捞"; else if(nearNestTree()) t="树上有鸟巢 — 变成鸟 (4)"; else if(hero.y>RIVER.y0-4&&hero.y<RIVER.y0) t="变成鸟 (4) 飞过河"; }
+    else { const ni=nearestInteract(); if(ni) t=ni.k==="flora"?(floraOpen(ni.o)?"空格：采 "+COL[ni.o.id][0]:"花苞合着…夜里才开"):"空格：采集 "+ITEMS[ni.o.res].n; else if(nearBank()) t=hasKey("net")?"空格：用网打捞河里的东西":"要捞网才能打捞"; else if(nearNestTree()&&hasKey("quill")) t="树上有鸟巢 — 变成鸟 (4)"; else if(hero.y>RIVER.y0-4&&hero.y<RIVER.y0) t=hasKey("quill")?"变成鸟 (4) 飞过河":"河太宽了，过不去"; }
     if(S.order) t=""; document.getElementById("tip").textContent=t; }
 }
 let shake=0;
@@ -818,8 +894,8 @@ function drawHero(){ const p0=proj(hero.x,hero.y,0); if(!p0) return; const p=pro
   if(hero.dash>0) rot+=0.12*(s.flip?-1:1)*(FORMS.unicorn.sideDir);
   const pp={x:p.x,y:p.y-bob*p.s*3,s:p.s}; sprite(s.img,pp,s.h,s.flip,1,1/sq*0.98+0.02,sq,rot);
   { const side=(Math.sin(hero.face-cam.yaw)>=0?1:-1);
-    if(hero.form==="human"&&S.net){ const sw=hero.swing>0?(1-hero.swing/0.35)*2.4-1.2:0, fi=hero.fish>0?1.0+Math.sin(time*8)*0.15:0; sprite(IMG.col_relic_0,{x:pp.x+side*p.s*0.4,y:pp.y-p.s*0.35,s:p.s},1.15,side<0,1,1,1,side*(0.3+sw+fi)+Math.sin(hero.bob)*0.08*run); }
-    if(hero.form==="dog"&&hero.carry){ sprite(IMG.item_2,{x:pp.x+side*p.s*0.5,y:pp.y-p.s*0.75,s:p.s},0.55,side<0,1,1,1,1.5*side); }
+    if(hero.form==="human"&&hasKey("net")){ const sw=hero.swing>0?(1-hero.swing/0.35)*2.4-1.2:0, fi=hero.fish>0?1.0+Math.sin(time*8)*0.15:0; sprite(IMG.col_relic_0,{x:pp.x+side*p.s*0.4,y:pp.y-p.s*0.35,s:p.s},1.15,side<0,1,1,1,side*(0.3+sw+fi)+Math.sin(hero.bob)*0.08*run); }
+    if(hero.form==="dog"&&hero.carry){ sprite(IMG.col_relic_6,{x:pp.x+side*p.s*0.5,y:pp.y-p.s*0.75,s:p.s},0.55,side<0,1,1,1,1.5*side); }
     if(hero.form==="dog"&&hero.sniff>0){ cx.strokeStyle="rgba(40,34,28,0.6)"; cx.lineWidth=1.2; for(let i=0;i<3;i++){ const r=p.s*(0.2+((time*2+i*0.33)%1)*0.5); cx.beginPath(); cx.arc(pp.x+side*p.s*0.7,pp.y-p.s*0.6,r,-0.6,0.6); cx.stroke(); } } }
   if(hero.dash>0){ cx.strokeStyle="rgba(40,34,28,0.5)"; cx.lineWidth=1.5; for(let i=0;i<5;i++){ const y=p.y-p.s*(0.4+i*0.35); const d=-Math.sin(hero.face-cam.yaw); cx.beginPath(); cx.moveTo(p.x-d*p.s*1.2,y); cx.lineTo(p.x-d*p.s*(2.2+i*0.2),y); cx.stroke(); } }
 }
@@ -885,7 +961,7 @@ function frame(now){ const dt=Math.min(0.05,(now-last)/1000); last=now; cutTick(
   for(const b of bugs){ const p=proj(b.x,b.y,0); if(p&&p.x>-40&&p.x<W+40) list.push({z:p.z-0.005,d:()=>drawBug(b)}); }
   for(const d of digs){ if(d.rev<=0) continue; const p=proj(d.x,d.y,0); if(p) list.push({z:p.z+0.3,d:()=>drawDig(d)}); }
   list.sort((a,b)=>b.z-a.z); for(const it of list) it.d();
-  drawGhost(); drawParts(); drawDarkness(); drawFloats(); drawBubbles();
+  drawGhost(); drawSpot(); drawParts(); drawDarkness(); drawFloats(); drawBubbles();
   // paper grain + vignette
   if(!paperPat) paperPat=cx.createPattern(paper,"repeat"); cx.globalCompositeOperation="multiply"; cx.globalAlpha=0.35; cx.fillStyle=paperPat; cx.fillRect(0,0,W,H); cx.globalAlpha=1; cx.globalCompositeOperation="source-over";
   const vg=cx.createRadialGradient(W/2,H*0.55,Math.min(W,H)*0.35,W/2,H*0.55,Math.max(W,H)*0.75); vg.addColorStop(0,"rgba(60,50,40,0)"); vg.addColorStop(1,"rgba(60,50,40,0.28)"); cx.fillStyle=vg; cx.fillRect(0,0,W,H);
@@ -895,5 +971,5 @@ setupResources(); buildInv(); updCmd();
 requestAnimationFrame(frame);
 document.getElementById("title").onclick=()=>{ ac(); document.getElementById("title").style.display="none"; startCut(); };
 document.getElementById("cut").onclick=e=>{ if(e.target.id==="cutskip"){ endCut(); return; } nextLine(); };
-window.__game={S,gitems,flora,bugs,digs,invAdd,craft,RECIPES,useSlot,deliverAll,closeAppraisal,openCatalog,issueOrder,COL,ITEMS,ents,hero,demon,cam,transform,STARS,RING,MOUND,toggleProp,toggleDemon,builds,BUILDS,startPlace,confirmPlace,openDialog,closeDialog,pickOpt,dlg,startCut,cut,start:()=>{ document.getElementById("title").style.display="none"; beginGame(); }};
+window.__game={gainKey,closeCard,startTraining,hasKey,refreshUI,KEYS,get order(){return S.order;},S,gitems,flora,bugs,digs,invAdd,craft,RECIPES,useSlot,deliverAll,closeAppraisal,openCatalog,issueOrder,COL,ITEMS,ents,hero,demon,cam,transform,STARS,RING,MOUND,toggleProp,toggleDemon,builds,BUILDS,startPlace,confirmPlace,openDialog,closeDialog,pickOpt,dlg,startCut,cut,start:()=>{ document.getElementById("title").style.display="none"; beginGame(); }};
 </script></body></html>

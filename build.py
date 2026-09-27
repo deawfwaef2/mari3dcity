@@ -2,7 +2,7 @@ from PIL import Image; import glob, base64, io, json, os
 A={}
 for f in sorted(glob.glob("assets/*.png")):
     k=os.path.basename(f)[:-4]
-    if k.startswith(("demon_C","demon_D2","demon_D3","demon_D_","demon_D4_tall","heroine_A_0","heroine_A_1","heroine_A_2","heroine_A_3","heroine_A_4")): continue
+    if k.startswith(("demon_C","demon_D2","demon_D3","demon_D_","demon_D4","demon_D5","heroine_A_0","heroine_A_1","heroine_A_2","heroine_A_3","heroine_A_4")): continue
     im=Image.open(f).convert("RGBA")
     if k=="panorama" or k.startswith("cg_"):
         im=im.convert("RGB")
