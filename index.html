@@ -50,7 +50,7 @@ canvas{display:block;width:100vw;height:100vh;touch-action:none}
 #dlg .dw{font-size:12px;letter-spacing:.3em;opacity:.65}#dlg .dt{font-size:19px;line-height:1.6;margin:2px 0 8px;padding-bottom:6px;border-bottom:1.5px dashed #2a262288}
 #dlg .op{padding:4px 8px;border-radius:6px;cursor:pointer;font-size:15px}#dlg .op:hover{background:#e4dccb}#dlg .op b{display:inline-block;width:22px;opacity:.55}
 #bmenu{position:fixed;left:12px;top:96px;width:250px;max-height:70vh;overflow:auto;background:#f7f3eaf4;border:2px solid #2a2622;border-radius:10px 13px 9px 12px;padding:6px 8px;font-size:13px;color:#2a2622;box-shadow:2px 3px 0 #2a262244;display:none;z-index:6}#bmenu small{opacity:.6;margin-left:4px}
-#cut{position:fixed;inset:0;background:#15130f;z-index:10;display:none;overflow:hidden;cursor:pointer}
+#cskip{position:fixed;right:18px;top:14px;color:#f3efe6;background:#0008;border:1.5px solid #f3efe6;padding:5px 14px;border-radius:8px;font-size:14px;cursor:pointer;z-index:10;display:none}
 #card{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);width:min(420px,90vw);background:#f7f3ea;border:3px solid #2a2622;border-radius:12px 16px 10px 14px;box-shadow:5px 6px 0 #2a262266;z-index:9;display:none;color:#2a2622;padding:14px 18px;text-align:center}
 #card img{height:110px;margin:4px auto;display:block}#card .kt{font-size:12px;letter-spacing:.3em;opacity:.6}#card .kn{font-size:24px;font-weight:bold;letter-spacing:.1em}#card .kf{font-size:15px;margin:8px 0;line-height:1.6;border-top:1.5px dashed #2a262288;border-bottom:1.5px dashed #2a262288;padding:6px 0}#card .kd{font-size:14px;opacity:.85}
 .hide{display:none!important}
@@ -61,7 +61,7 @@ canvas{display:block;width:100vw;height:100vh;touch-action:none}
 #cuthint{position:absolute;right:22px;bottom:2vh;color:#f3efe6aa;font-size:12px}
 </style></head><body>
 <canvas id="cv"></canvas>
-<div id="hud"><span id="tip" style="opacity:.8"></span></div><div id="cmd"></div><div id="order"></div><div id="appr"></div><div id="catalog"></div><div id="notes"></div><div id="dlg"></div><div id="bmenu"></div><div id="cut"><div id="cutimg"></div><div id="cutcap"></div><div id="cutskip">SKIP ▸▸</div><div id="cuthint">点击 / 空格 继续</div></div><div id="card"></div><div id="inv"></div>
+<div id="hud"><span id="tip" style="opacity:.8"></span></div><div id="cmd"></div><div id="order"></div><div id="appr"></div><div id="catalog"></div><div id="notes"></div><div id="dlg"></div><div id="bmenu"></div><div id="cskip">SKIP ▸▸</div><div id="card"></div><div id="inv"></div>
 <div id="side">
   <button class="sb" id="bCat"><b>收藏目录 (B)</b></button>
   <button class="sb" id="bBuild"><b>建造 (G)</b></button>
@@ -193,7 +193,7 @@ function dirt(x,y,n){ for(let i=0;i<n;i++){ const a=Math.random()*6.28, v=2+Math
 function sparkle(x,y,z){ for(let i=0;i<16;i++){ const a=i/16*6.28; parts.push({x,y,z,vx:Math.cos(a)*4,vy:Math.sin(a)*4,vz:2,life:1,rot:0,vr:0,sz:0.12,kind:"spark"}); } }
 
 /* ---------------- input ---------------- */
-const K={}; addEventListener("keydown",e=>{ if(cut.on){ if(e.code==="Space"||e.code==="Enter"){ e.preventDefault(); nextLine(); } if(e.code==="Escape") endCut(); return; }
+const K={}; addEventListener("keydown",e=>{ if(cine.on){ if(e.code==="Space"||e.code==="Enter"){ e.preventDefault(); cine.fast=true; } return; }
   if(dlg.open){ const m=e.code.match(/^Digit(\d)$/); if(m) pickOpt(+m[1]-1); if(e.code==="Escape") closeDialog(); if(e.code==="Space") e.preventDefault(); return; }
   K[e.code]=1; if(e.repeat)return; if(e.code==="KeyG"&&hasKey("mallet")){ if(placing){ placing=null; } openBuildMenu(); } if(e.code==="Escape"&&placing){ placing=null; note("取消建造"); }
   if(e.code==="KeyQ") rotCam(-1); if(e.code==="KeyE") rotCam(1);
@@ -205,7 +205,7 @@ let drag=null;
 cv.addEventListener("contextmenu",e=>e.preventDefault());
 cv.addEventListener("pointerdown",e=>{ ac(); drag={x:e.clientX,y:e.clientY,btn:e.button,moved:0,yaw:cam.yawT}; cv.setPointerCapture(e.pointerId); });
 cv.addEventListener("pointermove",e=>{ if(!drag)return; const dx=e.clientX-drag.x; if(Math.abs(dx)>6) drag.moved=1; if(drag.btn===2||(e.pointerType!=="mouse"&&drag.moved&&Math.abs(dx)>30)){ cam.yawT=drag.yaw-dx*0.006; } });
-cv.addEventListener("pointerup",e=>{ if(drag&&!drag.moved&&drag.btn===0){ const g=unproj(e.clientX,e.clientY); if(g) target={x:g[0],y:g[1]}; } drag=null; });
+cv.addEventListener("pointerup",e=>{ if(cine.on){ cine.fast=true; drag=null; return; } if(drag&&!drag.moved&&drag.btn===0){ const g=unproj(e.clientX,e.clientY); if(g) target={x:g[0],y:g[1]}; } drag=null; });
 cv.addEventListener("wheel",e=>{ cam.distT=Math.max(11,Math.min(34,cam.distT*(e.deltaY>0?1.1:0.9))); },{passive:true});
 document.getElementById("act").onclick=()=>{ ac(); if(!S.paused) action(); }; document.getElementById("bCat").onclick=()=>{ ac(); openCatalog(); };
 function toggleProp(){}
@@ -323,7 +323,7 @@ function closeCard(){ const el=document.getElementById("card"); if(el.style.disp
 function formOK(f){ return f==="human"||(f==="dog"&&hasKey("collar"))||(f==="unicorn"&&hasKey("horn"))||(f==="bird"&&hasKey("quill")); }
 function refreshUI(){ const k=S.keys; const sh=(id,v)=>{ const e=document.getElementById(id); if(e) e.classList.toggle("hide",!v); };
   sh("inv",k.bag); sh("bCat",k.notebook); sh("bBuild",k.mallet); sh("side",k.notebook||k.mallet);
-  let nf=0; for(const f of Object.keys(FORMS)){ const ok=formOK(f); nf+=ok; sh("f_"+f,ok); } sh("forms",nf>1); updCmd(); }
+  let nf=0; for(const f of Object.keys(FORMS)){ const ok=formOK(f); nf+=ok; sh("f_"+f,ok); } sh("forms",nf>1); sh("act",started&&!cine.on); updCmd(); }
 function checkUnlocks(){ if(!started||cine.on) return; const rk=RANKS.findIndex(r=>r[1]===rankOf(S.favor)[1]);
   if(rk>=1&&!hasKey("mallet")&&hasKey("notebook")) gainKey("mallet");
   if(rk>=2&&!hasKey("basket")) gainKey("basket");
@@ -738,28 +738,107 @@ function drawGhost(){ if(!placing) return; const p=placePos(); const q=proj(p.x,
   cx.save(); cx.strokeStyle=ok?"#2a2622":"#9a3a30"; cx.setLineDash([6,5]); cx.lineWidth=2; cx.beginPath(); cx.ellipse(q.x,q.y,B.rad*1.3*q.s+8,(B.rad*1.3*q.s+8)*0.35,0,0,6.3); cx.stroke(); cx.restore(); sprite(IMG[B.img],q,B.h,false,ok?0.55:0.3); }
 function drawCabinetItems(e,p){ const ids=COL_IDS.filter(id=>S.given[id]&&id!=="star").sort((a,b)=>COL[b][3]-COL[a][3]).slice(0,6); ids.forEach((id,i)=>{ const row=Math.floor(i/2), col=i%2; const ox=(col-0.5)*0.42; const q=proj(e.x+cam.r[0]*ox,e.y+cam.r[1]*ox,e.h*(0.62-row*0.19)); if(q) sprite(IMG[COL[id][1]],q,0.34,false,e.alpha); }); }
 
-const cine={on:0};
-/* ---- opening cutscene (animated CG) ---- */
-const CUT=[
- {img:"cg_1",k:[0,0,6,-2],lines:[{n:"古宅。月亮升起的夜晚，这里的钟从来不走。"},{n:"宅子的主人，是一个不需要任何人的恶魔。"}]},
- {img:"cg_2",k:[-4,0,4,1],lines:[{n:"她曾经是自由的魔女。"},{n:"现在，她跪在他的椅子旁边——\n她已经想不起，是从哪一天开始的。"},{d:"……别盯着我看。"},{d:"去把地板擦干净。擦完了就待着，别出声。"}]},
- {img:"cg_3",k:[3,2,-3,-2],lines:[{n:"那本黑色的书里，画着一件神器——「星辰罗盘」。"},{n:"罗盘上的三颗纸星，散落在书页另一侧的世界：「纸之界」。"},{d:"……有意思。"},{d:"归我了。"}]},
- {img:"cg_4",k:[0,0,-5,0],shake:1,lines:[{n:"大厅的镜子里，纸页像潮水一样旋转。"},{d:"走。"},{d:"……愣着干什么。狗，是要跟着主人的。"},{n:"她被拽进了漩涡。"}]},
- {img:"cg_5",k:[-3,1,3,-1],lines:[{n:"……纸之界。"},{n:"身后的石门碎成了粉末。回去的路，断了。"},{d:"在这里搭个落脚的地方。"},{d:"然后，把星星给我找回来。"},{d:"别让我失望。……虽然本来也没抱什么期望。"}]},
-];
-const cut={on:0,p:0,l:0,typ:0,full:""};
-function startCut(){ cut.on=1; cut.p=0; cut.l=-1; const el=document.getElementById("cut"); el.style.display="block"; showPanel(); }
-function showPanel(){ const P=CUT[cut.p]; const im=document.getElementById("cutimg"); im.style.opacity=0;
-  setTimeout(()=>{ im.style.backgroundImage=`url(${ASSETS[P.img]})`; im.style.opacity=1; const k=P.k; im.animate([{transform:`scale(1.06) translate(${k[0]}%,${k[1]}%)`},{transform:`scale(1.16) translate(${k[2]}%,${k[3]}%)`}],{duration:16000,fill:"forwards",easing:"ease-in-out"});
-    if(P.shake) im.animate([{marginLeft:"0px"},{marginLeft:"-6px"},{marginLeft:"5px"},{marginLeft:"0px"}],{duration:260,iterations:6}); cut.l=-1; nextLine(); paperSnd(0.5,1800,0.2); },cut.p===0&&cut.l<0?50:500); }
-function nextLine(){ const P=CUT[cut.p]; const cap=document.getElementById("cutcap");
-  if(cut.typ<cut.full.length&&cut.l>=0){ cut.typ=cut.full.length; renderCap(); return; }
-  cut.l++; if(cut.l>=P.lines.length){ cut.p++; if(cut.p>=CUT.length){ endCut(); return; } cap.innerHTML=""; showPanel(); return; }
-  const L=P.lines[cut.l]; cut.who=L.d?"主人":""; cut.full=L.d?"「"+L.d+"」":L.n; cut.typ=0; renderCap(); }
-function renderCap(){ const cap=document.getElementById("cutcap"); const t=cut.full.slice(0,Math.floor(cut.typ)).replace(/\n/g,"<br>"); cap.innerHTML=(cut.who?`<span class='who'>${cut.who}</span>`:"")+(cut.who?t:`<i>${t}</i>`); }
-function cutTick(dt){ if(!cut.on) return; if(cut.typ<cut.full.length){ cut.typ+=dt*26; renderCap(); } }
-function endCut(){ if(!cut.on) return; cut.on=0; document.getElementById("cut").style.display="none"; beginGame(); }
-function beginGame(){ started=true; hero.x=-1; hero.y=2.5; hero.face=Math.PI; demon.x=-2.6; demon.y=4.8; demon.st="look"; demon.t=5; shards(hero.x,hero.y,1,20,4);
+/* ---- v0.6 opening: in-engine unit cinematic (Warcraft III style) ---- */
+const MX=300, MY=0;
+const cine={on:0,scene:"",gen:null,sub:null,bars:0,flash:0,title:null,vortex:0,fast:false,show:null,cam:{x:0,y:0,yaw:0.35,dist:20,k:1},man:[],arch:null};
+function setupMansion(){ const add=(img,x,y,h)=>{ const e={t:"prop",kind:"man",x:MX+x,y:MY+y,h,rad:0,img,flip:false,alpha:1}; ents.push(e); cine.man.push(e); return e; };
+  add("man_0",-6,8.6,4.6); add("man_0",-3.4,8.8,4.6); add("man_3",-0.6,9,4.9); add("man_0",2,8.8,4.6);
+  cine.mirror=add("man_1",5.4,6.4,3.8); cine.candles=[add("man_2",-0.9,4.6,3.2),add("man_2",7.4,4.2,3.2),add("man_2",-7,3.2,3.2)]; cine.chair=add("bld_1",-3,3.5,2.1); }
+function camTo(x,y,yaw,dist,k){ Object.assign(cine.cam,{x,y,yaw,dist,k:k||1}); }
+function camSnap(x,y,yaw,dist){ camTo(x,y,yaw,dist,1); cam.tx=x; cam.ty=y; cam.yaw=cam.yawT=yaw; cam.dist=cam.distT=dist; }
+function moveTo(a,x,y,sp){ a.goal={x,y,sp}; }
+function arrived(a){ return !a.goal; }
+function faceTo(a,x,y){ a.face=Math.atan2(x-a.x,y-a.y); }
+function* wait(s){ let t=0; while(t<s){ t+=yield; } }
+function* until(fn){ while(!fn()) yield; }
+function* line(who,text,dur){ cine.sub={who,text,t:0}; cine.fast=false; let t=0; while(t<dur+text.length*0.05&&!cine.fast){ t+=yield; } cine.fast=false; cine.sub=null; yield* wait(0.25); }
+function* script(){
+  cine.scene="mansion"; S.clock=0.12;
+  demon.x=MX-3; demon.y=MY+3.55; demon.sit=true; demon.face=cam.yaw+Math.PI; demon.z=0; demon.alpha=1; demon.moving=0;
+  hero.x=MX-1.75; hero.y=MY+2.7; hero.kneel=1; hero.form="human"; hero.z=0; hero.alpha=1; hero.moving=0; faceTo(hero,demon.x,demon.y);
+  camSnap(MX-0.5,MY+2,0.2,30); camTo(MX-2.2,MY+3,0.3,13.5,0.35);
+  cine.title={text:"古宅 · 深夜",t:0}; yield* wait(3.6);
+  yield* line("","月亮升起的夜晚。这座宅子里的钟，从来不走。",3);
+  yield* line("","她跪在主人的椅子旁边。……已经想不起，是从哪一天开始的。",3.2);
+  paperSnd(0.4,2200,0.2); yield* wait(0.6);
+  yield* line("主人","……别盯着我看。",1.8);
+  yield* line("主人","待着。别出声。你一出声，我就看不进去。",2.4);
+  paperSnd(0.5,1800,0.25); camTo(MX-2.8,MY+3.3,0.42,9.5,0.6);
+  cine.show={img:"key_6",t:0,x:demon.x+0.2,y:demon.y-0.4,z:2.3}; chime(); yield* wait(1);
+  yield* line("","黑色的书里，夹着一件东西——「星辰罗盘」。",2.8);
+  yield* line("","罗盘上本该嵌着三颗纸星。现在，一颗都不剩。",3);
+  yield* line("主人","……掉进书页的另一边了。",2.2);
+  yield* line("主人","有意思。……归我了。",2);
+  cine.show=null; demon.sit=false; demon.y-=0.9; moveTo(demon,MX+4.3,MY+5,2.4); camTo(MX+1.8,MY+3.6,0.5,14,0.5);
+  yield* until(()=>arrived(demon)); faceTo(demon,cine.mirror.x,cine.mirror.y); yield* wait(0.5);
+  paperSnd(0.8,1200,0.3); for(let t=0;t<1.8;){ const dt=yield; t+=dt; cine.vortex=Math.min(1,t/1.8); if(Math.random()<dt*6) paperSnd(0.2,2000+Math.random()*1500,0.08); }
+  shake=0.4;
+  yield* line("","镜子里，纸页像潮水一样旋转。",2.6);
+  faceTo(demon,hero.x,hero.y); yield* wait(0.3);
+  yield* line("主人","过来。",1.4);
+  hero.kneel=0; yield* wait(0.3); moveTo(hero,MX+3.1,MY+4.5,3.4); yield* until(()=>arrived(hero)); faceTo(hero,demon.x,demon.y);
+  yield* line("主人","……愣着干什么。狗，是要跟着主人的。",2.4);
+  moveTo(demon,cine.mirror.x,cine.mirror.y-0.3,2.2); yield* wait(0.5); moveTo(hero,cine.mirror.x-0.3,cine.mirror.y-0.4,2.2);
+  for(let t=0;t<1.6;){ const dt=yield; t+=dt; demon.alpha=Math.max(0,1-t/1.1); hero.alpha=Math.max(0,1-(t-0.5)/1.1); cine.flash=Math.max(0,(t-0.6)/1); }
+  cine.flash=1; paperSnd(0.9,2600,0.35);
+  // ---- paper world
+  toWorld(); yield* wait(0.3);
+  for(let t=0;t<1;){ const dt=yield; t+=dt; cine.flash=Math.max(0,1-t); }
+  yield* until(()=>hero.z<=0&&demon.z<=0); yield* wait(0.9);
+  yield* line("","……纸之界。",2);
+  camTo(-3,5.2,0.35,15,0.8); yield* wait(0.8);
+  cine.arch.shake=1.4; paperSnd(1.2,600,0.3); yield* wait(1.4); collapseArch(); yield* wait(1);
+  yield* line("","身后的石门，碎成了一地纸屑。",2.4);
+  faceTo(demon,cine.arch.x,cine.arch.y); yield* wait(0.4);
+  yield* line("主人","……回去的路，断了。",2.2);
+  faceTo(demon,hero.x,hero.y); camTo(-2.2,5.6,0.35,12.5,0.8); yield* wait(0.4);
+  yield* line("主人","搭个落脚的地方。然后，把星星找回来。",2.8);
+  yield* line("主人","别让我失望。……虽然本来也没抱什么期望。",2.8);
+  endCine(); }
+function toWorld(){ cine.scene="world"; cine.vortex=0; hero.alpha=1; demon.alpha=1; hero.goal=null; demon.goal=null;
+  hero.x=-1.4; hero.y=4.2; hero.z=9; hero.vz=0; hero.face=Math.PI+cam.yaw; demon.x=-3.4; demon.y=4.4; demon.z=10.5; demon.vz=0; demon.face=cam.yaw+Math.PI; demon.sit=false; hero.kneel=0;
+  camSnap(-2.2,4.6,0.35,17); for(const e of ents) if(e.kind!=="man") e.alpha=(e.kind==="pine"||e.kind==="round"||e.kind==="dead")?0.12:1; }
+function collapseArch(){ const e=cine.arch; if(!e||e.gone) return; e.gone=true; shards(e.x,e.y,2.2,40,6,"#dcd6ca"); dirt(e.x,e.y,30); thud(); shake=0.5;
+  [[-1.2,0.2,0.9],[0.9,-0.1,1],[0,0.8,0.8],[1.8,0.6,0.7],[-1.9,-0.5,0.6]].forEach(([dx,dy,sc],i)=>{ addProp("rocks",e.x+dx,e.y+dy,sc*1.2,{puzzle:"ruin",say:i===0?"碎掉的石门。\n回古宅的路，断了。":undefined}); }); }
+function cineStep(dt){ time+=dt; if(cine.gen){ const r=cine.gen.next(dt); if(r.done) cine.gen=null; }
+  cine.bars=Math.min(1,cine.bars+dt*1.5); if(cine.title) cine.title.t+=dt; if(cine.sub) cine.sub.t+=dt; if(cine.show) cine.show.t+=dt;
+  for(const a of [hero,demon]){ if(a.goal){ const dx=a.goal.x-a.x, dy=a.goal.y-a.y, l=Math.hypot(dx,dy); if(l<0.12){ a.goal=null; } else { const st=Math.min(l,a.goal.sp*dt); a.x+=dx/l*st; a.y+=dy/l*st; a.face=Math.atan2(dx,dy); a.moving=Math.min(1,a.moving+dt*6); } } if(!a.goal) a.moving=Math.max(0,a.moving-dt*6); a.bob+=dt*(a.moving>0.1?8:1.5);
+    if(cine.scene==="world"&&a.z>0){ a.vz=(a.vz||0)-22*dt; a.z=Math.max(0,a.z+a.vz*dt); if(a.z===0){ a.vz=0; shards(a.x,a.y,0.3,10,3); thud(); } } }
+  if(cine.arch&&cine.arch.shake>0) cine.arch.shake-=dt;
+  for(let i=parts.length-1;i>=0;i--){ const p=parts[i]; p.life-=dt*(p.kind==="spark"?1.6:0.9); p.x+=p.vx*dt; p.y+=p.vy*dt; p.z+=p.vz*dt; p.vz-=14*dt; p.rot+=p.vr*dt; if(p.z<0){p.z=0;p.vz*=-0.3;p.vx*=0.6;p.vy*=0.6;} if(p.life<=0) parts.splice(i,1); }
+  const c=cine.cam, k=Math.min(1,dt*c.k); cam.tx+=(c.x-cam.tx)*k; cam.ty+=(c.y-cam.ty)*k; cam.yaw+=(c.yaw-cam.yaw)*k; cam.dist+=(c.dist-cam.dist)*k; cam.yawT=cam.yaw; cam.distT=cam.dist;
+  if(cine.scene==="world"){ const tp=proj(cam.tx,cam.ty,1); for(const e of ents){ if(e.kind!=="pine"&&e.kind!=="round"&&e.kind!=="dead"&&e.kind!=="boulder") continue; let ta=1; const p=proj(e.x,e.y,0); if(p&&tp&&p.z<tp.z-2&&p.x>-p.s*e.h*0.5&&p.x<W+p.s*e.h*0.5) ta=0.12; e.alpha+=(ta-e.alpha)*Math.min(1,dt*10); } }
+  if(shake>0) shake-=dt; }
+function startCine(){ cine.on=1; cine.bars=0; cine.arch=ents.find(e=>e.kind==="arch"); document.getElementById("cskip").style.display="block"; refreshUI(); cine.gen=script(); cine.gen.next(0); }
+function endCine(){ if(!cine.on) return; cine.gen=null; cine.sub=null; cine.title=null; cine.show=null; cine.flash=0; cine.vortex=0; if(cine.scene!=="world") toWorld(); collapseArch();
+  hero.z=0; demon.z=0; hero.vz=demon.vz=0; parts.length=0; cine.on=0; document.getElementById("cskip").style.display="none"; beginGame(); }
+function drawMansionBG(){ cx.fillStyle="#16130f"; cx.fillRect(0,0,W,H);
+  const P=(x,y,z)=>proj(MX+x,MY+y,z||0); const quad=(a,b,c,d,fill)=>{ if(!a||!b||!c||!d) return; cx.fillStyle=fill; cx.beginPath(); cx.moveTo(a.x,a.y); cx.lineTo(b.x,b.y); cx.lineTo(c.x,c.y); cx.lineTo(d.x,d.y); cx.closePath(); cx.fill(); };
+  // back wall
+  quad(P(-9,9.6,0),P(10,9.6,0),P(10,9.6,7),P(-9,9.6,7),"#4a4238"); cx.strokeStyle="rgba(20,16,12,0.45)"; cx.lineWidth=1; for(let x=-9;x<=10;x+=0.7){ const a=P(x,9.6,0), b=P(x,9.6,7); if(a&&b){ cx.beginPath(); cx.moveTo(a.x,a.y); cx.lineTo(b.x,b.y); cx.stroke(); } }
+  // floor planks
+  quad(P(-9,-5),P(10,-5),P(10,9.6),P(-9,9.6),"#b7a98f");
+  cx.strokeStyle="rgba(50,40,30,0.55)"; for(let y=-5;y<=9.6;y+=0.8){ const a=P(-9,y), b=P(10,y); if(a&&b){ cx.lineWidth=Math.max(0.6,a.s*0.03); cx.beginPath(); cx.moveTo(a.x,a.y); cx.lineTo(b.x,b.y); cx.stroke(); } const off=(Math.round(y/0.8)%2)*1.6; for(let x=-9+off;x<10;x+=3.2){ const c=P(x,y), d=P(x,y+0.8); if(c&&d){ cx.beginPath(); cx.moveTo(c.x,c.y); cx.lineTo(d.x,d.y); cx.stroke(); } } }
+  // rug under chair
+  const r=[P(-5,1.5),P(-0.5,1.5),P(-0.5,5.5),P(-5,5.5)]; quad(...r,"rgba(70,50,44,0.55)"); }
+function drawMansionLight(){ cx.save(); cx.globalCompositeOperation="lighter"; for(const c of cine.candles){ const p=proj(c.x,c.y,3.1); if(!p) continue; const fl=0.9+Math.sin(time*9+c.x)*0.06+Math.sin(time*23)*0.03; const R0=p.s*5*fl; const g=cx.createRadialGradient(p.x,p.y,0,p.x,p.y,R0); g.addColorStop(0,"rgba(255,215,150,0.30)"); g.addColorStop(1,"rgba(255,215,150,0)"); cx.fillStyle=g; cx.fillRect(p.x-R0,p.y-R0,R0*2,R0*2); } cx.restore();
+  const vg=cx.createRadialGradient(W/2,H*0.5,Math.min(W,H)*0.2,W/2,H*0.5,Math.max(W,H)*0.7); vg.addColorStop(0,"rgba(10,8,6,0)"); vg.addColorStop(1,"rgba(10,8,6,0.7)"); cx.fillStyle=vg; cx.fillRect(0,0,W,H); }
+function drawVortex(){ if(cine.vortex<=0||!cine.mirror) return; const m=cine.mirror, v=cine.vortex; const c=proj(m.x,m.y,1.9); if(!c) return;
+  cx.save(); cx.globalAlpha=v*0.7; const g=cx.createRadialGradient(c.x,c.y,0,c.x,c.y,c.s*1.1); g.addColorStop(0,"rgba(20,16,12,0.95)"); g.addColorStop(1,"rgba(20,16,12,0)"); cx.fillStyle=g; cx.beginPath(); cx.ellipse(c.x,c.y,c.s*0.75,c.s*1.25,0,0,6.3); cx.fill(); cx.restore();
+  for(let i=0;i<70;i++){ const f=((i*0.137+time*0.35)%1); const r=(1-f)*1.5*v, a=i*2.39996+time*(2+2*(1-f)); const p=proj(m.x+Math.cos(a)*r*0.8*cam.r[0],m.y+Math.cos(a)*r*0.8*cam.r[1]-0.05,1.9+Math.sin(a)*r*1.2); if(!p) continue; const sz=p.s*(0.05+0.1*(1-f));
+    cx.save(); cx.globalAlpha=Math.min(1,v*1.5)*(0.4+0.6*(1-f)); cx.translate(p.x,p.y); cx.rotate(a*1.7); cx.fillStyle="#f7f3ea"; cx.strokeStyle="#2a2622"; cx.lineWidth=1; cx.beginPath(); cx.moveTo(-sz,-sz*0.7); cx.lineTo(sz,-sz*0.5); cx.lineTo(sz*0.8,sz*0.7); cx.lineTo(-sz*0.9,sz*0.6); cx.closePath(); cx.fill(); cx.stroke(); cx.restore(); } }
+function drawShow(){ const sh=cine.show; if(!sh) return; const p=proj(sh.x,sh.y,sh.z+Math.min(1,sh.t)*0.6+Math.sin(time*2)*0.08); if(!p) return; const a=Math.min(1,sh.t*1.5);
+  cx.save(); cx.globalAlpha=a; cx.globalCompositeOperation="lighter"; const g=cx.createRadialGradient(p.x,p.y-p.s*0.4,0,p.x,p.y-p.s*0.4,p.s*1.4); g.addColorStop(0,"rgba(255,240,200,0.5)"); g.addColorStop(1,"rgba(255,240,200,0)"); cx.fillStyle=g; cx.fillRect(p.x-p.s*1.5,p.y-p.s*2,p.s*3,p.s*3); cx.restore();
+  sprite(IMG[sh.img],p,0.9,false,a); cx.save(); cx.globalAlpha=a*0.5; for(let i=0;i<3;i++){ const an=time*0.8+i*2.094; const x=p.x+Math.cos(an)*p.s*0.9, y=p.y-p.s*0.45+Math.sin(an)*p.s*0.35; cx.strokeStyle="#f7f3ea"; cx.setLineDash([3,3]); cx.lineWidth=1.3; cx.beginPath(); for(let k=0;k<5;k++){ const q=k/5*6.283-1.57; const rr=k%2?p.s*0.06:p.s*0.13; } cx.arc(x,y,p.s*0.1,0,6.3); cx.stroke(); cx.setLineDash([]); } cx.restore(); }
+function drawCineOverlay(){ if(!cine.on) return; const fam=getComputedStyle(document.body).fontFamily; const bh=H*0.12*cine.bars;
+  if(cine.flash>0){ cx.fillStyle=`rgba(250,248,240,${Math.min(1,cine.flash)})`; cx.fillRect(0,0,W,H); }
+  cx.fillStyle="#0c0a08"; cx.fillRect(0,0,W,bh); cx.fillRect(0,H-bh,W,bh);
+  if(cine.title){ const t=cine.title.t; const a=Math.max(0,Math.min(1,t/0.8,(3.4-t)/0.8)); if(a>0){ cx.save(); cx.globalAlpha=a; cx.fillStyle=cine.scene==="mansion"?"#efe7d6":"#2a2622"; cx.font="44px "+fam; cx.textAlign="center"; cx.textBaseline="middle"; cx.fillText(cine.title.text,W/2,H*0.2); cx.font="15px "+fam; cx.fillText("— 很久以前，或者就在昨天 —",W/2,H*0.2+40); cx.restore(); } }
+  if(cine.sub){ const sb=cine.sub; const n=Math.floor(sb.t*28); const txt=sb.text.slice(0,n); cx.save(); cx.textAlign="center"; cx.textBaseline="middle"; const y=H-bh/2;
+    cx.font=(sb.who?"":"italic ")+"19px "+fam; const w=cx.measureText(sb.text).width; const nw=sb.who?60:0; let x0=W/2-(w+nw)/2;
+    if(sb.who){ cx.fillStyle="#d8cbb0"; cx.font="bold 15px "+fam; cx.textAlign="left"; cx.fillText(sb.who,x0,y); x0+=nw; cx.font="19px "+fam; cx.fillStyle="#f3efe6"; cx.fillText("「"+txt+(n>=sb.text.length?"」":""),x0-10,y); }
+    else { cx.textAlign="left"; cx.fillStyle="#cfc6b4"; cx.fillText(txt,x0,y); } cx.restore(); } }
+function beginGame(){ started=true; cine.on=0; hero.kneel=0; hero.alpha=1; demon.alpha=1; demon.z=0; hero.z=0; cam.yawT=cam.yaw; cam.distT=cam.dist; if(!Number.isFinite(hero.x)||hero.x>100){ hero.x=-1; hero.y=2.5; } hero.face=Math.PI; demon.x=-2.6; demon.y=4.8; demon.st="look"; demon.t=5; shards(hero.x,hero.y,1,20,4);
   refreshUI(); setTimeout(()=>{ gainKey("bag"); },700); setTimeout(()=>note("WASD / 点击地面 移动 · 空格 动作 · Q/E 转视角"),1800); updCmd(); }
 
 /* ---------------- update ---------------- */
@@ -892,16 +971,16 @@ function drawHero(){ const p0=proj(hero.x,hero.y,0); if(!p0) return; const p=pro
   if(hero.dig>0){ rot=Math.sin(time*30)*0.08; bob=Math.abs(Math.sin(time*30))*0.05; }
   if(hero.form==="bird"){ bob=Math.sin(time*9)*0.05; sq=1+Math.sin(time*18)*0.06; }
   if(hero.dash>0) rot+=0.12*(s.flip?-1:1)*(FORMS.unicorn.sideDir);
-  const pp={x:p.x,y:p.y-bob*p.s*3,s:p.s}; sprite(s.img,pp,s.h,s.flip,1,1/sq*0.98+0.02,sq,rot);
+  const pp={x:p.x,y:p.y-bob*p.s*3,s:p.s}; if(hero.kneel) sq*=0.8; sprite(s.img,pp,s.h,s.flip,hero.alpha??1,1/sq*0.98+0.02,sq,rot);
   { const side=(Math.sin(hero.face-cam.yaw)>=0?1:-1);
     if(hero.form==="human"&&hasKey("net")){ const sw=hero.swing>0?(1-hero.swing/0.35)*2.4-1.2:0, fi=hero.fish>0?1.0+Math.sin(time*8)*0.15:0; sprite(IMG.col_relic_0,{x:pp.x+side*p.s*0.4,y:pp.y-p.s*0.35,s:p.s},1.15,side<0,1,1,1,side*(0.3+sw+fi)+Math.sin(hero.bob)*0.08*run); }
     if(hero.form==="dog"&&hero.carry){ sprite(IMG.col_relic_6,{x:pp.x+side*p.s*0.5,y:pp.y-p.s*0.75,s:p.s},0.55,side<0,1,1,1,1.5*side); }
     if(hero.form==="dog"&&hero.sniff>0){ cx.strokeStyle="rgba(40,34,28,0.6)"; cx.lineWidth=1.2; for(let i=0;i<3;i++){ const r=p.s*(0.2+((time*2+i*0.33)%1)*0.5); cx.beginPath(); cx.arc(pp.x+side*p.s*0.7,pp.y-p.s*0.6,r,-0.6,0.6); cx.stroke(); } } }
   if(hero.dash>0){ cx.strokeStyle="rgba(40,34,28,0.5)"; cx.lineWidth=1.5; for(let i=0;i<5;i++){ const y=p.y-p.s*(0.4+i*0.35); const d=-Math.sin(hero.face-cam.yaw); cx.beginPath(); cx.moveTo(p.x-d*p.s*1.2,y); cx.lineTo(p.x-d*p.s*(2.2+i*0.2),y); cx.stroke(); } }
 }
-function drawDemon(){ const p=proj(demon.x,demon.y,0); if(!p) return; shadow(p,0.7); const sh=SHEETS[DEMON]; const v=viewOf(demon.face,sh.sideDir);
+function drawDemon(){ const p0=proj(demon.x,demon.y,0); const p=proj(demon.x,demon.y,demon.z||0)||p0; if(!p) return; if((demon.alpha??1)>0.3) shadow(p0,0.7); const sh=SHEETS[DEMON]; const v=viewOf(demon.face,sh.sideDir);
   const run=demon.moving; const bob=Math.abs(Math.sin(demon.bob))*0.05*run + Math.sin(time*1.6)*0.006; const pp={x:p.x,y:p.y-bob*p.s*3+(demon.sit?-p.s*0.25:0),s:p.s};
-  sprite(IMG[sh[PROP_MODE]+"_"+v.idx],pp,sh.h[PROP_MODE],v.flip,1,1,1+Math.sin(time*1.6)*0.006,Math.sin(demon.bob)*0.02*run+wobble(2)); }
+  sprite(IMG[sh[PROP_MODE]+"_"+v.idx],pp,sh.h[PROP_MODE],v.flip,demon.alpha??1,1,1+Math.sin(time*1.6)*0.006,Math.sin(demon.bob)*0.02*run+wobble(2)); }
 /* origami transform: sprite -> flat paper sheet (creases) -> folds to a square -> sharp flaps burst open -> new form */
 function drawTransform(p,tf){ const t=tf.t/TF_DUR; const base=p.s*1.9; const cyy=p.y-base*0.55;
   const heroFrom=tf.from, heroTo=tf.to;
@@ -948,28 +1027,28 @@ function drawBubbles(){ cx.font="15px "+getComputedStyle(document.body).fontFami
     cx.fillStyle=b.who==="demon"?"#f3efe6":"#2a2622"; lines.forEach((l,i)=>cx.fillText(l,x,y0+17+i*20)); cx.restore(); } }
 function drawWin(){ if(!won) return; winT+=1/60; if(winT>9) return; const a=Math.min(1,winT/1.2,(9-winT)/1.5); cx.save(); cx.globalAlpha=a*0.9; cx.fillStyle="#2a2622"; cx.font="bold 46px "+getComputedStyle(document.body).fontFamily; cx.textAlign="center"; cx.fillText("三颗星星 · 已献给主人",W/2,H*0.26); cx.font="18px "+getComputedStyle(document.body).fontFamily; cx.fillText("她已经不需要过去了。……继续为主人效劳。",W/2,H*0.26+38); cx.restore(); }
 
-function frame(now){ const dt=Math.min(0.05,(now-last)/1000); last=now; cutTick(dt); if(started&&!S.paused) step(dt); else if(started&&S.order) updOrder(); camUpdate();
+function frame(now){ const dt=Math.min(0.05,(now-last)/1000); last=now; if(cine.on) cineStep(dt); if(started&&!S.paused) step(dt); else if(started&&S.order) updOrder(); camUpdate();
   cx.save(); if(shake>0) cx.translate((Math.random()-0.5)*10*shake,(Math.random()-0.5)*10*shake);
-  drawSky(); drawGround();
+  const MAN_ON=cine.on&&cine.scene==="mansion"; if(MAN_ON) drawMansionBG(); else { drawSky(); drawGround(); }
   // depth-sorted billboards
-  const list=[]; for(const e of ents){ if(e.gone) continue; const p=proj(e.x,e.y,0); if(!p||p.x<-p.s*e.h||p.x>W+p.s*e.h) continue; list.push({z:p.z,d:()=>{ if(e.kind!=="grass"&&e.kind!=="mound"&&e.kind!=="mush") shadow(p,Math.max(0.4,e.rad*0.9)); const picked=e.res&&!e.ready; sprite(IMG[e.img],p,e.h*(picked?0.7:1),e.flip,e.alpha*(picked?0.55:1),1,1,(e.kind==="grass"?Math.sin(time*1.5+e.x)*0.04:0)+(e.shake>0?Math.sin(time*60)*0.05:0)); if(e.nest) drawNest(e,p); if(e.bid==="cabinet") drawCabinetItems(e,p); if(e.bid==="tent"&&demon.hidden){ cx.fillStyle="#2a2622"; cx.font="bold "+Math.round(p.s*0.35)+"px sans-serif"; cx.textAlign="center"; cx.fillText("z",p.x+p.s*0.5,p.y-p.s*(2.4+Math.sin(time*2)*0.1)); cx.fillText("z",p.x+p.s*0.75,p.y-p.s*(2.9+Math.sin(time*2+1)*0.1)); } }}); }
+  const list=[]; for(const e of ents){ if(e.gone||((e.kind==="man")!==MAN_ON)) continue; const p=proj(e.x,e.y,0); if(!p||p.x<-p.s*e.h||p.x>W+p.s*e.h) continue; list.push({z:p.z,d:()=>{ if(e.kind!=="grass"&&e.kind!=="mound"&&e.kind!=="mush") shadow(p,Math.max(0.4,e.rad*0.9)); const picked=e.res&&!e.ready; sprite(IMG[e.img],p,e.h*(picked?0.7:1),e.flip,e.alpha*(picked?0.55:1),1,1,(e.kind==="arch"&&e.shake>0?Math.sin(time*50)*0.03:0)+(e.kind==="grass"?Math.sin(time*1.5+e.x)*0.04:0)+(e.shake>0?Math.sin(time*60)*0.05:0)); if(e.nest) drawNest(e,p); if(e.bid==="cabinet") drawCabinetItems(e,p); if(e.bid==="tent"&&demon.hidden){ cx.fillStyle="#2a2622"; cx.font="bold "+Math.round(p.s*0.35)+"px sans-serif"; cx.textAlign="center"; cx.fillText("z",p.x+p.s*0.5,p.y-p.s*(2.4+Math.sin(time*2)*0.1)); cx.fillText("z",p.x+p.s*0.75,p.y-p.s*(2.9+Math.sin(time*2+1)*0.1)); } }}); }
   { const p=proj(hero.x,hero.y,0); if(p) list.push({z:p.z-0.01,d:drawHero}); }
   { const p=proj(demon.x,demon.y,0); if(p&&!demon.hidden) list.push({z:p.z-(demon.sit?0.3:0),d:drawDemon}); }
-  for(const s of STARS){ const p=proj(s.x,s.y,0); if(p) list.push({z:p.z-0.02,d:()=>drawStar(s)}); }
-  for(const g of gitems){ const p=proj(g.x,g.y,0); if(p&&p.x>-40&&p.x<W+40) list.push({z:p.z,d:()=>drawGItem(g)}); }
-  for(const f of flora){ const p=proj(f.x,f.y,0); if(p&&p.x>-40&&p.x<W+40) list.push({z:p.z,d:()=>drawFlora(f)}); }
-  for(const b of bugs){ const p=proj(b.x,b.y,0); if(p&&p.x>-40&&p.x<W+40) list.push({z:p.z-0.005,d:()=>drawBug(b)}); }
-  for(const d of digs){ if(d.rev<=0) continue; const p=proj(d.x,d.y,0); if(p) list.push({z:p.z+0.3,d:()=>drawDig(d)}); }
+  if(!MAN_ON) for(const s of STARS){ const p=proj(s.x,s.y,0); if(p) list.push({z:p.z-0.02,d:()=>drawStar(s)}); }
+  if(!MAN_ON) for(const g of gitems){ const p=proj(g.x,g.y,0); if(p&&p.x>-40&&p.x<W+40) list.push({z:p.z,d:()=>drawGItem(g)}); }
+  if(!MAN_ON) for(const f of flora){ const p=proj(f.x,f.y,0); if(p&&p.x>-40&&p.x<W+40) list.push({z:p.z,d:()=>drawFlora(f)}); }
+  if(!MAN_ON) for(const b of bugs){ const p=proj(b.x,b.y,0); if(p&&p.x>-40&&p.x<W+40) list.push({z:p.z-0.005,d:()=>drawBug(b)}); }
+  if(!MAN_ON) for(const d of digs){ if(d.rev<=0) continue; const p=proj(d.x,d.y,0); if(p) list.push({z:p.z+0.3,d:()=>drawDig(d)}); }
   list.sort((a,b)=>b.z-a.z); for(const it of list) it.d();
-  drawGhost(); drawSpot(); drawParts(); drawDarkness(); drawFloats(); drawBubbles();
+  if(MAN_ON){ drawVortex(); drawShow(); } drawGhost(); drawSpot(); drawParts(); if(MAN_ON) drawMansionLight(); else drawDarkness(); drawFloats(); drawBubbles();
   // paper grain + vignette
   if(!paperPat) paperPat=cx.createPattern(paper,"repeat"); cx.globalCompositeOperation="multiply"; cx.globalAlpha=0.35; cx.fillStyle=paperPat; cx.fillRect(0,0,W,H); cx.globalAlpha=1; cx.globalCompositeOperation="source-over";
   const vg=cx.createRadialGradient(W/2,H*0.55,Math.min(W,H)*0.35,W/2,H*0.55,Math.max(W,H)*0.75); vg.addColorStop(0,"rgba(60,50,40,0)"); vg.addColorStop(1,"rgba(60,50,40,0.28)"); cx.fillStyle=vg; cx.fillRect(0,0,W,H);
-  drawHUD(); drawWin(); cx.restore();
+  drawHUD(); drawWin(); cx.restore(); drawCineOverlay();
   requestAnimationFrame(frame); }
-setupResources(); buildInv(); updCmd();
+setupResources(); setupMansion(); buildInv(); refreshUI();
 requestAnimationFrame(frame);
-document.getElementById("title").onclick=()=>{ ac(); document.getElementById("title").style.display="none"; startCut(); };
-document.getElementById("cut").onclick=e=>{ if(e.target.id==="cutskip"){ endCut(); return; } nextLine(); };
-window.__game={gainKey,closeCard,startTraining,hasKey,refreshUI,KEYS,get order(){return S.order;},S,gitems,flora,bugs,digs,invAdd,craft,RECIPES,useSlot,deliverAll,closeAppraisal,openCatalog,issueOrder,COL,ITEMS,ents,hero,demon,cam,transform,STARS,RING,MOUND,toggleProp,toggleDemon,builds,BUILDS,startPlace,confirmPlace,openDialog,closeDialog,pickOpt,dlg,startCut,cut,start:()=>{ document.getElementById("title").style.display="none"; beginGame(); }};
+document.getElementById("title").onclick=()=>{ ac(); document.getElementById("title").style.display="none"; startCine(); };
+document.getElementById("cskip").onclick=e=>{ e.stopPropagation(); endCine(); };
+window.__game={gainKey,closeCard,startTraining,hasKey,refreshUI,KEYS,get order(){return S.order;},S,gitems,flora,bugs,digs,invAdd,craft,RECIPES,useSlot,deliverAll,closeAppraisal,openCatalog,issueOrder,COL,ITEMS,ents,hero,demon,cam,transform,STARS,RING,MOUND,toggleProp,toggleDemon,builds,BUILDS,startPlace,confirmPlace,openDialog,closeDialog,pickOpt,dlg,startCine,endCine,cine,start:()=>{ document.getElementById("title").style.display="none"; endCine(); if(!started) beginGame(); }};
 </script></body></html>
