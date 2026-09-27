@@ -27,10 +27,27 @@ canvas{display:block;width:100vw;height:100vh;touch-action:none}
 #title h1{font-size:64px;margin:0;letter-spacing:.2em;color:#2a2622;font-weight:normal}
 #title p{color:#555;margin:10px}
 #title .go{margin-top:26px;border:2px solid #2a2622;padding:10px 34px;font-size:22px;border-radius:12px 8px 14px 9px;box-shadow:3px 3px 0 #2a262255;background:#f7f3ea}
+#order{position:fixed;left:50%;top:136px;transform:translateX(-50%);background:#f7f3ea;border:3px solid #2a2622;border-radius:10px 14px 9px 13px;padding:6px 18px;font-size:18px;color:#2a2622;text-align:center;display:none;min-width:260px;box-shadow:3px 4px 0 #2a262255;pointer-events:none}
+#order b{font-size:12px;letter-spacing:.2em;opacity:.7}#order small{font-size:13px}#order .bar{height:6px;border:1px solid #2a2622;margin-top:4px}#order .bar i{display:block;height:100%;background:#2a2622}
+#appr,#catalog{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);flex-direction:column;background:#f7f3ea;border:3px solid #2a2622;border-radius:12px 16px 10px 14px;box-shadow:5px 6px 0 #2a262266;z-index:8;display:none;color:#2a2622;padding:10px 14px}
+#appr{width:min(580px,92vw);max-height:84vh}#catalog{width:min(860px,95vw);height:min(580px,88vh)}
+.ah{font-size:22px;text-align:center;letter-spacing:.2em;border-bottom:1.5px dashed #2a2622;padding-bottom:4px}
+.al{overflow:auto;flex:1;margin:6px 0}
+.ar{display:flex;gap:10px;align-items:center;padding:5px;border-bottom:1px dotted #2a262266}.ar img{width:54px;height:54px;object-fit:contain}.ar>div{flex:1}.an{font-weight:bold;font-size:15px}.ac{font-size:13px;margin-top:2px}.ap{font-size:12px;opacity:.75;margin-top:2px}.ar.past img{opacity:.5;transform:rotate(-8deg)}.pt{font-weight:bold;font-size:16px}
+.rr{font-size:11px;border:1px solid #2a2622;border-radius:4px;padding:0 4px;font-weight:normal;display:inline-block}.rr.r2{background:#e4dccb}.rr.r3{background:#2a2622;color:#f7f3ea}.rr.r4{background:#2a2622;color:#f3d98a}
+.nw{font-size:11px;background:#fff;border:1px dashed #2a2622;padding:0 3px;font-weight:normal}
+.af{text-align:center;font-size:14px;line-height:1.6}.ab{margin:8px auto 2px;border:2px solid #2a2622;border-radius:9px;padding:5px 18px;cursor:pointer;background:#fbf8f1}
+.ch{font-size:22px;letter-spacing:.1em;position:relative}.ch small{font-size:13px;opacity:.7;letter-spacing:0}.cx{position:absolute;right:2px;top:0;cursor:pointer}
+.tabs{display:flex;flex-wrap:wrap;gap:4px;margin:6px 0;border-bottom:1.5px solid #2a2622}.tab{border:1.5px solid #2a2622;border-bottom:none;border-radius:7px 7px 0 0;padding:3px 9px;font-size:13px;cursor:pointer;opacity:.55}.tab.on{opacity:1;background:#e4dccb}
+.cbody{display:flex;gap:10px;flex:1;min-height:0}.grid{flex:1;display:grid;grid-template-columns:repeat(auto-fill,minmax(98px,1fr));gap:6px;overflow:auto;align-content:start}
+.cell{border:1.5px solid #2a262288;border-radius:8px;text-align:center;padding:4px;cursor:pointer;position:relative;font-size:12px;background:#fbf8f1}.cell img{width:64px;height:64px;object-fit:contain}.cell.s0 img{filter:brightness(0);opacity:.16}.cell.s1 img{opacity:.6}.cell.s1{border-style:dashed}.cell.sel{border:2.5px solid #2a2622;background:#e9e2d3}.cell i{position:absolute;right:4px;top:2px;font-size:9px;font-style:normal}
+.det{width:240px;border-left:1.5px dashed #2a2622;padding-left:10px;font-size:13px;overflow:auto}.det img{width:120px;height:120px;object-fit:contain;display:block;margin:0 auto}.det img.s0{filter:brightness(0);opacity:.16}.dn{font-size:20px;font-weight:bold;text-align:center}.det .rr{display:block;width:max-content;margin:3px auto}.dh{margin-top:6px;opacity:.8}.dc{margin-top:8px;line-height:1.6}
+.slot.c.r2{border-color:#2a2622}.slot.c.r3{border:2px solid #2a2622;background:#efe7d6}.slot.c.r4{border:2.5px double #2a2622;background:#f3ead0}.rc.own{opacity:.55}
 </style></head><body>
 <canvas id="cv"></canvas>
-<div id="hud"><span id="tip" style="opacity:.8"></span></div><div id="cmd"></div><div id="craft"></div><div id="inv"></div>
+<div id="hud"><span id="tip" style="opacity:.8"></span></div><div id="cmd"></div><div id="order"></div><div id="appr"></div><div id="catalog"></div><div id="craft"></div><div id="inv"></div>
 <div id="side">
+  <button class="sb" id="bCat"><b>收藏目录 (B)</b></button>
   <button class="sb" id="bProp">比例：Q版</button>
   <button class="sb" id="bDemon">恶魔：D4 冷淡</button>
   <button class="sb" id="bRotL">⟲ 转视角 (Q)</button>
@@ -38,8 +55,8 @@ canvas{display:block;width:100vw;height:100vh;touch-action:none}
 </div>
 <div id="forms"></div>
 <button id="act">动作<br><small>空格</small></button>
-<div id="help">WASD / 点击地面 移动 · Q/E 转视角 · 滚轮 缩放<br>空格：采集 / 砍树 / 献给主人 · 点物品栏：吃 / 装备 / 添柴<br>1 人形 · 2 狗(挖) · 3 独角兽(撞石) · 4 鸟(飞过河)</div>
-<div id="title"><h1>纸之魔女</h1><p>素描线稿 · 沙盒原型 v0.3</p><p style="font-size:15px;max-width:520px;text-align:center;line-height:1.9">她曾经是自由的魔女。<br>直到那天，她翻开了一本黑色的书。<br>……醒来时，她只记得一件事——<b>主人的命令</b>。</p><p style="font-size:13px;opacity:.7">采集 · 制作 · 生火熬过黑夜 · 完成主人的命令</p><div class="go">开始游戏</div></div>
+<div id="help">WASD / 点击地面 移动 · Q/E 转视角 · 滚轮 缩放<br>空格：采集 / 捕虫 / 献给主人 · B 收藏目录<br>1 人形(采花·网) · 2 狗(嗅·挖) · 3 独角兽(撞石) · 4 鸟(鸟巢·过河)</div>
+<div id="title"><h1>纸之魔女</h1><p>素描线稿 · 沙盒原型 v0.4</p><p style="font-size:15px;max-width:520px;text-align:center;line-height:1.9">她曾经是自由的魔女。<br>直到那天，她翻开了一本黑色的书。<br>……醒来时，她只记得一件事——<b>主人的命令</b>。</p><p style="font-size:13px;opacity:.7">收集 38 种收藏 · 献给主人鉴定 · 服从主人的命令</p><div class="go">开始游戏</div></div>
 <script>
 "use strict";
 const ASSETS=__ASSETS__;
@@ -151,7 +168,7 @@ function thud(){ const a=ac(); if(!a)return; const o=a.createOscillator(), g=a.c
 
 /* ---------------- speech bubbles ---------------- */
 const bubbles=[]; function say(who,text,dur=3){ for(let i=bubbles.length-1;i>=0;i--) if(bubbles[i].who===who) bubbles.splice(i,1); bubbles.push({who,text,t:0,dur}); }
-const DEMON_IDLE=["……（翻书）","嗯？还站在这里做什么。","我没叫你，别过来。","你的价值，取决于你带回来的东西。","……乖乖的就好。","别让我说第二遍。","狗就该有狗的样子。去。","（轻笑）……真好使唤。"];
+const DEMON_IDLE=["……（翻书）","嗯？还站在这里做什么。","我没叫你，别过来。","你的价值，取决于你带回来的东西。","……乖乖的就好。","别让我说第二遍。","狗就该有狗的样子。去。","……真好使唤。","别用那种眼神看我。去找东西。"];
 let tipTimer=0;
 
 /* ---------------- particles ---------------- */
@@ -164,7 +181,7 @@ function sparkle(x,y,z){ for(let i=0;i<16;i++){ const a=i/16*6.28; parts.push({x
 const K={}; addEventListener("keydown",e=>{ K[e.code]=1; if(e.repeat)return;
   if(e.code==="KeyQ") rotCam(-1); if(e.code==="KeyE") rotCam(1);
   if(e.code==="Digit1") transform("human"); if(e.code==="Digit2") transform("dog"); if(e.code==="Digit3") transform("unicorn"); if(e.code==="Digit4") transform("bird");
-  if(e.code==="Space"){ e.preventDefault(); action(); } if(e.code==="KeyP") toggleProp(); if(e.code==="KeyC") toggleDemon(); });
+  if(e.code==="Space"){ e.preventDefault(); if(document.getElementById("appr").style.display==="flex") closeAppraisal(); else if(!S.paused) action(); } if(e.code==="KeyP") toggleProp(); if(e.code==="KeyC") toggleDemon(); if(e.code==="KeyB") openCatalog(); if(e.code==="Escape"){ closeAppraisal(); if(document.getElementById("catalog").style.display==="flex") openCatalog(); } });
 addEventListener("keyup",e=>{ K[e.code]=0; });
 function rotCam(d){ cam.yawT+=d*Math.PI/4; }
 let drag=null;
@@ -173,7 +190,7 @@ cv.addEventListener("pointerdown",e=>{ ac(); drag={x:e.clientX,y:e.clientY,btn:e
 cv.addEventListener("pointermove",e=>{ if(!drag)return; const dx=e.clientX-drag.x; if(Math.abs(dx)>6) drag.moved=1; if(drag.btn===2||(e.pointerType!=="mouse"&&drag.moved&&Math.abs(dx)>30)){ cam.yawT=drag.yaw-dx*0.006; } });
 cv.addEventListener("pointerup",e=>{ if(drag&&!drag.moved&&drag.btn===0){ const g=unproj(e.clientX,e.clientY); if(g) target={x:g[0],y:g[1]}; } drag=null; });
 cv.addEventListener("wheel",e=>{ cam.distT=Math.max(11,Math.min(34,cam.distT*(e.deltaY>0?1.1:0.9))); },{passive:true});
-document.getElementById("act").onclick=()=>{ ac(); action(); };
+document.getElementById("act").onclick=()=>{ ac(); if(!S.paused) action(); }; document.getElementById("bCat").onclick=()=>{ ac(); openCatalog(); };
 document.getElementById("bRotL").onclick=()=>rotCam(-1);
 document.getElementById("bRotR").onclick=()=>rotCam(1);
 function toggleProp(){ PROP_MODE=PROP_MODE==="chibi"?"normal":"chibi"; document.getElementById("bProp").textContent="比例："+(PROP_MODE==="chibi"?"Q版":"正常"); }
@@ -193,17 +210,18 @@ function transform(to){ if(hero.tf||hero.form===to) return;
 const TF_DUR=1.05;
 
 /* ---------------- actions ---------------- */
-function action(){ if(hero.tf) return; const f=hero.form;
-  if(f==="dog"){ if(Math.hypot(hero.x-MOUND.x,hero.y-MOUND.y)<2.6&&!MOUND.dug){ hero.dig=1.4; say("hero","汪！汪！（刨刨刨）",1.4); } else { hero.dig=0.5; say("hero","汪？",1); } return; }
+function action(){ if(hero.tf) return; const f=hero.form; const nearM=Math.hypot(demon.x-hero.x,demon.y-hero.y)<3.2;
+  if(nearM&&S.inv.some(s=>s&&ITEMS[s.id].col)){ say("hero",f==="dog"?"汪！（把东西放在主人脚边）":"主人，请收下！",1.4); deliverAll(); return; }
+  if(f==="dog"){ if(Math.hypot(hero.x-MOUND.x,hero.y-MOUND.y)<2.6&&!MOUND.dug){ hero.dig=1.4; hero.digAt=null; say("hero","汪！汪！（刨刨刨）",1.4); return; }
+    const d=nearDig(); if(d){ digSpot(d); return; } if(hero.sniff>0) return; sniff(); return; }
   if(f==="unicorn"){ if(hero.dash<=0){ hero.dash=0.45; paperSnd(0.3,900,0.3); } return; }
-  if(f==="bird"){ say("hero",inRiver(hero.x,hero.y)?"飞呀飞～":"啾啾！",1.2); return; }
-  // human: gather > talk/deliver to master > read signs
+  if(f==="bird"){ const t=nearNestTree(); if(t&&hero.z>1.2){ searchNest(t); return; } say("hero",inRiver(hero.x,hero.y)?"飞呀飞～":"啾啾！（飞到有鸟巢的高树旁再按空格）",1.4); return; }
   const it=nearestInteract(); if(it){ gather(it); return; }
-  if(Math.hypot(demon.x-hero.x,demon.y-hero.y)<3.2){ if(tryDeliver()) { say("hero","主人，请收下！",1.6); return; }
-    say("hero",pick(["主人，有什么吩咐？","主人～","主人，我会努力的！"]),1.6); setTimeout(()=>say("demon",curCmd().t+(curCmd().need?"\n……还没弄齐就别来烦我。":""),3.4),900); return; }
+  if(nearM){ say("hero",pick(["主人，有什么吩咐？","主人～","主人，我会努力的！"]),1.6); setTimeout(()=>say("demon",pick(["……袋子是空的。别来烦我。","今天的献礼，还差得远。","去。"]),2.4),900); return; }
   let best=null,bd=3; for(const e of ents){ if(e.say&&!e.gone){ const d=Math.hypot(e.x-hero.x,e.y-hero.y); if(d<bd){bd=d;best=e;} } }
   if(best){ say("sign",best.say,4); bubbles[bubbles.length-1].at=best; return; }
-  if(S.equip!=="axe"&&ents.some(e=>e.chop&&!e.gone&&Math.hypot(e.x-hero.x,e.y-hero.y)<2.5)){ say("hero","要有斧头才能砍树……",1.4); return; }
+  if(nearBank()){ if(!S.net){ say("hero","要有网才能捞河里的东西……",1.6); return; } fish(); return; }
+  if(nearNestTree()){ say("hero","树上有鸟巢……太高了，变成鸟 (4) 飞上去。",1.8); return; }
   say("hero",pick(["嘿咻！","主人要的东西在哪里呢……","这里什么都没有～"]),1.4);
 }
 function pick(a){ return a[Math.floor(Math.random()*a.length)]; }
@@ -213,184 +231,304 @@ function blocked(x,y,flying){ if(Math.abs(x)>WORLD-1||Math.abs(y)>WORLD-1) retur
   if(flying) return false;
   for(const e of ents){ if(e.rad>0&&!e.gone){ if(Math.hypot(e.x-x,e.y-y)<e.rad+0.45) return e; } } return false; }
 
-/* ================= SURVIVAL (Don't Starve elements) ================= */
-const ITEMS={
-  berry:{n:"浆果",img:"item_0",food:[9,0,1]},
-  grass:{n:"干草",img:"item_1",fuel:15},
-  twig:{n:"树枝",img:"item_2",fuel:10},
-  flint:{n:"燧石",img:"item_3"},
-  stone:{n:"石头",img:"item_4"},
-  log:{n:"木头",img:"item_5",fuel:35},
-  torch:{n:"火把",img:"item_6",equip:"torch"},
-  axe:{n:"斧头",img:"item_7",equip:"axe"},
-  skewer:{n:"烤浆果",img:"item_9",food:[25,3,4]},
-  mush:{n:"蘑菇",img:"item_10",food:[12,0,-8]},
-  star:{n:"折纸星星",img:"item_11"},
+/* ================= COLLECTION (主人的收藏) + TRAINING (调教命令) ================= */
+const RAR=["","普通","稀有","珍贵","传说"], RPTS=[0,1,3,8,20];
+const CATS={flora:"花草",bug:"虫",mineral:"矿石",buried:"埋藏物",sky:"高处与河",past:"她的旧物",special:"特别"};
+// id: [name, img, cat, rarity, where/how, master's appraisal]
+const COL={
+ daisy:["雏菊","col_nature_0","flora",1,"人形 · 草地上随处可见","……杂草。放那儿。"],
+ dandelion:["蒲公英","col_nature_9","flora",1,"人形 · 草地","吹一口就散。和你一样轻。"],
+ thistle:["蓟","col_nature_3","flora",1,"人形 · 带刺的野花","扎手的东西也敢往我这里送。"],
+ fern:["蕨叶","col_nature_10","flora",1,"人形 · 树林边","可以夹在书里。……勉强。"],
+ berry:["野莓","item_0","flora",1,"人形 · 灌木丛","不是给你吃的。"],
+ mush:["蘑菇","item_10","flora",1,"人形 · 阴湿的地方","……放远一点。"],
+ lily:["铃兰","col_nature_11","flora",2,"人形 · 树荫下","有毒。别舔。"],
+ clover:["四叶草","col_nature_1","flora",3,"人形 · 很少见，混在花丛里","幸运？狗用不上。……收下了。"],
+ moonflower:["月光花","col_nature_2","flora",3,"人形 · 只在夜晚开放","夜里才开的花。……还算识货。"],
+ beetle:["甲虫","col_nature_5","bug",1,"捕虫网 · 趴在大树脚下","黑色的壳。……比你安静。"],
+ snail:["蜗牛","col_nature_8","bug",1,"捕虫网 · 石头旁边","慢吞吞的。像某条笨狗。"],
+ butterfly:["蝴蝶","col_nature_4","bug",2,"捕虫网 · 白天在草地上飞","翅膀没破。……做得不坏。"],
+ dragonfly:["蜻蜓","col_nature_7","bug",2,"捕虫网 · 河边","速度倒是比你快。"],
+ firefly:["萤火虫","col_nature_6","bug",2,"捕虫网 · 只在夜晚出现","可以当书灯。留下。"],
+ flint:["燧石","item_3","mineral",1,"随处捡 / 独角兽撞碎石堆","……石头就是石头。"],
+ quartz:["水晶","col_treasure_0","mineral",2,"独角兽 · 撞碎碎石堆","透明的东西，我喜欢。"],
+ geode:["晶洞石","col_treasure_1","mineral",3,"独角兽 · 撞碎石头（少见）","外面丑，里面好看。……你只有外面。"],
+ ammonite:["菊石","col_treasure_2","mineral",3,"独角兽 · 撞碎大石头","几亿年前的东西。比你有价值。"],
+ gold:["金块","col_treasure_3","mineral",4,"独角兽 · 撞碎石头（极少）","……。今晚允许你睡在我脚边。"],
+ coin:["古银币","col_treasure_4","buried",2,"狗 · 嗅出埋藏点再挖","旧王朝的钱。归我了。"],
+ key:["旧钥匙","col_treasure_5","buried",2,"狗 · 嗅出埋藏点再挖","打不开任何东西的钥匙。……和你挺配。"],
+ teacup:["裂茶杯","col_treasure_6","buried",2,"狗 · 嗅出埋藏点再挖","裂了。……不，留下。"],
+ skull:["鸟头骨","col_treasure_7","buried",3,"狗 · 嗅出埋藏点再挖","很干净。放在书架上。"],
+ musicbox:["八音盒","col_relic_5","buried",4,"狗 · 埋藏点（极少）","……还能响。今天不骂你。"],
+ watch:["怀表","col_relic_10","buried",4,"狗 · 埋藏点（极少）","停在某个时间。……与你无关。"],
+ feather:["白羽毛","col_treasure_8","sky",1,"鸟 · 高树上的鸟巢","轻。……拿来当书签。"],
+ crowf:["乌鸦羽毛","col_relic_7","sky",2,"鸟 · 高树上的鸟巢","黑色的。我的颜色。"],
+ pebble:["穿孔石","col_treasure_10","sky",2,"人形+网 · 河边打捞","据说从孔里能看见真实。……你不需要看。"],
+ egg:["鸟巢与蛋","col_treasure_9","sky",3,"鸟 · 鸟巢（少见）","完好无损？……你也有细心的时候。"],
+ bell:["铃铛缎带","col_relic_9","sky",3,"鸟 · 鸟巢里","……正好。以后给你戴上。"],
+ bottle:["漂流瓶","col_treasure_11","sky",3,"人形+网 · 河边打捞","别人的求救信。……与我无关。留着。"],
+ letter:["封蜡信","col_relic_11","sky",3,"人形+网 · 河边打捞（少见）","（没有拆开，直接夹进书里）"],
+ pendant:["新月吊坠","col_relic_8","sky",4,"鸟 · 鸟巢里偶尔会有","亮晶晶的……乌鸦和狗一样贪心。"],
+ diary:["日记残页","col_relic_2","past",3,"埋藏点 / 河里","（撕碎）……你不认识这些字。"],
+ ribbon:["发带","col_relic_3","past",3,"埋藏点 / 鸟巢","旧东西。没必要留着。（扔掉）"],
+ bookmark:["压花书签","col_relic_6","past",3,"河里","……（烧掉）"],
+ wand:["断掉的魔杖","col_relic_4","past",4,"埋藏点（极少）","（折成两半扔进河里）你不需要这个。"],
+ star:["折纸星星","item_11","special",4,"三处谜题：土堆 · 石阵 · 河对岸","……星星。好东西。"],
 };
+const COL_IDS=Object.keys(COL);
+const ITEMS={ twig:{n:"树枝",img:"item_2",mat:1}, grass:{n:"干草",img:"item_1",mat:1}, net:{n:"捕虫网",img:"col_relic_0",tool:1}, stick:{n:"主人扔的树枝",img:"item_2",fetch:1} };
+for(const id of COL_IDS){ const c=COL[id]; ITEMS[id]={n:c[0],img:c[1],col:1,r:c[3],cat:c[2]}; }
 const RECIPES=[
-  {id:"torch",n:"火把",need:{grass:2,twig:2},desc:"照亮黑夜，可燃烧 80 秒"},
-  {id:"axe",n:"斧头",need:{twig:1,flint:1},desc:"装备后对着树按 空格 砍树"},
-  {id:"campfire",n:"营火",need:{grass:3,log:2},desc:"放在脚下。夜里没有光会被黑暗吞掉",place:true,img:"item_8"},
-  {id:"skewer",n:"烤浆果",need:{berry:2},desc:"需要站在营火旁",fire:true},
+  {id:"net",n:"捕虫网",need:{twig:3,grass:2},desc:"人形时拿在手上：捕虫 · 河边打捞"},
+  {id:"basket",n:"采集篮",need:{grass:6,twig:3},desc:"收藏袋从 10 格扩到 16 格",img:"col_relic_1",once:1},
 ];
-const S={hp:100,hunger:120,san:90,day:1,clock:0.12,inv:[],equip:null,torchFuel:0,darkT:0,hurtT:0,cmd:0,cmdDone:0,starsGiven:0,dead:0,praise:0,flash:0};
-const DAY_LEN=260; // seconds per full day
-const fires=[]; // {x,y,fuel}
-const gitems=[]; // ground items {x,y,id,n,z,vz}
-const floats=[]; // floating texts
+const RANKS=[[0,"流浪狗"],[15,"看门狗"],[45,"猎犬"],[100,"忠犬"],[200,"主人的爱犬"]];
+const S={day:1,clock:0.12,inv:[],cap:10,net:0,basket:0,favor:0,obey:50,found:{},given:{},quota:[],quotaDone:0,starsGiven:0,order:null,orderCD:40,fishCD:0,sniffT:0,praise:0,paused:0,sets:{}};
+const DAY_LEN=240;
+const gitems=[], floats=[], flora=[], bugs=[], digs=[];
 function invCount(id){ return S.inv.reduce((a,s)=>a+(s&&s.id===id?s.n:0),0); }
-function invAdd(id,n=1){ for(const s of S.inv){ if(s&&s.id===id&&s.n<40){ const k=Math.min(n,40-s.n); s.n+=k; n-=k; if(!n)break; } }
-  while(n>0){ let i=S.inv.findIndex(s=>!s); if(i<0){ if(S.inv.length<10){ S.inv.push(null); i=S.inv.length-1; } else break; } const k=Math.min(n,40); S.inv[i]={id,n:k}; n-=k; }
-  if(n>0) drop(hero.x,hero.y,id,n); buildInv(); }
-function invTake(id,n){ for(let i=S.inv.length-1;i>=0&&n>0;i--){ const s=S.inv[i]; if(s&&s.id===id){ const k=Math.min(n,s.n); s.n-=k; n-=k; if(!s.n){ S.inv[i]=null; if(S.equip===id&&!invCount(id)) S.equip=null; } } } buildInv(); }
+function invFull(id){ return !S.inv.some(s=>!s||(s.id===id&&s.n<20)); }
+function invAdd(id,n=1){ for(const s of S.inv){ if(s&&s.id===id&&s.n<20){ const k=Math.min(n,20-s.n); s.n+=k; n-=k; if(!n)break; } }
+  while(n>0){ const i=S.inv.findIndex(s=>!s); if(i<0) break; const k=Math.min(n,20); S.inv[i]={id,n:k}; n-=k; }
+  if(ITEMS[id].col&&!S.found[id]){ S.found[id]=1; floatTxt(hero.x,hero.y+0.1,"新发现！"+ITEMS[id].n); chime(); }
+  if(n>0){ drop(hero.x,hero.y,id,n); say("hero","袋子满了……先献给主人！",1.8); } buildInv(); return n===0; }
+function invTake(id,n){ for(let i=S.inv.length-1;i>=0&&n>0;i--){ const s=S.inv[i]; if(s&&s.id===id){ const k=Math.min(n,s.n); s.n-=k; n-=k; if(!s.n) S.inv[i]=null; } } buildInv(); }
 function has(need){ return Object.entries(need).every(([k,v])=>invCount(k)>=v); }
-function drop(x,y,id,n=1,pop=true){ gitems.push({x:x+(Math.random()-0.5)*0.8,y:y+(Math.random()-0.5)*0.8,id,n,z:pop?0.8:0,vz:pop?4:0}); }
+function drop(x,y,id,n=1,pop=true){ gitems.push({x:x+(Math.random()-0.5)*0.8,y:y+(Math.random()-0.5)*0.8,id,n,z:pop?0.8:0,vz:pop?4:0,age:0}); }
 function floatTxt(x,y,t){ floats.push({x,y,z:2.4,t:0,text:t}); }
-function nearFire(r=4.5){ return fires.some(f=>f.fuel>0&&Math.hypot(f.x-hero.x,f.y-hero.y)<r); }
+function wpick(tab){ let s=0; for(const k in tab) s+=tab[k]; let r=Math.random()*s; for(const k in tab){ r-=tab[k]; if(r<=0) return k; } return Object.keys(tab)[0]; }
 function craft(rc){ if(hero.form!=="human"){ say("hero","变回人形才能用手做东西……",1.6); return; }
+  if(rc.once&&S[rc.id]){ say("hero","已经有了！",1); return; }
+  if(rc.id==="net"&&S.net){ say("hero","网已经有了！",1); return; }
   if(!has(rc.need)){ say("hero","材料不够……",1.2); return; }
-  if(rc.fire&&!nearFire()){ say("hero","要在营火旁边才行。",1.6); return; }
   for(const [k,v] of Object.entries(rc.need)) invTake(k,v); paperSnd(0.3,2000,0.25);
-  if(rc.id==="campfire"){ fires.push({x:hero.x+Math.sin(hero.face)*1.4,y:hero.y+Math.cos(hero.face)*1.4,fuel:90,max:120,mine:1}); floatTxt(hero.x,hero.y,"+ 营火"); onCommandEvent("fire"); }
-  else { invAdd(rc.id,1); floatTxt(hero.x,hero.y,"+1 "+ITEMS[rc.id].n); if(rc.id==="torch"&&!S.equip){ equip("torch"); } }
-  buildCraft(); }
-function equip(id){ if(S.equip===id){ S.equip=null; } else { S.equip=id; if(id==="torch"&&S.torchFuel<=0){ S.torchFuel=80; } } buildInv(); }
+  if(rc.id==="net"){ S.net=1; floatTxt(hero.x,hero.y,"+ 捕虫网"); say("hero","做好了！可以抓虫子、捞河里的东西了！",2); }
+  if(rc.id==="basket"){ S.basket=1; S.cap=16; while(S.inv.length<16) S.inv.push(null); floatTxt(hero.x,hero.y,"收藏袋 16 格"); say("hero","能装更多东西献给主人了！",2); }
+  buildInv(); }
 function useSlot(i){ const s=S.inv[i]; if(!s) return; const it=ITEMS[s.id];
-  if(it.food){ if(hero.form!=="human"&&hero.form!=="dog"){ say("hero","这个样子吃不了……",1.2); return; } S.hunger=Math.min(150,S.hunger+it.food[0]); S.hp=Math.min(100,S.hp+it.food[1]); S.san=Math.max(0,Math.min(100,S.san+it.food[2])); invTake(s.id,1); floatTxt(hero.x,hero.y,"+"+it.food[0]+" 饱食"); paperSnd(0.2,900,0.2); if(s.id==="mush") say("hero","呜……头有点晕……",1.6); return; }
-  if(it.equip){ if(hero.form!=="human"){ say("hero","要人形才能拿东西。",1.2); return; } equip(s.id); return; }
-  // fuel into a fire
-  if(it.fuel&&nearFire(3.2)){ const f=fires.filter(f=>f.fuel>0).sort((a,b)=>Math.hypot(a.x-hero.x,a.y-hero.y)-Math.hypot(b.x-hero.x,b.y-hero.y))[0]; f.fuel=Math.min(f.max,f.fuel+it.fuel); invTake(s.id,1); floatTxt(f.x,f.y,"火焰 +"+it.fuel); return; }
-  say("hero",it.n+"……现在用不上。",1.2); }
+  if(it.col) floatTxt(hero.x,hero.y,it.n+" · "+RAR[it.r]+(S.given[s.id]?"":"（主人还没见过）"));
+  else floatTxt(hero.x,hero.y,it.n+(it.mat?" · 制作材料":"")); }
 
-/* ---- demon's commands (the "contract") ---- */
-const CMDS=[
-  {t:"去摘 4 个浆果献给我。",need:{berry:4},praise:"……嗯。乖。"},
-  {t:"天黑之前，生一堆火。\n不是为你——我讨厌看不清书。",ev:"fire",praise:"勉强能看书了。……做得不坏。"},
-  {t:"那三颗折纸星星，全部找来献给我。",need:{star:3},praise:"三颗都齐了。很好——\n你果然是条好用的狗。",big:1},
-];
-const CMD_POOL=[
-  {t:"给我带 3 块木头来。",need:{log:3},praise:"嗯。放那儿。"},
-  {t:"我要 2 块燧石。快点。",need:{flint:2},praise:"……还算快。"},
-  {t:"去采 2 个蘑菇。别自己偷吃。",need:{mush:2},praise:"没偷吃？……很好。"},
-  {t:"6 束干草。现在。",need:{grass:6},praise:"乖。"},
-  {t:"去弄 2 块石头来。",need:{stone:2},praise:"嗯，好狗。"},
-];
-function curCmd(){ return S.cmd<CMDS.length?CMDS[S.cmd]:CMD_POOL[(S.cmd-CMDS.length+S.day)%CMD_POOL.length]; }
-function cmdText(){ const c=curCmd(); let t=c.t.replace("\n"," "); if(c.need) t+="  （"+Object.entries(c.need).map(([k,v])=>ITEMS[k].n+" "+Math.min(invCount(k),v)+"/"+v).join("，")+"）"; return t; }
-function completeCmd(){ const c=curCmd(); S.cmd++; S.cmdDone++; S.san=Math.min(100,S.san+18); S.praise=2.5;
-  say("demon",c.praise,3.2); setTimeout(()=>say("hero",pick(["主人夸我了……！","是！为了主人！","嘿嘿……主人……"]),2),1800);
-  if(c.big){ won=true; winT=0; }
-  setTimeout(()=>{ say("demon",curCmd().t,3.6); updCmd(); },5200); updCmd(); chime(); }
-function onCommandEvent(ev){ const c=curCmd(); if(c.ev===ev) completeCmd(); }
-function tryDeliver(){ const c=curCmd(); if(!c.need) return false; if(!has(c.need)){ return false; } for(const [k,v] of Object.entries(c.need)) invTake(k,v); if(c.need.star) S.starsGiven=3; completeCmd(); return true; }
-function updCmd(){ const el=document.getElementById("cmd"); if(el) el.innerHTML="<b>主人的命令</b><br>"+cmdText(); }
+/* ---- master's daily tribute (今日献礼) ---- */
+function genQuota(){ const r=rng(S.day*7919+3); const pool=COL_IDS.filter(id=>COL[id][2]!=="past"&&COL[id][2]!=="special"&&COL[id][3]<=(S.day<3?2:3)&&(id!=="moonflower"&&id!=="firefly"||S.day>1));
+  const q=[]; const id1=pool[Math.floor(r()*pool.length)]; q.push({t:"一件「"+COL[id1][0]+"」",id:id1,n:1,c:0});
+  const cats=["flora","bug","mineral","buried","sky"].filter(c=>c!==COL[id1][2]); const cat=cats[Math.floor(r()*cats.length)]; const n=cat==="flora"?4:2; q.push({t:"任意「"+CATS[cat]+"」×"+n,cat,n,c:0});
+  q.push({t:"一件"+(S.day<3?"稀有":"珍贵")+"以上的收藏",minR:S.day<3?2:3,n:1,c:0});
+  if(S.day===1){ q[0]={t:"一件「雏菊」",id:"daisy",n:1,c:0}; q[1]={t:"任意「花草」×3",cat:"flora",n:3,c:0}; q[2]={t:"一件稀有以上的收藏",minR:2,n:1,c:0}; }
+  S.quota=q; S.quotaDone=0; updCmd(); }
+function quotaCount(id){ let hit=0; for(const q of S.quota){ if(q.c>=q.n) continue; const c=COL[id]; if(q.id===id||q.cat===c[2]||(q.minR&&c[3]>=q.minR)){ q.c++; hit=1; break; } } return hit; }
+function updCmd(){ const el=document.getElementById("cmd"); if(!el) return; let h="<b>今日献礼 · 第 "+S.day+" 天</b><br>";
+  h+=S.quota.map(q=>(q.c>=q.n?"<s>":"")+(q.c>=q.n?"☑ ":"☐ ")+q.t+(q.n>1?" ("+Math.min(q.c,q.n)+"/"+q.n+")":"")+(q.c>=q.n?"</s>":"")).join("<br>");
+  const st=S.starsGiven+invCount("star"); h+="<br><span style='opacity:.75'>折纸星星 "+S.starsGiven+"/3 已献上"+(invCount("star")?"（袋里 "+invCount("star")+"）":"")+"</span>"; el.innerHTML=h; }
+
+/* ---- delivery & appraisal ---- */
+function rankOf(f){ let r=RANKS[0]; for(const x of RANKS) if(f>=x[0]) r=x; return r; }
+function deliverAll(){ const list=[]; for(let i=0;i<S.inv.length;i++){ const s=S.inv[i]; if(s&&ITEMS[s.id].col){ list.push({id:s.id,n:s.n}); S.inv[i]=null; } }
+  if(!list.length) return false; buildInv();
+  const mult=0.6+S.obey/100; let tot=0; const rows=[]; const rank0=rankOf(S.favor)[1]; let pastN=0;
+  for(const it of list){ const c=COL[it.id]; const isNew=!S.given[it.id]; S.given[it.id]=(S.given[it.id]||0)+it.n; let pts=Math.round(RPTS[c[3]]*it.n*mult*(isNew?2:1));
+    let q=0; for(let k=0;k<it.n;k++) q+=quotaCount(it.id);
+    if(it.id==="star") S.starsGiven=Math.min(3,S.starsGiven+it.n); if(c[2]==="past") pastN++;
+    tot+=pts; rows.push({id:it.id,n:it.n,pts,isNew,q}); }
+  S.favor+=tot; let bonus=[];
+  if(S.quota.length&&S.quota.every(q=>q.c>=q.n)&&!S.quotaDone){ S.quotaDone=1; S.favor+=15; bonus.push("今日献礼全部完成 · 满意度 +15"); }
+  for(const cat of Object.keys(CATS)){ if(S.sets[cat]) continue; const ids=COL_IDS.filter(id=>COL[id][2]===cat); if(ids.every(id=>S.given[id])){ S.sets[cat]=1; S.favor+=30; bonus.push("「"+CATS[cat]+"」全部收齐 · 满意度 +30"); } }
+  const rank1=rankOf(S.favor)[1]; if(rank1!==rank0) bonus.push("她的身份变成了：「"+rank1+"」");
+  showAppraisal(rows,tot,bonus); updCmd(); S.praise=2.5;
+  if(S.starsGiven>=3&&!won){ won=true; winT=0; }
+  const best=rows.reduce((a,b)=>COL[b.id][3]>COL[a.id][3]?b:a,rows[0]); const br=COL[best.id][3];
+  S._after=()=>{ say("demon",br>=4?"……今天的你，勉强配得上我的注视。":br>=3?"嗯。……好狗。":pick(["……就这些？算了。","放下。退后。","嗯。"]),3);
+    setTimeout(()=>say("hero",pastN?"主人扔掉的东西……一定是不需要的东西！":pick(["主人收下了……！","汪！下次带更好的来！","嘿嘿……主人……"]),2.2),1700); };
+  return true; }
+function showAppraisal(rows,tot,bonus){ const el=document.getElementById("appr"); S.paused=1;
+  let h="<div class='ah'>主人的鉴定</div><div class='al'>";
+  for(const r of rows){ const c=COL[r.id]; const past=c[2]==="past";
+    h+=`<div class='ar${past?" past":""}'><img src="${ASSETS[c[1]]}"><div><div class='an'>${c[0]}${r.n>1?" ×"+r.n:""} <span class='rr r${c[3]}'>${RAR[c[3]]}</span>${r.isNew?" <span class='nw'>新收藏</span>":""}${r.q?" <span class='nw'>献礼✓</span>":""}</div><div class='ac'>「${c[5]}」</div>${past?"<div class='ap'>她歪着头：「这是什么？……不认识。主人要的话，就拿去吧！」</div>":""}</div><div class='pt'>+${r.pts}</div></div>`; }
+  h+="</div><div class='af'>满意度 +"+tot+(bonus.length?"<br>"+bonus.join("<br>"):"")+"<br><small>服从度 "+Math.round(S.obey)+" → 鉴定倍率 ×"+(0.6+S.obey/100).toFixed(2)+"（首次献上 ×2）</small></div><div class='ab' onclick='closeAppraisal()'>是，主人（空格）</div>";
+  el.innerHTML=h; el.style.display="flex"; }
+function closeAppraisal(){ const el=document.getElementById("appr"); if(el.style.display!=="flex") return; el.style.display="none"; S.paused=0; if(S._after){ S._after(); S._after=null; } }
+
+/* ---- catalog UI ---- */
+let catTab="flora", catSel=null;
+function openCatalog(){ const el=document.getElementById("catalog"); if(el.style.display==="flex"){ el.style.display="none"; S.paused=0; return; } S.paused=1; el.style.display="flex"; renderCatalog(); }
+function renderCatalog(){ const el=document.getElementById("catalog"); const tot=COL_IDS.filter(id=>S.given[id]).length;
+  let h=`<div class='ch'>主人的收藏目录 <small>已献上 ${tot} / ${COL_IDS.length} · 已发现 ${Object.keys(S.found).length}</small><span class='cx' onclick='openCatalog()'>✕</span></div><div class='tabs'>`;
+  for(const c in CATS){ const ids=COL_IDS.filter(id=>COL[id][2]===c); const g=ids.filter(id=>S.given[id]).length; h+=`<div class='tab${c===catTab?" on":""}' onclick='catTab="${c}";catSel=null;renderCatalog()'>${CATS[c]} ${g}/${ids.length}${S.sets[c]?" ★":""}</div>`; }
+  h+="</div><div class='cbody'><div class='grid'>";
+  for(const id of COL_IDS.filter(id=>COL[id][2]===catTab)){ const c=COL[id]; const st=S.given[id]?2:S.found[id]?1:0;
+    h+=`<div class='cell s${st}${catSel===id?" sel":""}' onclick='catSel="${id}";renderCatalog()'><img src="${ASSETS[c[1]]}"><div>${st?c[0]:"？？？"}</div><i class='r${c[3]}'>${"◆".repeat(c[3])}</i></div>`; }
+  h+="</div><div class='det'>";
+  if(catSel){ const c=COL[catSel]; const st=S.given[catSel]?2:S.found[catSel]?1:0;
+    h+=`<img class='s${st}' src="${ASSETS[c[1]]}"><div class='dn'>${st?c[0]:"？？？"}</div><div class='rr r${c[3]}'>${RAR[c[3]]} · ${RPTS[c[3]]} 分</div><div class='dh'>线索：${c[4]}</div>`;
+    h+=st===2?`<div class='dc'>主人的评语：<br>「${c[5]}」</div><div class='dh'>已献上 ${S.given[catSel]} 件</div>`:st===1?"<div class='dc'>已经找到了，但还没献给主人。</div>":"<div class='dc'>还没找到。</div>"; }
+  else h+="<div class='dc'>点选格子查看详情。<br><br>收齐一整类：满意度 +30。<br>首次献上的收藏：分数 ×2。<br><br>当前身份：<b>"+rankOf(S.favor)[1]+"</b><br>满意度 "+S.favor+" · 服从度 "+Math.round(S.obey)+"</div>";
+  h+="</div></div>"; el.innerHTML=h; }
 
 /* ---- UI: inventory + crafting ---- */
-function buildInv(){ const box=document.getElementById("inv"); if(!box) return; while(S.inv.length<10) S.inv.push(null); box.innerHTML="";
-  S.inv.forEach((s,i)=>{ const d=document.createElement("div"); d.className="slot"+(s&&S.equip===s.id?" eq":""); d.innerHTML=`<i>${(i+1)%10}</i>`+(s?`<img src="${ASSETS[ITEMS[s.id].img]}"><span>${s.n>1?s.n:""}</span>`:"");
-    if(s) d.title=ITEMS[s.id].n+(ITEMS[s.id].food?"（点击吃掉）":ITEMS[s.id].equip?"（点击装备）":ITEMS[s.id].fuel?"（营火旁点击添柴）":"");
-    d.onclick=()=>{ ac(); useSlot(i); }; box.appendChild(d); });
+function buildInv(){ const box=document.getElementById("inv"); if(!box) return; while(S.inv.length<S.cap) S.inv.push(null); box.innerHTML="";
+  S.inv.forEach((s,i)=>{ const d=document.createElement("div"); const it=s&&ITEMS[s.id]; d.className="slot"+(it&&it.col?" c r"+it.r:""); d.innerHTML=(s?`<img src="${ASSETS[it.img]}"><span>${s.n>1?s.n:""}</span>`:"");
+    if(s) d.title=it.n+(it.col?" · "+RAR[it.r]:" · 材料"); d.onclick=()=>{ ac(); useSlot(i); }; box.appendChild(d); });
   updCmd(); buildCraft(); }
 function buildCraft(){ const box=document.getElementById("craft"); if(!box) return; box.innerHTML="<b>制作</b>";
-  for(const rc of RECIPES){ const ok=has(rc.need)&&(!rc.fire||nearFire()); const d=document.createElement("div"); d.className="rc"+(ok?" ok":"");
-    d.innerHTML=`<img src="${ASSETS[rc.img||ITEMS[rc.id].img]}"><div><div class="rn">${rc.n}</div><div class="rq">${Object.entries(rc.need).map(([k,v])=>ITEMS[k].n+" "+invCount(k)+"/"+v).join(" · ")}</div><div class="rd">${rc.desc}</div></div>`;
+  for(const rc of RECIPES){ const own=rc.id==="net"?S.net:S[rc.id]; const ok=!own&&has(rc.need); const d=document.createElement("div"); d.className="rc"+(ok?" ok":"")+(own?" own":"");
+    d.innerHTML=`<img src="${ASSETS[rc.img||ITEMS[rc.id].img]}"><div><div class="rn">${rc.n}${own?" ✓":""}</div><div class="rq">${own?"已拥有":Object.entries(rc.need).map(([k,v])=>ITEMS[k].n+" "+invCount(k)+"/"+v).join(" · ")}</div><div class="rd">${rc.desc}</div></div>`;
     d.onclick=()=>{ ac(); craft(rc); }; box.appendChild(d); } }
 
-/* ---- world resources ---- */
+/* ---- world spawns ---- */
+function randFree(r,test){ for(let k=0;k<80;k++){ const x=(Math.random()*2-1)*WORLD*0.92, y=(Math.random()*2-1)*WORLD*0.92; if(test&&!test(x,y)) continue; if(freeAt(x,y,r)&&!nearPath(x,y,1.8)) return [x,y]; } return null; }
+const FLORA_TAB={daisy:5,dandelion:5,thistle:3,fern:3,lily:2,clover:0.6,moonflower:1.4};
+function spawnFlora(){ const id=wpick(FLORA_TAB); let test=null; if(id==="fern"||id==="lily") test=(x,y)=>ents.some(e=>(e.kind==="pine"||e.kind==="round")&&Math.hypot(e.x-x,e.y-y)<4);
+  const p=randFree(0.4,test)||randFree(0.4); if(p) flora.push({id,x:p[0],y:p[1],sw:Math.random()*6}); }
+function spawnBug(id){ let p=null;
+  if(id==="dragonfly"){ const side=Math.random()<0.5; p=[(Math.random()*2-1)*WORLD*0.8, side?RIVER.y0-1.2:RIVER.y1+1.2]; }
+  else if(id==="beetle"){ const t=pick(ents.filter(e=>(e.kind==="pine"||e.kind==="round"||e.kind==="stump")&&!e.gone)); if(t){ const a=Math.random()*6.28; p=[t.x+Math.cos(a)*(t.rad+0.7),t.y+Math.sin(a)*(t.rad+0.7)]; } }
+  else if(id==="snail"){ const t=pick(ents.filter(e=>(e.kind==="rocks"||e.kind==="boulder")&&!e.gone&&!e.puzzle)); if(t){ const a=Math.random()*6.28; p=[t.x+Math.cos(a)*(t.rad+0.6),t.y+Math.sin(a)*(t.rad+0.6)]; } }
+  else p=randFree(0.5);
+  if(p) bugs.push({id,x:p[0],y:p[1],hx:p[0],hy:p[1],z:id==="beetle"||id==="snail"?0:1,ph:Math.random()*6,flee:0}); }
+const BURIED_TAB={coin:22,key:20,teacup:18,skull:12,diary:5,ribbon:5,wand:2.5,musicbox:3,watch:3};
+function spawnDig(){ const p=randFree(0.6); if(p) digs.push({x:p[0],y:p[1],id:wpick(BURIED_TAB),rev:0}); }
+const ROCK_TAB={flint:36,quartz:32,geode:13,ammonite:10,gold:3.5}, BOULDER_TAB={flint:18,quartz:26,geode:20,ammonite:26,gold:8};
+const NEST_TAB={feather:34,crowf:24,bell:11,egg:13,ribbon:5,pendant:4.5};
+const RIVER_TAB={pebble:30,bottle:18,letter:10,bookmark:6,diary:5,none:31};
 function setupResources(){
-  for(const e of ents){ if(e.kind==="bush"){ e.res="berry"; e.ready=1; } else if(e.kind==="grass"){ e.res="grass"; e.ready=1; } else if(e.kind==="mush"){ e.res="mush"; e.ready=1; } else if(e.kind==="pine"||e.kind==="round"){ e.chop=3; } }
-  const r=rng(321); for(let i=0;i<70;i++){ const x=(r()*2-1)*WORLD*0.9, y=(r()*2-1)*WORLD*0.9; if(y>RIVER.y0-1&&y<RIVER.y1+1) continue; gitems.push({x,y,id:r()<0.65?"twig":"flint",n:1,z:0,vz:0}); }
-  // a few near the start so the first night is survivable
-  [["twig",2,-1],["twig",-2,1],["flint",1.5,2.5],["twig",3,-3],["grass",-3,-2]].forEach(([id,x,y])=>gitems.push({x,y,id,n:1,z:0,vz:0}));
+  for(const e of ents){ if(e.kind==="bush"){ e.res="berry"; e.ready=1; } else if(e.kind==="grass"){ e.res="grass"; e.ready=1; } else if(e.kind==="mush"){ e.res="mush"; e.ready=1; } }
+  const tall=ents.filter(e=>(e.kind==="pine"||e.kind==="round")&&e.h>6).sort(()=>Math.random()-0.5).slice(0,11); for(const t of tall) t.nest={cd:0};
+  const r=rng(321); for(let i=0;i<60;i++){ const x=(r()*2-1)*WORLD*0.9, y=(r()*2-1)*WORLD*0.9; if(y>RIVER.y0-1&&y<RIVER.y1+1) continue; gitems.push({x,y,id:r()<0.75?"twig":"flint",n:1,z:0,vz:0,age:9}); }
+  [["twig",2,-1],["twig",-2,1],["twig",3,-3],["grass",-3,-2],["grass",2.5,1.5]].forEach(([id,x,y])=>gitems.push({x,y,id,n:1,z:0,vz:0,age:9}));
+  for(let i=0;i<60;i++) spawnFlora(); flora.push({id:"daisy",x:1.8,y:1.2,sw:0},{id:"daisy",x:-2.4,y:-0.5,sw:1});
+  for(let i=0;i<8;i++) spawnBug("butterfly"); for(let i=0;i<10;i++) spawnBug("firefly"); for(let i=0;i<6;i++) spawnBug("dragonfly"); for(let i=0;i<7;i++) spawnBug("beetle"); for(let i=0;i<7;i++) spawnBug("snail");
+  for(let i=0;i<28;i++) spawnDig();
+  genQuota();
 }
-function nearestInteract(){ let best=null,bd=2.4;
-  for(const g of gitems){ const d=Math.hypot(g.x-hero.x,g.y-hero.y); if(d<bd){bd=d;best={k:"item",o:g};} }
-  for(const e of ents){ if(e.gone) continue; const d=Math.hypot(e.x-hero.x,e.y-hero.y)-(e.rad||0);
-    if(e.res&&e.ready&&d<bd){ bd=d; best={k:"res",o:e}; }
-    else if(e.chop&&S.equip==="axe"&&d<bd+0.4){ bd=d; best={k:"chop",o:e}; } }
+function isNight(){ return S.clock>=0.66&&S.clock<0.95; }
+function bugVisible(b){ return b.id==="firefly"?isNight():b.id==="butterfly"?!isNight():true; }
+function floraOpen(f){ return f.id!=="moonflower"||isNight(); }
+function nearestInteract(){ let best=null,bd=2.1;
+  for(const e of ents){ if(e.gone||!e.res||!e.ready) continue; const d=Math.hypot(e.x-hero.x,e.y-hero.y)-(e.rad||0); if(d<bd){ bd=d; best={k:"res",o:e}; } }
+  for(const f of flora){ const d=Math.hypot(f.x-hero.x,f.y-hero.y); if(d<bd){ bd=d; best={k:"flora",o:f}; } }
+  for(const b of bugs){ if(!bugVisible(b)) continue; const d=Math.hypot(b.x-hero.x,b.y-hero.y); if(d<Math.min(bd+0.3,2.3)){ bd=d; best={k:"bug",o:b}; } }
   return best; }
 function gather(it){ const o=it.o;
-  if(it.k==="item"){ gitems.splice(gitems.indexOf(o),1); invAdd(o.id,o.n); floatTxt(o.x,o.y,"+"+o.n+" "+ITEMS[o.id].n); paperSnd(0.15,3000,0.15); return; }
-  if(it.k==="res"){ o.ready=0; o.regrow=o.res==="mush"?120:o.res==="berry"?90:60; const n=o.res==="berry"?2:1; invAdd(o.res,n); floatTxt(o.x,o.y,"+"+n+" "+ITEMS[o.res].n); paperSnd(0.2,2400,0.2); if(o.res==="mush") o.gone=true, o.respawn=150; return; }
-  if(it.k==="chop"){ o.chop--; o.shake=0.3; thud(); shards(o.x,o.y,1.2,5,3,"#e8dfcc");
-    if(o.chop<=0){ o.gone=true; const st=addProp("stump",o.x,o.y,1); st.alpha=1; drop(o.x,o.y,"log",1); drop(o.x,o.y,"log",1); if(Math.random()<0.5) drop(o.x,o.y,"twig",1); say("hero","倒啦！",1); } }
+  if(it.k==="res"){ o.ready=0; o.regrow=o.res==="mush"?120:o.res==="berry"?90:50; const n=o.res==="berry"?2:1; invAdd(o.res,n); floatTxt(o.x,o.y,"+"+n+" "+ITEMS[o.res].n); paperSnd(0.2,2400,0.2); if(o.res==="mush"){ o.gone=true; o.respawn=150; } return; }
+  if(it.k==="flora"){ if(!floraOpen(o)){ say("hero","花苞合着……要等到夜里才开。",1.8); return; } flora.splice(flora.indexOf(o),1); invAdd(o.id,1); floatTxt(o.x,o.y,"+ "+COL[o.id][0]); paperSnd(0.2,2600,0.2); setTimeout(spawnFlora,40000+Math.random()*40000); if(o.id==="clover") say("hero","四片叶子！主人会喜欢吗……",1.8); return; }
+  if(it.k==="bug"){ if(!S.net){ say("hero","用手抓不到……要做一个捕虫网（左侧制作）。",2); return; }
+    hero.swing=0.35; paperSnd(0.2,1500,0.25); const easy=o.id==="beetle"||o.id==="snail"; const chance=easy?1:0.72-Math.min(0.3,hero.moving*0.3);
+    if(Math.random()<chance){ bugs.splice(bugs.indexOf(o),1); invAdd(o.id,1); floatTxt(o.x,o.y,"+ "+COL[o.id][0]); const id=o.id; setTimeout(()=>spawnBug(id),50000+Math.random()*30000); }
+    else { o.flee=1.2; say("hero",pick(["啊，逃掉了……","差一点！慢慢靠近……"]),1.4); } }
 }
+function sniff(){ hero.sniff=1.0; paperSnd(0.4,600,0.18); let n=0; for(const d of digs){ if(Math.hypot(d.x-hero.x,d.y-hero.y)<13){ d.rev=22; n++; } }
+  S.sniffT=1.6; setTimeout(()=>say("hero",n?"汪！（这边有味道……"+n+" 处！）":"汪……（什么都没闻到）",1.6),600); }
+function digSpot(d){ hero.dig=1.2; hero.digAt=d; say("hero","汪汪！（刨刨刨）",1.2); }
+function searchNest(t){ if(t.nest.cd>0){ say("hero","啾……（空的，过一阵再来）",1.4); return; } t.nest.cd=150+Math.random()*60; t.shake=0.4; paperSnd(0.3,2800,0.2);
+  const id=wpick(NEST_TAB); invAdd(id,1); floatTxt(t.x,t.y,"+ "+COL[id][0]); if(COL[id][2]==="past") say("hero","啾？……一条旧发带。主人会要吗？",2); }
+function fish(){ if(S.fishCD>0){ say("hero","水被搅浑了……等一下。",1.2); return; } S.fishCD=5; hero.fish=1.3; paperSnd(0.5,700,0.25);
+  setTimeout(()=>{ const id=wpick(RIVER_TAB); if(id==="none"){ say("hero","……只捞到水草。",1.2); return; } invAdd(id,1); floatTxt(hero.x,hero.y,"+ "+COL[id][0]); },1300); }
+function nearBank(){ return hero.form==="human"&&((hero.y>RIVER.y0-1.8&&hero.y<RIVER.y0)||(hero.y>RIVER.y1&&hero.y<RIVER.y1+1.8)); }
+function nearNestTree(){ let best=null,bd=2.4; for(const e of ents){ if(!e.nest||e.gone) continue; const d=Math.hypot(e.x-hero.x,e.y-hero.y); if(d<bd){bd=d;best=e;} } return best; }
+function nearDig(){ let best=null,bd=2.0; for(const d of digs){ if(d.rev<=0) continue; const q=Math.hypot(d.x-hero.x,d.y-hero.y); if(q<bd){bd=q;best=d;} } return best; }
+function breakRock(e){ e.gone=true; e.respawn=160; const big=e.kind==="boulder"; const n=big?2:1+(Math.random()<0.35?1:0); for(let i=0;i<n;i++) drop(e.x,e.y,wpick(big?BOULDER_TAB:ROCK_TAB),1);
+  for(const b of bugs) if(b.id==="snail"&&Math.hypot(b.x-e.x,b.y-e.y)<2.5){ b.x+=1.5; } }
 
-/* ---- per-frame survival tick ---- */
-function darkness(){ const c=S.clock; if(c<0.55) return 0; if(c<0.7) return (c-0.55)/0.15*0.55; if(c<0.93) return 0.55+Math.min(1,(c-0.7)/0.05)*0.4; return 0.95*(1-(c-0.93)/0.07); }
-function phaseName(){ const c=S.clock; return c<0.55?"白天":c<0.7?"黄昏":c<0.93?"夜晚":"黎明"; }
-function lightAt(x,y){ let best=0; for(const f of fires){ if(f.fuel<=0) continue; const r=fireR(f); const d=Math.hypot(f.x-x,f.y-y); best=Math.max(best,1-d/r); }
-  if(S.equip==="torch"&&S.torchFuel>0&&hero.form==="human"){ best=Math.max(best,1-Math.hypot(hero.x-x,hero.y-y)/5); } return best; }
-function fireR(f){ return 2.5+Math.min(5.5,f.fuel/16); }
+/* ---- training commands (调教命令) ---- */
+const ORDERS=[
+  {k:"come",t:"过来。",T:0},{k:"sit",t:"坐下。（变成狗，别动）",T:8},{k:"stay",t:"别动。",T:4},{k:"fetch",t:"叼回来。",T:20},{k:"spin",t:"绕着我转一圈。",T:11},{k:"fly",t:"变成鸟，飞给我看。",T:8},
+];
+const PRAISE=["……好狗。","乖。","嗯。就这样。","（伸手碰了一下她的头，又立刻收回）……可以了。","还算听话。"];
+const SCOLD=["……笨狗。","连这种事都做不到？","……下次再这样，就把你折回废纸。","我说的话，你听不懂吗。"];
+function issueOrder(){ const d=Math.hypot(hero.x-demon.x,hero.y-demon.y); let pool=ORDERS.filter(o=>!(o.k==="come"&&d<5)&&!(o.k==="fetch"&&(demon.y>RIVER.y0-4&&demon.y<RIVER.y1+4)));
+  if(inRiver(hero.x,hero.y)) pool=pool.filter(o=>o.k==="come"||o.k==="fly"); const o=pick(pool);
+  const ord={k:o.k,t:o.t,T:o.k==="come"?5+d/5:o.T,left:0,hold:0,ang:0,prevA:Math.atan2(hero.x-demon.x,hero.y-demon.y),grace:0.8};
+  ord.left=ord.T;
+  if(o.k==="fetch"){ let tx,ty,ok=false; for(let k=0;k<30&&!ok;k++){ const a=Math.random()*6.28, r=7+Math.random()*4; tx=demon.x+Math.cos(a)*r; ty=demon.y+Math.sin(a)*r; ok=!blocked(tx,ty,false)&&!inRiver(tx,ty); }
+    if(!ok){ ord.k="stay"; ord.t="别动。"; ord.T=ord.left=4; } else { gitems.push({x:demon.x,y:demon.y,id:"stick",n:1,z:1.6,vz:6,age:0,fly:{x0:demon.x,y0:demon.y,x1:tx,y1:ty,t:0}}); shards(demon.x,demon.y,1.4,4,2,"#e8dfcc"); } }
+  S.order=ord; say("demon",o.t.replace(/（.*）/,""),2.4); paperSnd(0.2,500,0.2); }
+function orderStep(dt){ const o=S.order; if(!o){ if(started&&!hero.tf&&!won||won){ S.orderCD-=dt; if(S.orderCD<=0){ S.orderCD=45+Math.random()*35; issueOrder(); } } return; }
+  o.left-=dt; o.grace-=dt; const d=Math.hypot(hero.x-demon.x,hero.y-demon.y); let ok=false, fail=false;
+  if(o.k==="come"){ if(d<2.9) ok=true; }
+  else if(o.k==="sit"){ if(hero.form==="dog"&&!hero.tf&&hero.moving<0.05){ o.hold+=dt; if(o.hold>2) ok=true; } else o.hold=0; }
+  else if(o.k==="stay"){ if(o.grace<=0&&(hero.moving>0.3||hero.tf)) fail=true; else if(o.left<=0) ok=true; }
+  else if(o.k==="fetch"){ if(hero.carry&&d<2.9){ ok=true; hero.carry=0; } }
+  else if(o.k==="spin"){ const a=Math.atan2(hero.x-demon.x,hero.y-demon.y); let da=a-o.prevA; da=Math.atan2(Math.sin(da),Math.cos(da)); o.prevA=a; if(d<7) o.ang+=da; if(Math.abs(o.ang)>=Math.PI*2-0.05) ok=true; }
+  else if(o.k==="fly"){ if(hero.form==="bird"&&hero.z>1.6){ o.hold+=dt; if(o.hold>2) ok=true; } }
+  if(!ok&&o.left<=0) fail=true;
+  if(ok){ S.obey=Math.min(100,S.obey+6); S.favor+=2; say("demon",pick(PRAISE),2.4); setTimeout(()=>say("hero",pick(["汪！","主人夸我了……！","嘿嘿……还有什么吩咐？","是！"]),1.6),1300); chime(); floatTxt(hero.x,hero.y,"服从度 +6"); endOrder(); }
+  else if(fail){ S.obey=Math.max(0,S.obey-8); say("demon",pick(SCOLD),2.6); setTimeout(()=>say("hero",pick(["对不起，主人！下次一定做到！","呜……是我不好，主人。","汪……（低下头）"]),1.8),1400); floatTxt(hero.x,hero.y,"服从度 -8"); endOrder(); }
+  updOrder(); }
+function endOrder(){ const o=S.order; S.order=null; if(o&&o.k==="fetch"){ for(let i=gitems.length-1;i>=0;i--) if(gitems[i].id==="stick") gitems.splice(i,1); hero.carry=0; } updOrder(); }
+function updOrder(){ const el=document.getElementById("order"); if(!el) return; const o=S.order; if(!o){ el.style.display="none"; return; } el.style.display="block";
+  let st=""; if(o.k==="sit") st=hero.form!=="dog"?"变成狗 (2)":"保持不动 "+o.hold.toFixed(1)+"/2"; else if(o.k==="stay") st="不要移动"; else if(o.k==="come") st="走到主人身边"; else if(o.k==="fetch") st=hero.carry?"叼回主人身边！":hero.form!=="dog"?"变成狗 (2) 去叼树枝":"去叼树枝"; else if(o.k==="spin") st="绕主人一圈 "+Math.round(Math.abs(o.ang)/6.283*100)+"%"; else if(o.k==="fly") st=hero.form!=="bird"?"变成鸟 (4)":"飞在空中 "+o.hold.toFixed(1)+"/2";
+  el.innerHTML=`<b>主人的命令</b> ${o.t.replace(/（.*）/,"")}<br><small>${st}</small><div class='bar'><i style='width:${Math.max(0,o.left/o.T*100)}%'></i></div>`; }
+
+/* ---- per-frame tick ---- */
+function darkness(){ const c=S.clock; if(c<0.55) return 0; if(c<0.66) return (c-0.55)/0.11*0.45; if(c<0.93) return 0.45; return 0.45*(1-(c-0.93)/0.07); }
+function phaseName(){ const c=S.clock; return c<0.55?"白天":c<0.66?"黄昏":c<0.93?"夜晚":"黎明"; }
 let lastPhase="";
-function survivalStep(dt){
-  S.clock+=dt/DAY_LEN; if(S.clock>=1){ S.clock-=1; S.day++; say("hero","第 "+S.day+" 天……天亮了！",2); }
-  const ph=phaseName(); if(ph!==lastPhase){ if(ph==="黄昏"){ say("demon",fires.some(f=>f.fuel>0)?"……天要黑了。":"天要黑了。\n没火的话，你会被黑暗里的东西吃掉。\n……与我无关。",3.6); } if(ph==="夜晚"&&!fires.some(f=>f.fuel>0)&&!(S.equip==="torch")) say("hero","好黑……主人……？",2); lastPhase=ph; }
-  // hunger & health
-  S.hunger=Math.max(0,S.hunger-dt*0.42); if(S.hunger<=0){ S.hp-=dt*1.2; if(Math.random()<dt*0.2) say("hero","肚子……好饿……",1.4); }
-  // sanity: drains at dusk/night away from light; restored slowly near fire
-  const dk=darkness(), lit=lightAt(hero.x,hero.y);
-  if(dk>0.3&&lit<0.1) S.san-=dt*0.55; else if(lit>0.2&&dk>0.3) S.san+=dt*0.15;
-  if(Math.hypot(demon.x-hero.x,demon.y-hero.y)<3.5&&dk<0.3) S.san+=dt*0.05; // being near her master calms her (the contract)
-  S.san=Math.max(0,Math.min(100,S.san));
-  if(S.san<30&&Math.random()<dt*0.05){ say("hero",pick(["我……以前是谁……？","扫帚……我的扫帚是做什么用的……","……主人？"]),2); setTimeout(()=>say("demon",pick(["别想多余的事。","你是我的。仅此而已。","……看着我。"]),2.4),1600); setTimeout(()=>{S.san=Math.min(100,S.san+6);},2000); }
-  if(S.san<15) S.hp-=dt*0.4;
-  // darkness monster
-  if(dk>0.85&&lit<0.05){ S.darkT+=dt; if(S.darkT>2.2){ S.hurtT-=dt; if(S.hurtT<=0){ S.hurtT=2; S.hp-=16; S.flash=0.6; shake=0.3; thud(); say("hero",pick(["呀啊！有东西在咬我！","好痛！火……要火……！"]),1.6); } } }
-  else { S.darkT=0; S.hurtT=0.4; }
-  // torch
-  if(S.equip==="torch"&&hero.form==="human"){ S.torchFuel-=dt; if(S.torchFuel<=0){ invTake("torch",1); S.equip=null; S.torchFuel=0; say("hero","火把烧完了……",1.4); if(invCount("torch")) { S.torchFuel=80; S.equip="torch"; } buildInv(); } }
-  // fires
-  for(const f of fires){ if(f.fuel>0){ f.fuel-=dt; if(Math.random()<dt*6) parts.push({x:f.x+(Math.random()-0.5)*0.4,y:f.y+(Math.random()-0.5)*0.4,z:0.6,vx:(Math.random()-0.5)*0.4,vy:(Math.random()-0.5)*0.4,vz:2+Math.random()*1.5,life:1,rot:0,vr:0,sz:0.07,kind:"ember"}); } }
-  // regrowth
-  for(const e of ents){ if(e.regrow>0){ e.regrow-=dt; if(e.regrow<=0){ e.ready=1; } } if(e.respawn>0){ e.respawn-=dt; if(e.respawn<=0){ e.gone=false; e.ready=1; } } if(e.shake>0) e.shake-=dt; }
-  // ground items physics
-  for(const g of gitems){ if(g.vz||g.z>0){ g.z+=g.vz*dt; g.vz-=14*dt; if(g.z<=0){ g.z=0; g.vz=0; } } }
-  for(let i=floats.length-1;i>=0;i--){ floats[i].t+=dt; if(floats[i].t>1.4) floats.splice(i,1); }
-  if(S.praise>0) S.praise-=dt; if(S.flash>0) S.flash-=dt;
-  // death
-  if(S.hp<=0&&!S.dead){ S.dead=1; S.hp=0; say("hero","主……人……",2); setTimeout(()=>{ say("demon","……没用的东西。起来。\n我还没允许你倒下。",3.4); S.hp=50; S.hunger=Math.max(S.hunger,60); S.san=Math.max(S.san,40); hero.x=demon.x+1.2; hero.y=demon.y; S.dead=0; // lose half of each stack
-      S.inv=S.inv.map(s=>s&&s.id!=="star"?(s.n>1?{id:s.id,n:Math.ceil(s.n/2)}:null):s); buildInv(); if(darkness()>0.5&&!fires.some(f=>f.fuel>0)) fires.push({x:demon.x-1,y:demon.y+1,fuel:60,max:120}); },2200); }
+function colStep(dt){
+  S.clock+=dt/DAY_LEN; if(S.clock>=1){ S.clock-=1; S.day++; genQuota(); say("hero","第 "+S.day+" 天！主人，今天也请吩咐我！",2.2); setTimeout(()=>say("demon","……今天的献礼，看你自己的了。",2.6),1500); }
+  const ph=phaseName(); if(ph!==lastPhase){ if(ph==="黄昏"&&lastPhase) setTimeout(()=>say("demon","天要黑了。月光花和萤火虫……要出来了。",3),200); lastPhase=ph; }
+  if(S.fishCD>0) S.fishCD-=dt; if(S.sniffT>0) S.sniffT-=dt;
+  for(const d of digs) if(d.rev>0) d.rev-=dt;
+  for(const e of ents){ if(e.regrow>0){ e.regrow-=dt; if(e.regrow<=0) e.ready=1; } if(e.respawn>0){ e.respawn-=dt; if(e.respawn<=0){ e.gone=false; e.ready=1; } } if(e.shake>0) e.shake-=dt; if(e.nest&&e.nest.cd>0) e.nest.cd-=dt; }
+  // bugs
+  for(const b of bugs){ b.ph+=dt; const fly=b.id!=="beetle"&&b.id!=="snail"; const dh=Math.hypot(hero.x-b.x,hero.y-b.y);
+    if(b.flee>0){ b.flee-=dt; const a=Math.atan2(b.x-hero.x,b.y-hero.y); b.x+=Math.sin(a)*5*dt; b.y+=Math.cos(a)*5*dt; if(b.flee<=0){ b.hx=b.x; b.hy=b.y; } }
+    else if(fly){ const sp=b.id==="dragonfly"?1.4:0.7; const tx=b.hx+Math.sin(b.ph*sp*0.7)*2.2+Math.sin(b.ph*sp*1.9)*0.6, ty=b.hy+Math.cos(b.ph*sp*0.5)*1.6; b.x+=(tx-b.x)*Math.min(1,dt*2); b.y+=(ty-b.y)*Math.min(1,dt*2); b.z=1+Math.sin(b.ph*2.2)*0.35+(b.id==="firefly"?0.3:0);
+      if(dh<2.2&&hero.moving>0.7&&b.id!=="firefly"){ b.flee=0.6; } }
+    else { b.x=b.hx+Math.sin(b.ph*0.2)*0.25; }
+    if(b.id==="dragonfly"&&inRiver(b.x,b.y+0.01)) b.y=b.y<(RIVER.y0+RIVER.y1)/2?RIVER.y0-0.4:RIVER.y1+0.4; }
+  // ground items physics + auto pickup
+  for(let i=gitems.length-1;i>=0;i--){ const g=gitems[i]; g.age=(g.age||0)+dt;
+    if(g.fly){ g.fly.t+=dt/0.9; const t=Math.min(1,g.fly.t); g.x=g.fly.x0+(g.fly.x1-g.fly.x0)*t; g.y=g.fly.y0+(g.fly.y1-g.fly.y0)*t; g.z=1.6+Math.sin(t*Math.PI)*3.5-1.6*t; if(t>=1){ g.fly=null; g.z=0; g.vz=0; dirt(g.x,g.y,6); } continue; }
+    if(g.vz||g.z>0){ g.z+=g.vz*dt; g.vz-=14*dt; if(g.z<=0){ g.z=0; g.vz=0; } }
+    if(g.z===0&&g.age>0.6&&!hero.tf&&Math.hypot(g.x-hero.x,g.y-hero.y)<1.4&&hero.z<1){
+      if(g.id==="stick"){ if(hero.form==="dog"){ gitems.splice(i,1); hero.carry=1; say("hero","（叼住）",0.8); paperSnd(0.15,3000,0.15); } else if(!g.tip){ g.tip=1; say("hero","主人要我用嘴叼回去……变成狗！",1.6); } continue; }
+      if(!invFull(g.id)){ gitems.splice(i,1); invAdd(g.id,g.n); floatTxt(g.x,g.y,"+"+g.n+" "+ITEMS[g.id].n); paperSnd(0.15,3000,0.15); } } }
+  for(let i=floats.length-1;i>=0;i--){ floats[i].t+=dt; if(floats[i].t>1.6) floats.splice(i,1); }
+  if(S.praise>0) S.praise-=dt;
+  if(hero.swing>0) hero.swing-=dt; if(hero.sniff>0) hero.sniff-=dt; if(hero.fish>0) hero.fish-=dt;
+  orderStep(dt);
   S._t=(S._t||0)+dt; if(S._t>0.5){ S._t=0; buildCraftLite(); }
 }
-let _craftKey=""; function buildCraftLite(){ const k=RECIPES.map(rc=>has(rc.need)&&(!rc.fire||nearFire())?1:0).join("")+S.inv.map(s=>s?s.id+s.n:"_").join(); if(k!==_craftKey){ _craftKey=k; buildCraft(); updCmd(); } }
+let _craftKey=""; function buildCraftLite(){ const k=S.inv.map(s=>s?s.id+s.n:"_").join()+S.net+S.basket; if(k!==_craftKey){ _craftKey=k; buildCraft(); updCmd(); } }
 
-/* ---- drawing: ground items, fires, darkness, HUD ---- */
-function drawGItem(g){ const p=proj(g.x,g.y,g.z); if(!p) return; const p0=proj(g.x,g.y,0); shadow(p0,0.25); sprite(IMG[ITEMS[g.id].img],p,0.55,false,1,1,1,Math.sin(g.x*3)*0.3); }
-function drawFire(f){ const p=proj(f.x,f.y,0); if(!p) return; const lit=f.fuel>0; sprite(IMG.item_8,p,1.1,false,lit?1:0.7,1,lit?1+Math.sin(time*9)*0.04:0.5);
-  if(lit){ const fl=Math.min(1,f.fuel/40); cx.save(); cx.globalCompositeOperation="lighter"; const g=cx.createRadialGradient(p.x,p.y-p.s*0.5,0,p.x,p.y-p.s*0.5,p.s*1.4*(0.7+fl*0.5)); g.addColorStop(0,"rgba(255,230,170,0.35)"); g.addColorStop(1,"rgba(255,200,120,0)"); cx.fillStyle=g; cx.beginPath(); cx.arc(p.x,p.y-p.s*0.5,p.s*1.6,0,6.3); cx.fill(); cx.restore(); } }
+/* ---- drawing ---- */
+function drawGItem(g){ const p=proj(g.x,g.y,g.z); if(!p) return; const p0=proj(g.x,g.y,0); shadow(p0,0.25); const it=ITEMS[g.id]; sprite(IMG[it.img],p,it.col?0.7:0.55,false,1,1,1,g.fly?time*12:Math.sin(g.x*3)*0.3);
+  if(it.col&&it.r>=2){ cx.strokeStyle="rgba(40,34,28,0.55)"; cx.lineWidth=1; for(let i=0;i<4;i++){ const a=i*1.57+time*1.5; const r1=p.s*0.45, r2=p.s*0.6; cx.beginPath(); cx.moveTo(p.x+Math.cos(a)*r1,p.y-p.s*0.35+Math.sin(a)*r1); cx.lineTo(p.x+Math.cos(a)*r2,p.y-p.s*0.35+Math.sin(a)*r2); cx.stroke(); } }
+  if(g.id==="stick"){ const q=proj(g.x,g.y,g.z+1.1+Math.sin(time*6)*0.1); if(q){ cx.fillStyle="#2a2622"; cx.font="bold "+Math.round(q.s*0.5)+"px sans-serif"; cx.textAlign="center"; cx.fillText("!",q.x,q.y); } } }
+function drawFlora(f){ const p=proj(f.x,f.y,0); if(!p) return; const open=floraOpen(f); sprite(IMG[COL[f.id][1]],p,open?0.8:0.45,false,open?1:0.5,1,1,Math.sin(time*1.4+f.sw)*0.06);
+  if(f.id==="moonflower"&&open){ cx.save(); cx.globalCompositeOperation="lighter"; const g=cx.createRadialGradient(p.x,p.y-p.s*0.45,0,p.x,p.y-p.s*0.45,p.s*0.7); g.addColorStop(0,"rgba(230,235,255,0.35)"); g.addColorStop(1,"rgba(230,235,255,0)"); cx.fillStyle=g; cx.fillRect(p.x-p.s,p.y-p.s*1.2,p.s*2,p.s*1.6); cx.restore(); } }
+function drawBug(b){ if(!bugVisible(b)) return; const p=proj(b.x,b.y,b.z), p0=proj(b.x,b.y,0); if(!p||!p0) return; if(b.z>0.3){ cx.fillStyle="rgba(40,34,28,0.12)"; cx.beginPath(); cx.ellipse(p0.x,p0.y,p.s*0.15,p.s*0.05,0,0,6.3); cx.fill(); }
+  const flap=b.z>0.3?Math.abs(Math.sin(time*(b.id==="dragonfly"?30:14)+b.ph))*0.7+0.3:1; const h=b.id==="butterfly"?0.5:b.id==="dragonfly"?0.55:b.id==="firefly"?0.35:0.4;
+  sprite(IMG[COL[b.id][1]],p,h,Math.sin(b.ph*0.7)<0,1,flap,1,0);
+  if(b.id==="firefly"){ cx.save(); cx.globalCompositeOperation="lighter"; const a=0.35+Math.sin(time*4+b.ph*3)*0.25; const g=cx.createRadialGradient(p.x,p.y-p.s*0.15,0,p.x,p.y-p.s*0.15,p.s*0.5); g.addColorStop(0,`rgba(255,250,200,${a})`); g.addColorStop(1,"rgba(255,250,200,0)"); cx.fillStyle=g; cx.fillRect(p.x-p.s*0.5,p.y-p.s*0.65,p.s,p.s); cx.restore(); } }
+function drawDig(d){ if(d.rev<=0) return; const p=proj(d.x,d.y,0); if(!p) return; const a=Math.min(1,d.rev/3); cx.save(); cx.globalAlpha=a; cx.strokeStyle="#2a2622"; cx.lineWidth=2; cx.setLineDash([5,4]); const r=p.s*0.45;
+  cx.beginPath(); cx.moveTo(p.x-r,p.y-r*0.35); cx.lineTo(p.x+r,p.y+r*0.35); cx.moveTo(p.x+r,p.y-r*0.35); cx.lineTo(p.x-r,p.y+r*0.35); cx.stroke(); cx.setLineDash([]);
+  cx.lineWidth=1; for(let i=0;i<3;i++){ const yy=p.y-p.s*(0.5+i*0.3)-((time*0.8+i*0.33)%1)*p.s*0.3; cx.beginPath(); for(let k=0;k<6;k++){ const x=p.x+Math.sin(k*1.3+time*3+i)*p.s*0.12, y=yy-k*p.s*0.06; k?cx.lineTo(x,y):cx.moveTo(x,y); } cx.stroke(); } cx.restore(); }
+function drawNest(e,p){ if(!e.nest) return; const q=proj(e.x,e.y,e.h*0.78); if(!q) return; sprite(IMG.col_treasure_9,q,0.9,false,(e.nest.cd>0?0.4:1)*e.alpha,1,1,0); }
 let darkC=null;
 function drawDarkness(){ const dk=darkness(); if(dk<=0.01) return; if(!darkC){ darkC=document.createElement("canvas"); } if(darkC.width!==Math.ceil(W/2)){ darkC.width=Math.ceil(W/2); darkC.height=Math.ceil(H/2); }
-  const g=darkC.getContext("2d"); g.setTransform(0.5,0,0,0.5,0,0); g.globalCompositeOperation="source-over"; g.clearRect(0,0,W,H); g.fillStyle=`rgba(14,12,18,${dk})`; g.fillRect(0,0,W,H);
+  const g=darkC.getContext("2d"); g.setTransform(0.5,0,0,0.5,0,0); g.globalCompositeOperation="source-over"; g.clearRect(0,0,W,H); g.fillStyle=`rgba(18,18,30,${dk})`; g.fillRect(0,0,W,H);
   g.globalCompositeOperation="destination-out";
-  const hole=(x,y,r,a)=>{ const p=proj(x,y,0.3); if(!p) return; const R=r*p.s; g.save(); g.translate(p.x,p.y-R*0.1); g.scale(1,0.62); const gr=g.createRadialGradient(0,0,R*0.15,0,0,R); gr.addColorStop(0,`rgba(0,0,0,${a})`); gr.addColorStop(0.6,`rgba(0,0,0,${a*0.75})`); gr.addColorStop(1,"rgba(0,0,0,0)"); g.fillStyle=gr; g.beginPath(); g.arc(0,0,R,0,6.3); g.fill(); g.restore(); };
-  for(const f of fires) if(f.fuel>0) hole(f.x,f.y,fireR(f)*(1+Math.sin(time*11+f.x)*0.03),1);
-  if(S.equip==="torch"&&S.torchFuel>0&&hero.form==="human") hole(hero.x,hero.y,5*(1+Math.sin(time*13)*0.03),1);
-  hole(hero.x,hero.y,1.6,0.35); // she can always see herself a little
+  const hole=(x,y,z,r,a)=>{ const p=proj(x,y,z); if(!p) return; const R=r*p.s; g.save(); g.translate(p.x,p.y-R*0.1); g.scale(1,0.62); const gr=g.createRadialGradient(0,0,R*0.1,0,0,R); gr.addColorStop(0,`rgba(0,0,0,${a})`); gr.addColorStop(0.5,`rgba(0,0,0,${a*0.7})`); gr.addColorStop(1,"rgba(0,0,0,0)"); g.fillStyle=gr; g.beginPath(); g.arc(0,0,R,0,6.3); g.fill(); g.restore(); };
+  hole(hero.x,hero.y,0.3,4.2,0.9); hole(demon.x,demon.y,0.3,2.2,0.5);
+  for(const b of bugs) if(b.id==="firefly") hole(b.x,b.y,b.z,1.4,0.6); for(const f of flora) if(f.id==="moonflower") hole(f.x,f.y,0.3,1.6,0.6);
   cx.drawImage(darkC,0,0,W,H);
-  // the demon's eyes glow in the dark
-  const pd=proj(demon.x,demon.y,SHEETS[DEMON].h[PROP_MODE]*0.78); if(pd&&dk>0.5&&lightAt(demon.x,demon.y)<0.3){ cx.fillStyle=`rgba(255,240,230,${(dk-0.5)*1.6})`; for(const o of [-1,1]){ cx.beginPath(); cx.ellipse(pd.x+o*pd.s*0.12,pd.y,pd.s*0.05,pd.s*0.02,0,0,6.3); cx.fill(); } }
-  // shadow things circling when she is in the dark
-  if(S.darkT>0.5){ const hp=proj(hero.x,hero.y,1); if(hp){ cx.strokeStyle=`rgba(0,0,0,${Math.min(0.8,S.darkT/3)})`; cx.lineWidth=2; for(let i=0;i<5;i++){ const a=time*1.3+i*1.26, r=hp.s*(1.6+Math.sin(time*2+i)*0.3); cx.beginPath(); for(let k=0;k<12;k++){ const aa=a+k*0.05; const x=hp.x+Math.cos(aa)*r+Math.sin(k*3+time*9)*4, y=hp.y+Math.sin(aa)*r*0.5+Math.cos(k*2+time*7)*4; k?cx.lineTo(x,y):cx.moveTo(x,y); } cx.stroke(); } } }
-}
-function drawFloats(){ cx.font="bold 15px "+getComputedStyle(document.body).fontFamily; cx.textAlign="center"; for(const f of floats){ const p=proj(f.x,f.y,f.z+f.t*1.2); if(!p) continue; cx.globalAlpha=Math.max(0,1-f.t/1.4); cx.fillStyle="#2a2622"; cx.fillText(f.text,p.x,p.y); } cx.globalAlpha=1; }
-function meter(x,y,r,v,max,label,ico){ const f=v/max; cx.save(); cx.lineWidth=2; cx.strokeStyle="#2a2622"; cx.fillStyle="#f7f3ea"; cx.beginPath(); cx.arc(x,y,r,0,6.3); cx.fill();
-  cx.save(); cx.beginPath(); cx.arc(x,y,r-3,0,6.3); cx.clip(); const top=y+r-(2*r)*f; cx.fillStyle=f<0.25?"#6b5a52":"#8a8378"; cx.fillRect(x-r,top,2*r,2*r);
-  cx.strokeStyle="rgba(247,243,234,0.5)"; cx.lineWidth=1; for(let i=-r;i<r;i+=5){ cx.beginPath(); cx.moveTo(x+i,top); cx.lineTo(x+i+r,top+r*2); cx.stroke(); } cx.restore();
-  cx.beginPath(); cx.arc(x,y,r,0,6.3); cx.stroke(); if(f<0.25&&Math.sin(time*8)>0){ cx.strokeStyle="#2a2622"; cx.lineWidth=3; cx.beginPath(); cx.arc(x,y,r+3,0,6.3); cx.stroke(); }
-  cx.fillStyle=f>0.5?"#fff":"#2a2622"; cx.font="bold 16px "+getComputedStyle(document.body).fontFamily; cx.textAlign="center"; cx.textBaseline="middle"; cx.fillText(Math.round(v),x,y+1);
-  cx.fillStyle="#f7f3eadd"; cx.fillRect(x-17,y+r+3,34,16); cx.fillStyle="#2a2622"; cx.font="12px "+getComputedStyle(document.body).fontFamily; cx.fillText(label,x,y+r+11); cx.restore(); }
+  const pd=proj(demon.x,demon.y,SHEETS[DEMON].h[PROP_MODE]*0.78); if(pd&&dk>0.3){ cx.fillStyle=`rgba(255,240,230,${(dk-0.3)*2})`; for(const o of [-1,1]){ cx.beginPath(); cx.ellipse(pd.x+o*pd.s*0.12,pd.y,pd.s*0.05,pd.s*0.02,0,0,6.3); cx.fill(); } } }
+function drawFloats(){ cx.font="bold 15px "+getComputedStyle(document.body).fontFamily; cx.textAlign="center"; for(const f of floats){ const p=proj(f.x,f.y,f.z+f.t*1.2); if(!p) continue; cx.globalAlpha=Math.max(0,1-f.t/1.6); cx.fillStyle="#f7f3eacc"; const w=cx.measureText(f.text).width; cx.fillRect(p.x-w/2-4,p.y-14,w+8,19); cx.fillStyle="#2a2622"; cx.fillText(f.text,p.x,p.y); } cx.globalAlpha=1; }
 function drawHUD(){ const fam=getComputedStyle(document.body).fontFamily;
-  meter(36,40,24,S.hp,100,"生命"); meter(94,40,24,S.hunger,150,"饱食"); meter(152,40,24,S.san,100,"理智");
+  // status card (top-left): rank, favour, obedience, collection
+  const rk=rankOf(S.favor); const nx=RANKS.find(r=>r[0]>S.favor); cx.save(); cx.fillStyle="#f7f3eaee"; cx.strokeStyle="#2a2622"; cx.lineWidth=2; cx.beginPath(); cx.rect(10,10,214,78); cx.fill(); cx.stroke();
+  cx.fillStyle="#2a2622"; cx.textAlign="left"; cx.textBaseline="alphabetic"; cx.font="12px "+fam; cx.fillText("她的身份",18,27); cx.font="bold 18px "+fam; cx.fillText("「"+rk[1]+"」",78,29);
+  cx.font="12px "+fam; cx.fillText("满意度 "+S.favor+(nx?" / "+nx[0]:""),18,48);
+  const bw=100; cx.strokeRect(116,39,bw,10); cx.fillStyle="#6a6258"; cx.fillRect(117,40,(bw-2)*Math.min(1,nx?(S.favor-rk[0])/(nx[0]-rk[0]):1),8);
+  cx.fillStyle="#2a2622"; cx.fillText("服从度 "+Math.round(S.obey),18,66); cx.strokeRect(116,57,bw,10); cx.fillStyle=S.obey<30?"#8a4a42":"#2a2622"; cx.fillRect(117,58,(bw-2)*S.obey/100,8);
+  cx.fillStyle="#2a2622"; cx.fillText("收藏 "+COL_IDS.filter(id=>S.given[id]).length+"/"+COL_IDS.length+" · 袋 "+S.inv.filter(s=>s).length+"/"+S.cap,18,83); cx.restore();
   // clock dial
   const x=W-58,y=46,r=32; cx.save(); cx.lineWidth=2; cx.strokeStyle="#2a2622";
   const seg=(a0,a1,col)=>{ cx.fillStyle=col; cx.beginPath(); cx.moveTo(x,y); cx.arc(x,y,r,-Math.PI/2+a0*6.283,-Math.PI/2+a1*6.283); cx.closePath(); cx.fill(); };
-  seg(0,0.55,"#f3eee2"); seg(0.55,0.7,"#b8ae9c"); seg(0.7,0.93,"#3a3530"); seg(0.93,1,"#b8ae9c"); cx.beginPath(); cx.arc(x,y,r,0,6.3); cx.stroke();
+  seg(0,0.55,"#f3eee2"); seg(0.55,0.66,"#b8ae9c"); seg(0.66,0.93,"#4a4550"); seg(0.93,1,"#b8ae9c"); cx.beginPath(); cx.arc(x,y,r,0,6.3); cx.stroke();
   const a=-Math.PI/2+S.clock*6.283; cx.lineWidth=3; cx.beginPath(); cx.moveTo(x,y); cx.lineTo(x+Math.cos(a)*(r-4),y+Math.sin(a)*(r-4)); cx.stroke();
   cx.fillStyle="#f7f3eadd"; cx.fillRect(x-38,y+r+3,76,34); cx.fillStyle="#2a2622"; cx.font="bold 15px "+fam; cx.textAlign="center"; cx.fillText("第 "+S.day+" 天",x,y+r+16); cx.font="12px "+fam; cx.fillText(phaseName(),x,y+r+31); cx.restore();
-  if(S.flash>0){ cx.fillStyle=`rgba(20,10,10,${S.flash*0.5})`; cx.fillRect(0,0,W,H); }
-  if(S.san<30){ const k=(30-S.san)/30; const vg=cx.createRadialGradient(W/2,H/2,Math.min(W,H)*0.25,W/2,H/2,Math.max(W,H)*0.7); vg.addColorStop(0,"rgba(0,0,0,0)"); vg.addColorStop(1,`rgba(10,8,12,${0.55*k})`); cx.fillStyle=vg; cx.fillRect(0,0,W,H); }
-  if(S.dead){ cx.fillStyle="rgba(10,8,8,0.55)"; cx.fillRect(0,0,W,H); cx.fillStyle="#f3efe6"; cx.font="bold 40px "+fam; cx.textAlign="center"; cx.fillText("她倒下了……",W/2,H*0.42); }
 }
 
 /* ---------------- update ---------------- */
@@ -404,16 +542,18 @@ function step(dt){
   let mx=0,my=0; const fy=[Math.sin(cam.yaw),Math.cos(cam.yaw)], rx=[Math.cos(cam.yaw),-Math.sin(cam.yaw)];
   if(ix||iy){ target=null; mx=fy[0]*iy+rx[0]*ix; my=fy[1]*iy+rx[1]*ix; const l=Math.hypot(mx,my); mx/=l; my/=l; }
   else if(target){ const dx=target.x-hero.x, dy=target.y-hero.y, l=Math.hypot(dx,dy); if(l<0.3) target=null; else { mx=dx/l; my=dy/l; } }
-  survivalStep(dt); if(S.dead){ mx=my=0; target=null; }
+  colStep(dt);
   const F=FORMS[hero.form]; const flying=!!F.fly;
   if(hero.tf){ hero.tf.t+=dt; if(hero.tf.t>=TF_DUR*0.55&&!hero.tf.sw){ hero.tf.sw=1; hero.form=hero.tf.to; updForms(); shards(hero.x,hero.y,1.2,14,5); } if(hero.tf.t>=TF_DUR){ hero.tf=null; const L={human:"变回来了，主人！",dog:"汪！（摇尾巴）",unicorn:"咴——！",bird:"啾！"}; say("hero",L[hero.form],1.2); if(hero.form!=="human"&&Math.random()<0.5) setTimeout(()=>say("demon",pick(["……狗的样子，最适合你。","嗯，还算有点用处。","别掉纸屑在我脚边。","变什么都一样。去干活。"]),2.2),700); } mx=my=0; }
   if(hero.dig>0){ hero.dig-=dt; mx=my=0; if(Math.random()<dt*14) dirt(hero.x+Math.sin(hero.face)*0.6,hero.y+Math.cos(hero.face)*0.6,2);
-    if(hero.dig<=0&&Math.hypot(hero.x-MOUND.x,hero.y-MOUND.y)<2.6&&!MOUND.dug){ MOUND.dug=1; MOUND.gone=true; STARS[0].hidden=false; STARS[0].pop=0; dirt(MOUND.x,MOUND.y,40); thud(); say("hero","找到了！",1.6); } }
+    if(hero.dig<=0&&hero.digAt){ const d=hero.digAt; hero.digAt=null; if(digs.includes(d)){ digs.splice(digs.indexOf(d),1); dirt(d.x,d.y,24); thud(); drop(d.x,d.y,d.id,1); say("hero",COL[d.id][2]==="past"?"汪？（旧东西……主人会要吗？）":"汪！挖到了！",1.6); setTimeout(spawnDig,60000); } }
+    else if(hero.dig<=0&&Math.hypot(hero.x-MOUND.x,hero.y-MOUND.y)<2.6&&!MOUND.dug){ MOUND.dug=1; MOUND.gone=true; STARS[0].hidden=false; STARS[0].pop=0; dirt(MOUND.x,MOUND.y,40); thud(); say("hero","找到了！",1.6); } }
   let sp=F.speed;
   if(hero.dash>0){ hero.dash-=dt; sp=24; if(!(mx||my)){ mx=Math.sin(hero.face); my=Math.cos(hero.face); } }
   if(mx||my){ const nx=hero.x+mx*sp*dt, ny=hero.y+my*sp*dt; const bk=blocked(nx,ny,flying);
     if(!bk){ hero.x=nx; hero.y=ny; }
-    else { if(bk!==true&&bk.puzzle==="smash"&&hero.form==="unicorn"&&hero.dash>0&&!bk.gone){ bk.gone=true; shards(bk.x,bk.y,1,26,7,"#dcd6ca"); dirt(bk.x,bk.y,20); thud(); shake=0.35; hero.dash=0; if(RING.every(b=>b.gone)||RING.filter(b=>!b.gone).length<=5){ if(!RING.msg){RING.msg=1; say("hero","撞开了！",1.4);} } }
+    else { if(bk!==true&&bk.puzzle==="smash"&&hero.form==="unicorn"&&hero.dash>0&&!bk.gone){ bk.gone=true; shards(bk.x,bk.y,1,26,7,"#dcd6ca"); dirt(bk.x,bk.y,20); thud(); shake=0.35; hero.dash=0; drop(bk.x,bk.y,wpick(BOULDER_TAB),1); if(RING.every(b=>b.gone)||RING.filter(b=>!b.gone).length<=5){ if(!RING.msg){RING.msg=1; say("hero","撞开了！",1.4);} } }
+      else if(bk!==true&&(bk.kind==="rocks"||bk.kind==="boulder")&&!bk.puzzle&&hero.form==="unicorn"&&hero.dash>0&&!bk.gone){ breakRock(bk); shards(bk.x,bk.y,0.8,16,6,"#dcd6ca"); dirt(bk.x,bk.y,12); thud(); shake=0.25; hero.dash=0; }
       else if(bk!==true&&bk.puzzle==="smash"&&hero.form!=="unicorn"&&!bk.tip){ bk.tip=1; say("hero",hero.form==="human"?"好重……推不动。":"……撞不动。",1.6); }
       if(!blocked(nx,hero.y,flying)) hero.x=nx; else if(!blocked(hero.x,ny,flying)) hero.y=ny; }
     const tf=Math.atan2(mx,my); let d=tf-hero.face; d=Math.atan2(Math.sin(d),Math.cos(d)); hero.face+=d*Math.min(1,dt*14); hero.moving=Math.min(1,hero.moving+dt*6); }
@@ -436,7 +576,7 @@ function step(dt){
   // stars
   for(const s of STARS){ if(s.got||s.hidden) continue; if(s.pop!==undefined&&s.pop<1) s.pop+=dt*2;
 
-    if(Math.hypot(hero.x-s.x,hero.y-s.y)<1.3){ s.got=true; chime(); sparkle(s.x,s.y,1.4); invAdd("star",1); const n=STARS.filter(q=>q.got).length; say("hero",n<3?"星星！要献给主人……":"三颗都找到了！快拿给主人！",1.8); if(S.cmd<2) setTimeout(()=>say("demon","……星星？好东西。之后全部交给我。",2.8),1400); } }
+    if(Math.hypot(hero.x-s.x,hero.y-s.y)<1.3){ s.got=true; chime(); sparkle(s.x,s.y,1.4); invAdd("star",1); const n=STARS.filter(q=>q.got).length; say("hero",n<3?"星星！要献给主人……":"三颗都找到了！快拿给主人！",1.8); if(!S.starsGiven) setTimeout(()=>say("demon","……星星？好东西。之后全部交给我。",2.8),1400); } }
   // occlusion fade for props in front of hero
   const hp=proj(hero.x,hero.y,hero.z+1);
   for(const e of ents){ let ta=1; if(hp&&(e.kind==="pine"||e.kind==="round"||e.kind==="dead")){ const p=proj(e.x,e.y,0); if(p&&p.z<hp.z){ const wpx=e.h*p.s*0.35; if(Math.abs(p.x-hp.x)<wpx&&hp.y<p.y&&hp.y>p.y-e.h*p.s) ta=0.35; else if(p.z<hp.z-4&&e.h*p.s>H*0.55) ta=0.5; } } e.alpha+=(ta-e.alpha)*Math.min(1,dt*8); }
@@ -447,7 +587,15 @@ function step(dt){
   cam.tx+=(hero.x+Math.sin(cam.yaw)*5-cam.tx)*Math.min(1,dt*4); cam.ty+=(hero.y+Math.cos(cam.yaw)*5-cam.ty)*Math.min(1,dt*4);
   if(shake>0) shake-=dt;
   // tips
-  tipTimer-=dt; if(tipTimer<=0){ tipTimer=0.5; let t=""; if(Math.hypot(hero.x-MOUND.x,hero.y-MOUND.y)<4&&!MOUND.dug) t=hero.form==="dog"?"按 空格 挖！":"松软的土…狗鼻子能闻到"; else if(Math.hypot(hero.x-20,hero.y+8)<7&&RING.some(b=>!b.gone)) t=hero.form==="unicorn"?"朝石头冲，按 空格 冲撞！":"石阵…需要独角兽的角"; else if(hero.y>RIVER.y0-4&&hero.y<RIVER.y0&&hero.form!=="bird") t="变成鸟 (4) 飞过河"; if(!t&&hero.form==="human"){ const ni=nearestInteract(); if(ni) t=ni.k==="chop"?"空格：砍树":ni.k==="item"?"空格：捡起 "+ITEMS[ni.o.id].n:"空格：采集 "+ITEMS[ni.o.res].n; else if(Math.hypot(demon.x-hero.x,demon.y-hero.y)<3.2) t=curCmd().need&&has(curCmd().need)?"空格：献给主人":"空格：和主人说话"; } if(!t&&darkness()>0.4&&!nearFire()&&S.equip!=="torch") t="天黑了！做火把或营火（左侧制作栏）"; document.getElementById("tip").textContent=t; }
+  tipTimer-=dt; if(tipTimer<=0){ tipTimer=0.4; let t=""; const nearM=Math.hypot(demon.x-hero.x,demon.y-hero.y)<3.2; const hasCol=S.inv.some(s=>s&&ITEMS[s.id].col);
+    if(nearM&&hasCol) t="空格：把收藏献给主人";
+    else if(Math.hypot(hero.x-MOUND.x,hero.y-MOUND.y)<4&&!MOUND.dug) t=hero.form==="dog"?"按 空格 挖！":"松软的土…狗鼻子能闻到";
+    else if(Math.hypot(hero.x-20,hero.y+8)<7&&RING.some(b=>!b.gone)) t=hero.form==="unicorn"?"朝石头冲，按 空格 冲撞！":"石阵…需要独角兽的角";
+    else if(hero.form==="dog") t=nearDig()?"空格：挖这里":"空格：嗅一嗅，找出埋藏点";
+    else if(hero.form==="unicorn") t="空格：冲撞 · 撞碎石堆找矿石";
+    else if(hero.form==="bird"){ const n=nearNestTree(); t=n&&hero.z>1.2?(n.nest.cd>0?"鸟巢是空的":"空格：翻找鸟巢"):"飞到有鸟巢的高树旁"; }
+    else { const ni=nearestInteract(); if(ni) t=ni.k==="bug"?(S.net?"空格：捕捉 "+COL[ni.o.id][0]:"要捕虫网（左侧制作）"):ni.k==="flora"?(floraOpen(ni.o)?"空格：采 "+COL[ni.o.id][0]:"花苞合着…夜里才开"):"空格：采集 "+ITEMS[ni.o.res].n; else if(nearBank()) t=S.net?"空格：用网打捞河里的东西":"要捕虫网才能打捞"; else if(nearNestTree()) t="树上有鸟巢 — 变成鸟 (4)"; else if(hero.y>RIVER.y0-4&&hero.y<RIVER.y0) t="变成鸟 (4) 飞过河"; }
+    if(S.order) t=""; document.getElementById("tip").textContent=t; }
 }
 let shake=0;
 
@@ -520,8 +668,10 @@ function drawHero(){ const p0=proj(hero.x,hero.y,0); if(!p0) return; const p=pro
   if(hero.form==="bird"){ bob=Math.sin(time*9)*0.05; sq=1+Math.sin(time*18)*0.06; }
   if(hero.dash>0) rot+=0.12*(s.flip?-1:1)*(FORMS.unicorn.sideDir);
   const pp={x:p.x,y:p.y-bob*p.s*3,s:p.s}; sprite(s.img,pp,s.h,s.flip,1,1/sq*0.98+0.02,sq,rot);
-  if(hero.form==="human"&&S.equip){ const side=(Math.sin(hero.face-cam.yaw)>=0?1:-1); const hp2={x:pp.x+side*p.s*0.42,y:pp.y-p.s*(S.equip==="torch"?0.55:0.35),s:p.s}; sprite(IMG[ITEMS[S.equip].img],hp2,S.equip==="torch"?1.0:0.8,side<0,1,1,1,side*0.25+Math.sin(hero.bob)*0.1*run);
-    if(S.equip==="torch"){ cx.save(); cx.globalCompositeOperation="lighter"; const g=cx.createRadialGradient(hp2.x,hp2.y-p.s*0.9,0,hp2.x,hp2.y-p.s*0.9,p.s*0.9); g.addColorStop(0,"rgba(255,220,150,0.45)"); g.addColorStop(1,"rgba(255,200,120,0)"); cx.fillStyle=g; cx.fillRect(hp2.x-p.s,hp2.y-p.s*1.9,p.s*2,p.s*2); cx.restore(); } }
+  { const side=(Math.sin(hero.face-cam.yaw)>=0?1:-1);
+    if(hero.form==="human"&&S.net){ const sw=hero.swing>0?(1-hero.swing/0.35)*2.4-1.2:0, fi=hero.fish>0?1.0+Math.sin(time*8)*0.15:0; sprite(IMG.col_relic_0,{x:pp.x+side*p.s*0.4,y:pp.y-p.s*0.35,s:p.s},1.15,side<0,1,1,1,side*(0.3+sw+fi)+Math.sin(hero.bob)*0.08*run); }
+    if(hero.form==="dog"&&hero.carry){ sprite(IMG.item_2,{x:pp.x+side*p.s*0.5,y:pp.y-p.s*0.75,s:p.s},0.55,side<0,1,1,1,1.5*side); }
+    if(hero.form==="dog"&&hero.sniff>0){ cx.strokeStyle="rgba(40,34,28,0.6)"; cx.lineWidth=1.2; for(let i=0;i<3;i++){ const r=p.s*(0.2+((time*2+i*0.33)%1)*0.5); cx.beginPath(); cx.arc(pp.x+side*p.s*0.7,pp.y-p.s*0.6,r,-0.6,0.6); cx.stroke(); } } }
   if(hero.dash>0){ cx.strokeStyle="rgba(40,34,28,0.5)"; cx.lineWidth=1.5; for(let i=0;i<5;i++){ const y=p.y-p.s*(0.4+i*0.35); const d=-Math.sin(hero.face-cam.yaw); cx.beginPath(); cx.moveTo(p.x-d*p.s*1.2,y); cx.lineTo(p.x-d*p.s*(2.2+i*0.2),y); cx.stroke(); } }
 }
 function drawDemon(){ const p=proj(demon.x,demon.y,0); if(!p) return; shadow(p,0.7); const sh=SHEETS[DEMON]; const v=viewOf(demon.face,sh.sideDir);
@@ -571,18 +721,20 @@ function drawBubbles(){ cx.font="15px "+getComputedStyle(document.body).fontFami
     cx.save(); cx.globalAlpha=a; cx.fillStyle=b.who==="demon"?"#2a2622":"#fbf8f0"; cx.strokeStyle="#2a2622"; cx.lineWidth=1.8;
     cx.beginPath(); const x0=x-w/2,y0=y-h; cx.moveTo(x0+8,y0); cx.lineTo(x0+w-6,y0+1); cx.quadraticCurveTo(x0+w+1,y0+2,x0+w,y0+9); cx.lineTo(x0+w-1,y0+h-7); cx.quadraticCurveTo(x0+w,y0+h,x0+w-9,y0+h); cx.lineTo(p.x+7,y0+h); cx.lineTo(p.x,y0+h+9); cx.lineTo(p.x-3,y0+h); cx.lineTo(x0+7,y0+h+1); cx.quadraticCurveTo(x0,y0+h,x0+1,y0+h-8); cx.lineTo(x0,y0+8); cx.quadraticCurveTo(x0,y0,x0+8,y0); cx.fill(); cx.stroke();
     cx.fillStyle=b.who==="demon"?"#f3efe6":"#2a2622"; lines.forEach((l,i)=>cx.fillText(l,x,y0+17+i*20)); cx.restore(); } }
-function drawWin(){ if(!won) return; winT+=1/60; if(winT>9) return; const a=Math.min(1,winT/1.2,(9-winT)/1.5); cx.save(); cx.globalAlpha=a*0.9; cx.fillStyle="#2a2622"; cx.font="bold 46px "+getComputedStyle(document.body).fontFamily; cx.textAlign="center"; cx.fillText("三颗星星 · 已献给主人",W/2,H*0.26); cx.font="18px "+getComputedStyle(document.body).fontFamily; cx.fillText("契约更深了。……活下去，继续为他效劳。",W/2,H*0.26+38); cx.restore(); }
+function drawWin(){ if(!won) return; winT+=1/60; if(winT>9) return; const a=Math.min(1,winT/1.2,(9-winT)/1.5); cx.save(); cx.globalAlpha=a*0.9; cx.fillStyle="#2a2622"; cx.font="bold 46px "+getComputedStyle(document.body).fontFamily; cx.textAlign="center"; cx.fillText("三颗星星 · 已献给主人",W/2,H*0.26); cx.font="18px "+getComputedStyle(document.body).fontFamily; cx.fillText("她已经不需要过去了。……继续为主人效劳。",W/2,H*0.26+38); cx.restore(); }
 
-function frame(now){ const dt=Math.min(0.05,(now-last)/1000); last=now; if(started) step(dt); camUpdate();
+function frame(now){ const dt=Math.min(0.05,(now-last)/1000); last=now; if(started&&!S.paused) step(dt); else if(started&&S.order) updOrder(); camUpdate();
   cx.save(); if(shake>0) cx.translate((Math.random()-0.5)*10*shake,(Math.random()-0.5)*10*shake);
   drawSky(); drawGround();
   // depth-sorted billboards
-  const list=[]; for(const e of ents){ if(e.gone) continue; const p=proj(e.x,e.y,0); if(!p||p.x<-p.s*e.h||p.x>W+p.s*e.h) continue; list.push({z:p.z,d:()=>{ if(e.kind!=="grass"&&e.kind!=="mound"&&e.kind!=="mush") shadow(p,Math.max(0.4,e.rad*0.9)); const picked=e.res&&!e.ready; sprite(IMG[e.img],p,e.h*(picked?0.7:1),e.flip,e.alpha*(picked?0.55:1),1,1,(e.kind==="grass"?Math.sin(time*1.5+e.x)*0.04:0)+(e.shake>0?Math.sin(time*60)*0.05:0)); }}); }
+  const list=[]; for(const e of ents){ if(e.gone) continue; const p=proj(e.x,e.y,0); if(!p||p.x<-p.s*e.h||p.x>W+p.s*e.h) continue; list.push({z:p.z,d:()=>{ if(e.kind!=="grass"&&e.kind!=="mound"&&e.kind!=="mush") shadow(p,Math.max(0.4,e.rad*0.9)); const picked=e.res&&!e.ready; sprite(IMG[e.img],p,e.h*(picked?0.7:1),e.flip,e.alpha*(picked?0.55:1),1,1,(e.kind==="grass"?Math.sin(time*1.5+e.x)*0.04:0)+(e.shake>0?Math.sin(time*60)*0.05:0)); if(e.nest) drawNest(e,p); }}); }
   { const p=proj(hero.x,hero.y,0); if(p) list.push({z:p.z-0.01,d:drawHero}); }
   { const p=proj(demon.x,demon.y,0); if(p) list.push({z:p.z,d:drawDemon}); }
   for(const s of STARS){ const p=proj(s.x,s.y,0); if(p) list.push({z:p.z-0.02,d:()=>drawStar(s)}); }
   for(const g of gitems){ const p=proj(g.x,g.y,0); if(p&&p.x>-40&&p.x<W+40) list.push({z:p.z,d:()=>drawGItem(g)}); }
-  for(const f of fires){ const p=proj(f.x,f.y,0); if(p) list.push({z:p.z,d:()=>drawFire(f)}); }
+  for(const f of flora){ const p=proj(f.x,f.y,0); if(p&&p.x>-40&&p.x<W+40) list.push({z:p.z,d:()=>drawFlora(f)}); }
+  for(const b of bugs){ const p=proj(b.x,b.y,0); if(p&&p.x>-40&&p.x<W+40) list.push({z:p.z-0.005,d:()=>drawBug(b)}); }
+  for(const d of digs){ if(d.rev<=0) continue; const p=proj(d.x,d.y,0); if(p) list.push({z:p.z+0.3,d:()=>drawDig(d)}); }
   list.sort((a,b)=>b.z-a.z); for(const it of list) it.d();
   drawParts(); drawDarkness(); drawFloats(); drawBubbles();
   // paper grain + vignette
@@ -592,6 +744,6 @@ function frame(now){ const dt=Math.min(0.05,(now-last)/1000); last=now; if(start
   requestAnimationFrame(frame); }
 setupResources(); buildInv(); updCmd();
 requestAnimationFrame(frame);
-document.getElementById("title").onclick=()=>{ ac(); document.getElementById("title").style.display="none"; started=true; setTimeout(()=>say("hero","主人，早上好！今天也请吩咐我！",2.4),400); setTimeout(()=>{ say("demon","……吵。\n"+CMDS[0].t,3.4); updCmd(); },2800); };
-window.__game={S,fires,gitems,invAdd,craft,RECIPES,useSlot,hero,demon,cam,transform,STARS,RING,MOUND,toggleProp,toggleDemon,start:()=>document.getElementById("title").onclick()};
+document.getElementById("title").onclick=()=>{ ac(); document.getElementById("title").style.display="none"; started=true; setTimeout(()=>say("hero","主人，早上好！今天也请吩咐我！",2.4),400); setTimeout(()=>{ say("demon","……吵。\n今天的献礼写在上面。去找。",3.4); updCmd(); },2800); };
+window.__game={S,gitems,flora,bugs,digs,invAdd,craft,RECIPES,useSlot,deliverAll,closeAppraisal,openCatalog,issueOrder,COL,ITEMS,ents,hero,demon,cam,transform,STARS,RING,MOUND,toggleProp,toggleDemon,start:()=>document.getElementById("title").onclick()};
 </script></body></html>
