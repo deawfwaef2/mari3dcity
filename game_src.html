@@ -25,7 +25,7 @@ canvas{display:block;width:100vw;height:100vh;touch-action:none}
 <div id="hud"><b>纸之魔女</b><br><span id="stars">折纸星星 0 / 3</span><br><span id="tip" style="opacity:.75"></span></div>
 <div id="side">
   <button class="sb" id="bProp">比例：Q版</button>
-  <button class="sb" id="bDemon">恶魔：C 高冷风衣</button>
+  <button class="sb" id="bDemon">恶魔：D 改（定稿）</button>
   <button class="sb" id="bRotL">⟲ 转视角 (Q)</button>
   <button class="sb" id="bRotR">⟳ 转视角 (E)</button>
 </div>
@@ -113,6 +113,7 @@ const SHEETS={ // side view facing direction in the sheet art (+1 = faces screen
   heroine:{chibi:"heroine_A_chibi",normal:"heroine_A",sideDir:1,h:{chibi:2.3,normal:3.3}},
   demonC:{chibi:"demon_C_chibi",normal:"demon_C_normal",sideDir:-1,h:{chibi:2.4,normal:3.6}},
   demonD:{chibi:"demon_D_chibi",normal:"demon_D_normal",sideDir:-1,h:{chibi:2.4,normal:3.6}},
+  demonD2:{chibi:"demon_D2_chibi",normal:"demon_D2_normal_clean",sideDir:-1,h:{chibi:2.4,normal:3.6}},
 };
 const FORMS={
   human:{name:"人形",key:"1",speed:6.2},
@@ -120,7 +121,7 @@ const FORMS={
   unicorn:{name:"独角兽",key:"3",speed:8.5,front:"animal_2",side:"animal_3",sideDir:-1,h:2.6},
   bird:{name:"鸟",key:"4",speed:10.5,front:"animal_5",side:"animal_4",sideDir:1,h:1.9,fly:2.6},
 };
-let PROP_MODE="chibi", DEMON="demonC";
+let PROP_MODE="chibi", DEMON="demonD2";
 const hero={x:0,y:-2,z:0,face:0,form:"human",moving:0,bob:0,tf:null,dash:0,dig:0,vx:0,vy:0};
 const demon={x:-2.2,y:-4,face:0,moving:0,bob:0,idle:0};
 let target=null; // click-to-move
@@ -144,7 +145,7 @@ function thud(){ const a=ac(); if(!a)return; const o=a.createOscillator(), g=a.c
 
 /* ---------------- speech bubbles ---------------- */
 const bubbles=[]; function say(who,text,dur=3){ for(let i=bubbles.length-1;i>=0;i--) if(bubbles[i].who===who) bubbles.splice(i,1); bubbles.push({who,text,t:0,dur}); }
-const DEMON_IDLE=["……","嗯。","别走太远。","……这里的风，有纸的味道。","你又在发呆。","（打哈欠）","……跟上。"];
+const DEMON_IDLE=["……蠢。","快点。我的时间比你值钱。","你存在的意义，就是替我跑腿。","（翻书）……吵死了。","别用那种眼神看我。我不欠你什么。","我在等，不代表我有耐心。","星星呢？没找到就别停下来。","……别离我太近。","你摔倒了也别指望我扶。"];
 let tipTimer=0;
 
 /* ---------------- particles ---------------- */
@@ -170,7 +171,7 @@ document.getElementById("act").onclick=()=>{ ac(); action(); };
 document.getElementById("bRotL").onclick=()=>rotCam(-1);
 document.getElementById("bRotR").onclick=()=>rotCam(1);
 function toggleProp(){ PROP_MODE=PROP_MODE==="chibi"?"normal":"chibi"; document.getElementById("bProp").textContent="比例："+(PROP_MODE==="chibi"?"Q版":"正常"); }
-function toggleDemon(){ DEMON=DEMON==="demonC"?"demonD":"demonC"; document.getElementById("bDemon").textContent="恶魔："+(DEMON==="demonC"?"C 高冷风衣":"D 书卷斗篷"); say("demon",DEMON==="demonC"?"……换了件外套而已。":"……书，别碰。",2); }
+function toggleDemon(){ DEMON=DEMON==="demonD2"?"demonD":"demonD2"; document.getElementById("bDemon").textContent="恶魔："+(DEMON==="demonD2"?"D 改（定稿）":"D 原版（对比）"); say("demon",DEMON==="demonD2"?"……看够了？那就去干活。":"……盯着我看，也不会让你变聪明。",2.4); }
 document.getElementById("bProp").onclick=toggleProp; document.getElementById("bDemon").onclick=toggleDemon;
 // form buttons
 { const box=document.getElementById("forms"); for(const k of Object.keys(FORMS)){ const b=document.createElement("div"); b.className="fb"; b.id="f_"+k; const src=k==="human"?ASSETS.heroine_A_chibi_0:ASSETS[FORMS[k].front]; b.innerHTML=`<i>${FORMS[k].key}</i><img src="${src}"><span>${FORMS[k].name}</span>`; b.onclick=()=>{ac();transform(k);}; box.appendChild(b); } }
@@ -193,7 +194,7 @@ function action(){ if(hero.tf) return; const f=hero.form;
   // human: read signs / talk to demon
   let best=null,bd=3; for(const e of ents){ if(e.say){ const d=Math.hypot(e.x-hero.x,e.y-hero.y); if(d<bd){bd=d;best=e;} } }
   if(best){ say("sign",best.say,4); bubbles[bubbles.length-1].at=best; return; }
-  if(Math.hypot(demon.x-hero.x,demon.y-hero.y)<3.2){ const got=STARS.filter(s=>s.got).length; say("hero","喂，帮我找星星嘛！",1.8); setTimeout(()=>say("demon",got===3?"……做得不错。":got===0?"……自己的星星，自己找。\n你不是会变身吗。":"还差 "+(3-got)+" 颗。……别看我。",3.2),900); return; }
+  if(Math.hypot(demon.x-hero.x,demon.y-hero.y)<3.2){ const got=STARS.filter(s=>s.got).length; say("hero","喂——帮我一起找星星嘛！",1.8); setTimeout(()=>say("demon",got===3?"……东西交出来。这些归我了。":got===0?"我为什么要帮你？\n你不是会变身吗。——去，给我找来。":"还差 "+(3-got)+" 颗。\n……别指望我动手。",3.4),900); return; }
   say("hero",pick(["嘿咻！","嗯……该变成什么呢？","这里什么都没有～"]),1.4);
 }
 function pick(a){ return a[Math.floor(Math.random()*a.length)]; }
@@ -215,7 +216,7 @@ function step(dt){
   if(ix||iy){ target=null; mx=fy[0]*iy+rx[0]*ix; my=fy[1]*iy+rx[1]*ix; const l=Math.hypot(mx,my); mx/=l; my/=l; }
   else if(target){ const dx=target.x-hero.x, dy=target.y-hero.y, l=Math.hypot(dx,dy); if(l<0.3) target=null; else { mx=dx/l; my=dy/l; } }
   const F=FORMS[hero.form]; const flying=!!F.fly;
-  if(hero.tf){ hero.tf.t+=dt; if(hero.tf.t>=TF_DUR*0.55&&!hero.tf.sw){ hero.tf.sw=1; hero.form=hero.tf.to; updForms(); shards(hero.x,hero.y,1.2,14,5); } if(hero.tf.t>=TF_DUR){ hero.tf=null; const L={human:"变回来啦！",dog:"汪！",unicorn:"咴——！",bird:"啾！"}; say("hero",L[hero.form],1.2); if(hero.form!=="human"&&Math.random()<0.5) setTimeout(()=>say("demon",pick(["……纸做的。","嗯，还挺像。","……别咬我。","……折得不错。"]),2),700); } mx=my=0; }
+  if(hero.tf){ hero.tf.t+=dt; if(hero.tf.t>=TF_DUR*0.55&&!hero.tf.sw){ hero.tf.sw=1; hero.form=hero.tf.to; updForms(); shards(hero.x,hero.y,1.2,14,5); } if(hero.tf.t>=TF_DUR){ hero.tf=null; const L={human:"变回来啦！",dog:"汪！",unicorn:"咴——！",bird:"啾！"}; say("hero",L[hero.form],1.2); if(hero.form!=="human"&&Math.random()<0.5) setTimeout(()=>say("demon",pick(["……纸做的玩具。","嗯，总算有点用处。","狗？挺适合你的。","别靠近我，会掉纸屑。","变什么都一样，去干活。"]),2.2),700); } mx=my=0; }
   if(hero.dig>0){ hero.dig-=dt; mx=my=0; if(Math.random()<dt*14) dirt(hero.x+Math.sin(hero.face)*0.6,hero.y+Math.cos(hero.face)*0.6,2);
     if(hero.dig<=0&&Math.hypot(hero.x-MOUND.x,hero.y-MOUND.y)<2.6&&!MOUND.dug){ MOUND.dug=1; MOUND.gone=true; STARS[0].hidden=false; STARS[0].pop=0; dirt(MOUND.x,MOUND.y,40); thud(); say("hero","找到了！",1.6); } }
   let sp=F.speed;
@@ -231,22 +232,22 @@ function step(dt){
   const zt=flying?F.fly+Math.sin(time*3)*0.25:0; hero.z+=(zt-hero.z)*Math.min(1,dt*5);
   if(!flying&&inRiver(hero.x,hero.y)) { hero.y=hero.y<(RIVER.y0+RIVER.y1)/2?RIVER.y0-0.3:RIVER.y1+0.3; }
   // river tip
-  if(hero.form!=="bird"&&hero.y>RIVER.y0-1.4&&hero.y<RIVER.y0&&!step.riverTip){ step.riverTip=1; say("hero","河好宽……游不过去。",2); setTimeout(()=>say("demon","……你不是会变成鸟吗。",2.4),1400); }
+  if(hero.form!=="bird"&&hero.y>RIVER.y0-1.4&&hero.y<RIVER.y0&&!step.riverTip){ step.riverTip=1; say("hero","河好宽……游不过去。",2); setTimeout(()=>say("demon","……你不是会变成鸟吗。\n脑子也是纸做的？",2.8),1400); }
   // demon follows (calm, lagging, keeps distance)
   { const dx=hero.x-demon.x, dy=hero.y-demon.y, d=Math.hypot(dx,dy); const across=(hero.y>RIVER.y1)!==(demon.y>RIVER.y1);
     if(across&&d>3){ // he just... teleports with a puff of paper when separated by the river
-      demon.tp=(demon.tp||0)+dt; if(demon.tp>1.6){ shards(demon.x,demon.y,1.2,10,3,"#2a2622"); demon.x=hero.x-Math.sin(hero.face)*2.4; demon.y=hero.y-Math.cos(hero.face)*2.4; if(inRiver(demon.x,demon.y)) demon.y=hero.y>RIVER.y1?RIVER.y1+1:RIVER.y0-1; shards(demon.x,demon.y,1.2,10,3,"#2a2622"); demon.tp=0; say("demon",pick(["……麻烦。","我不会飞。……但我会别的。"]),2); } }
+      demon.tp=(demon.tp||0)+dt; if(demon.tp>1.6){ shards(demon.x,demon.y,1.2,10,3,"#2a2622"); demon.x=hero.x-Math.sin(hero.face)*2.4; demon.y=hero.y-Math.cos(hero.face)*2.4; if(inRiver(demon.x,demon.y)) demon.y=hero.y>RIVER.y1?RIVER.y1+1:RIVER.y0-1; shards(demon.x,demon.y,1.2,10,3,"#2a2622"); demon.tp=0; say("demon",pick(["……麻烦。别让我等。","你飞你的。我可不用那么狼狈。"]),2.4); } }
     else demon.tp=0;
     if(d>3.2){ const s=Math.min(8.5,(d-3)*2.6); const nx=demon.x+dx/d*s*dt, ny=demon.y+dy/d*s*dt; if(!blocked(nx,ny,false)){demon.x=nx;demon.y=ny;} else if(!blocked(nx,demon.y,false))demon.x=nx; else if(!blocked(demon.x,ny,false))demon.y=ny; demon.moving=Math.min(1,demon.moving+dt*5); const tf=Math.atan2(dx,dy); let dd=tf-demon.face; dd=Math.atan2(Math.sin(dd),Math.cos(dd)); demon.face+=dd*Math.min(1,dt*8); }
-    else { demon.moving=Math.max(0,demon.moving-dt*4); // idle: look at her
-      const tf=Math.atan2(dx,dy); let dd=tf-demon.face; dd=Math.atan2(Math.sin(dd),Math.cos(dd)); demon.face+=dd*Math.min(1,dt*2); }
+    else { demon.moving=Math.max(0,demon.moving-dt*4); // idle: turns his back on her (reads), only a brief cold glance now and then
+      const glance=(Math.sin(time*0.37)>0.93)||bubbles.some(b=>b.who==="demon"); const tf=Math.atan2(dx,dy)+(glance?0:2.3); let dd=tf-demon.face; dd=Math.atan2(Math.sin(dd),Math.cos(dd)); demon.face+=dd*Math.min(1,dt*2); }
     demon.bob+=dt*(demon.moving>0.1?7:1.5);
     demon.idle+=dt; if(demon.idle>14+Math.random()*10){ demon.idle=0; say("demon",pick(DEMON_IDLE),2.4); } }
   // stars
   for(const s of STARS){ if(s.got||s.hidden) continue; if(s.pop!==undefined&&s.pop<1) s.pop+=dt*2;
 
     if(Math.hypot(hero.x-s.x,hero.y-s.y)<1.3){ s.got=true; chime(); sparkle(s.x,s.y,1.4); const n=STARS.filter(q=>q.got).length; document.getElementById("stars").textContent=`折纸星星 ${n} / 3`;
-      if(n===3){ won=true; winT=0; setTimeout(()=>say("demon","……三颗都找齐了。\n嗯，你做得很好。",4),1200); } else say("hero",["一颗！","两颗了！"][n-1],1.6); } }
+      if(n===3){ won=true; winT=0; setTimeout(()=>say("demon","……三颗都齐了。很好——\n这些现在是我的。",3.6),1200); setTimeout(()=>say("hero","诶？！那是我找的！",2.2),5000); setTimeout(()=>say("demon","所以呢？你还算好用。\n……下次也一样。",3.6),7400); } else say("hero",["一颗！","两颗了！"][n-1],1.6); } }
   // occlusion fade for props in front of hero
   const hp=proj(hero.x,hero.y,hero.z+1);
   for(const e of ents){ let ta=1; if(hp&&(e.kind==="pine"||e.kind==="round"||e.kind==="dead")){ const p=proj(e.x,e.y,0); if(p&&p.z<hp.z){ const wpx=e.h*p.s*0.35; if(Math.abs(p.x-hp.x)<wpx&&hp.y<p.y&&hp.y>p.y-e.h*p.s) ta=0.35; else if(p.z<hp.z-4&&e.h*p.s>H*0.55) ta=0.5; } } e.alpha+=(ta-e.alpha)*Math.min(1,dt*8); }
@@ -396,6 +397,6 @@ function frame(now){ const dt=Math.min(0.05,(now-last)/1000); last=now; if(start
   drawWin(); cx.restore();
   requestAnimationFrame(frame); }
 requestAnimationFrame(frame);
-document.getElementById("title").onclick=()=>{ ac(); document.getElementById("title").style.display="none"; started=true; setTimeout(()=>say("hero","好——今天也要找星星！",2.2),400); setTimeout(()=>say("demon","……别迷路就行。",2.4),2400); };
+document.getElementById("title").onclick=()=>{ ac(); document.getElementById("title").style.display="none"; started=true; setTimeout(()=>say("hero","好——今天也要找星星！",2.2),400); setTimeout(()=>say("demon","……别拖我后腿。\n星星找来，交给我。",2.8),2400); };
 window.__game={hero,demon,cam,transform,STARS,RING,MOUND,toggleProp,toggleDemon,start:()=>document.getElementById("title").onclick()};
 </script></body></html>
