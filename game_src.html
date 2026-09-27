@@ -392,7 +392,8 @@ function showAppraisal(rows,tot,bonus){ const el=document.getElementById("appr")
   let h="<div class='ah'>主人的鉴定</div><div class='al'>";
   for(const r of rows){ const c=COL[r.id]; const past=c[2]==="past";
     h+=`<div class='ar${past?" past":""}'><img src="${ASSETS[c[1]]}"><div><div class='an'>${c[0]}${r.n>1?" ×"+r.n:""} <span class='rr r${c[3]}'>${RAR[c[3]]}</span>${r.isNew?" <span class='nw'>新收藏</span>":""}${r.q?" <span class='nw'>献礼✓</span>":""}</div><div class='ac'>「${c[5]}」</div>${past?"<div class='ap'>（她歪了歪头，看着它被毁掉。眼里没有一丝留恋。）</div>":""}</div><div class='pt'>+${r.pts}</div></div>`; }
-  h+="</div><div class='af'>满意度 +"+tot+(bonus.length?"<br>"+bonus.join("<br>"):"")+"<br><small>服从度 "+Math.round(S.obey)+" → 鉴定倍率 ×"+(0.6+S.obey/100).toFixed(2)+"（首次献上 ×2）</small></div><div class='ab' onclick='closeAppraisal()'>是，主人（空格）</div>";
+  const ar=rows.reduce((q,r)=>q+COL[r.id][3]*r.n,0)/Math.max(1,rows.reduce((q,r)=>q+r.n,0)); const gi=ar<1.2?0:ar<1.6?1:ar<2?2:ar<2.5?3:ar<3.2?4:5; const GL=["低等偏下。……垃圾居多。","低等。一眼就能看出来是随手捡的。","中等偏下。别用那种眼神看我。","中等。……就是中等。","中等偏上。别得意。","上等。……今天算你走运。"];
+  h+="</div><div style='text-align:center;font-size:18px;margin:2px 0'>评级「"+GRADES[gi]+"」 <small style='opacity:.75'>主人："+GL[gi]+"</small></div>"; h+="<div class='af'>满意度 +"+tot+(bonus.length?"<br>"+bonus.join("<br>"):"")+"<br><small>服从度 "+Math.round(S.obey)+" → 鉴定倍率 ×"+(0.6+S.obey/100).toFixed(2)+"（首次献上 ×2）</small></div><div class='ab' onclick='closeAppraisal()'>是，主人（空格）</div>";
   el.innerHTML=h; el.style.display="flex"; }
 function closeAppraisal_(){ const el=document.getElementById("appr"); if(el.style.display!=="flex") return; el.style.display="none"; S.paused=0; if(S._after){ S._after(); S._after=null; } }
 
@@ -659,7 +660,7 @@ function demonAI(dt){ const dx=hero.x-demon.x, dy=hero.y-demon.y, d=Math.hypot(d
 
 /* ---- Skyrim-style dialogue: she never speaks aloud; the player picks her lines ---- */
 const dlg={open:0,node:null,seen:{},followCD:0,day:0};
-const GREET_LOW=["……又怎么了。","说。","有话快说。","我在看书。你最好有事。","……你挡着光了。"];
+const GREET_LOW=["……又怎么了。","说。","有话快说。","我在看书。你最好有事。","……你挡着光了。","没事就退下。","大家都有自己的事情。……你没有吗？","你又来费我时间。"];
 const GREET_HIGH=["……嗯？","说吧。我听着。……暂时。","今天倒是没那么烦人。说。"];
 const TOPICS=[
  {q:"「主人一直一个人看书，不闷吗？」",a:"我谁都不需要搭理。\n……因为不需要。"},
@@ -681,6 +682,22 @@ const TOPICS=[
  {q:"「主人会一直让我待在身边吗？」",a:"我没空考虑这种无聊的问题。"},
  {q:"「今天的献礼，主人满意吗？」",a:"__quota"},
  {q:"「主人喜欢什么样的东西？」",a:"稀有的。安静的。不会说话的。\n……你只占了一半都不到。"},
+ {q:"「主人，我们一起互相鼓励吧！」",a:"鼓励？\n我该干什么干什么。非要你来鼓励？",sub:[{q:"「那……我鼓励主人就好。」",a:"不需要。\n你先把自己那点事做明白。"},{q:"「好嘛……」（缩回去）",a:"嗯。安静点。",eff:{obey:1}}]},
+ {q:"「主人现在在干什么呀？」",a:"我有自己的时间。\n……你会打扰我做任何事情。"},
+ {q:"「我可以一直待在主人旁边吗？」",a:"你除了浪费我的时间，还会干什么？",sub:[{q:"「我会找东西！挖土！飞！」",a:"……那就去。\n待在这里又不会多长一颗星星。",eff:{obey:1}},{q:"「会……陪着主人？」",a:"我用不到你陪。"}]},
+ {q:"「主人，明天也可以和你说话吗？」",a:"明天也不见。\n……除非你带着东西来。"},
+ {q:"「主人主人主人——」",a:"……一遍就够了。\n再叫我就当没听见。"},
+ {q:"「主人，我这个营地搭得怎么样？」",a:"__camp"},
+ {q:"「对不起嘛……我已经很努力让步了。」",a:"让步？\n骂完了就别装得好像很无辜一样。……你自己想想你做了什么。",sub:[{q:"「……对不起，主人。」",a:"嗯。记住就行。",eff:{obey:1}}]},
+ {q:"「主人好厉害，什么都知道！」",a:"别急着拍马屁。\n认识层面、理解层面……你一层都没到。"},
+ {q:"「我学会了一个很难的词哦！」",a:"使劲炫耀你那点可怜的词汇。\n……装懂真的很难看。"},
+ {q:"「主人，你吃过东西了吗？」",a:"……纸做的东西，吃了也只是纸。\n别操心我。"},
+ {q:"「今天是节日哦！主人节日快乐！」",a:"节日是给闲人过的。\n……今天的献礼，照样交。"},
+ {q:"「主人以后……会有别的狗吗？」",a:"有没有，都轮不到你来问。",sub:[{q:"「我会做最好的那一只！」",a:"「最好的」。\n先从「不添乱」开始。",eff:{favor:1}},{q:"（沉默）",a:"……安静的时候倒还顺眼。"}]},
+ {q:"「主人演示一下魔法嘛！」",a:"再来演示一下？\n我又不是给你表演的。"},
+ {q:"「我是不是主人最重要的东西？」",a:"我脚边的纸屑都比你重要。\n……至少它们不吵。"},
+ {q:"「主人你需要多出去走走（）」",a:"你喜欢走你走。\n我不玩你那一套。"},
+ {q:"「主人，人呢——？」（明明就在眼前）",a:"……在你眼前。\n你真的……脑子不太够用。"},
 ];
 function greet(back){ if(back) return pick(["……还有事？","说完了没有。","嗯。"]); return rankOf(S.favor)[0]>=45&&S.obey>=60?pick(GREET_HIGH):pick(GREET_LOW); }
 function openDialog(){ if(dlg.open||S.paused) return; dlg.open=1; S.paused=1; target=null; demon.face=Math.atan2(hero.x-demon.x,hero.y-demon.y); if(dlg.day!==S.day){ dlg.day=S.day; dlg.seen={}; }
@@ -695,7 +712,7 @@ function leave(){ closeDialog(); }
 function eff(e){ if(!e) return; if(e.obey){ S.obey=Math.min(100,S.obey+e.obey); } if(e.favor){ S.favor+=e.favor; } }
 function rootNode(back){ const o=[]; const hasCol=S.inv.some(s=>s&&ITEMS[s.id].col);
   if(hasCol) o.push({t:"「主人，这是今天找到的东西。」（献上收藏）",f:()=>{ closeDialog(); deliverAll(); }});
-  o.push({t:"「主人，有什么吩咐吗？我什么都愿意做。」",f:()=>{ if(Math.random()<0.6){ closeDialog(); setTimeout(()=>{ issueOrder(); },300); } else reply(pick(["献礼单上写着。自己看。","没有。别在我眼前晃。","……去给我找点像样的东西。别空着手回来。"])); }});
+  o.push({t:"「主人，有什么吩咐吗？我什么都愿意做。」",f:()=>{ if(Math.random()<0.6){ closeDialog(); setTimeout(()=>{ issueOrder(); },300); } else reply(pick(["献礼单上写着。自己看。","没有。别在我眼前晃。","……去给我找点像样的东西。别空着手回来。","我真用不到你。……现在。","什么都愿意做？\n那就先学会安静。"])); }});
   if(hasKey("whistle")&&S.trainDay!==S.day&&!S.train) o.push({t:"「主人……今天的训练，可以开始了吗？」",f:()=>{ closeDialog(); startTraining(); }});
   if(!hasKey("leash")){} else if(demon.st==="follow") o.push({t:"「主人可以回去休息了。」",f:()=>{ demon.st="read"; demon.t=0; reply("……本来就不想陪你。",[{t:"（离开）",f:closeDialog}]); }});
   else o.push({t:"「主人……能陪我一起走走吗？」",f:()=>{ if(time<dlg.followCD){ reply("刚说过了。不去。"); return; } const p=0.25+S.obey/200+RANKS.findIndex(r=>r[1]===rankOf(S.favor)[1])*0.08;
@@ -709,6 +726,7 @@ function rootNode(back){ const o=[]; const hasCol=S.inv.some(s=>s&&ITEMS[s.id].c
 function chatNode(){ let pool=TOPICS.filter(t=>!dlg.seen[t.q]); if(pool.length<3){ dlg.seen={}; pool=TOPICS.slice(); } pool=pool.sort(()=>Math.random()-0.5).slice(0,3);
   return {line:pick(["……说。","想说什么。","别绕弯子。"]),opts:pool.map(t=>({t:t.q,f:()=>{ dlg.seen[t.q]=1; eff(t.eff); let a=t.a;
       if(a==="__rate") a=S.favor<45?"智商不太行的宠物。\n勉强能用。":S.favor<100?"……还算听话。\n别得意。":"比刚来的时候像样多了。\n……只是比那时候。";
+      if(a==="__camp") a=builds.length<2?"看完别人搭屋子我再来评价。\n……你这个还算不上营地。":builds.length<4?"照着说明书摆的吧。\n……一点自己的想法都没有。":"……勉强能住。\n别指望我夸你。";
       if(a==="__quota") a=S.quotaDone?"……嗯。今天的还行。":"还差得远。你自己去看单子。";
       if(t.sub) reply(a,t.sub.map(s=>({t:s.q,f:()=>{ eff(s.eff); reply(s.a); }}))); else reply(a); }})).concat([{t:"（算了）",f:()=>showNode(rootNode(true))}])}; }
 
