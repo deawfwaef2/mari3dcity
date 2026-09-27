@@ -56,5 +56,5 @@ meta.update(row_cut("heroine_C_chibi",300,"heroine_C_chibi",[170,455,730,985,126
 meta.update(row_cut("demon_D7b_chibi",300,"demon_D7_chibi",[120,330,525,715,910],force=[0,243,448,621,806,1024]))
 meta.update(row_cut("heroine_poses",300,"hpose",[180,490,775,1020,1250],(0,380)))
 meta.update(row_cut("heroine_poses",300,"hpose",[170,500,820,1200],(380,768),5))
-meta.update(row_cut("demon_poses",300,"dpose",[140,420,640,880],force=[0,335,540,743,1024]))
+meta.update(row_cut("demon_poses_D4",300,"dpose",[170,720,990,1250],force=[0,560,865,1125,1397]))
 json.dump(meta,open("assets/core.json","w")); print(meta)
