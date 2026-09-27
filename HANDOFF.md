@@ -199,3 +199,37 @@
 - **去掉随机气泡**：删除了 idle、闲逛、端详、黄昏台词，以及变身时的重复台词（每种形态只在第一次变身时说一句）。他现在只对事件作出反应。
 - **台词**：新增 16 个话题，来自 sj2 的冷淡语气（理想化、去掉脏话），例如「我有自己的时间」「你会打扰我做任何事情」「非要你来鼓励？」「看完别人搭屋子我再来」「认识层面、理解层面」。另有问候语、营地评价，献上鉴定也会给出评级。
 - 测试：~/dev/pt7.py（UI 限制、解锁、训练）、pt7b.py（道具拾取、别碰、召唤、银哨）、pc.py（过场截图）。
+
+---
+## Round 7 (v0.7) — control, core, terrain, redesign
+
+### User requests this round
+- Demon hair drifted into a girl's bob (D6 rejected). Use **D4 as the base**, replace the soft ear locks (软条) with rounded chunky hair clumps (发包) that grow out of the main hair mass, with pointed tips. Result: **D7** (`concepts/demon_D7b_chibi.png`).
+- Heroine keeps her original look, but: **calm expression, mouth closed**; open collar with a **red demonic mechanical core embedded at the upper chest**. It glows and flashes and is the control device, and **the demon periodically injects magic into it**. Result: **heroine C**.
+- **She cannot move freely.** She moves only when a command allows it: fetch or free-gather windows with limited range and time. Past the edge, the core flares and pulls her back. Otherwise she auto-follows him or stands waiting (罚站).
+- Terrain with height; deeper interaction; many more actions and animations.
+
+### Implementation
+- **Art**: `cut7.py` is an RGBA cutter (column argmin cuts plus `force` overrides). It writes `assets/core.json` with the relative core position per sprite, used for the glow and for the demon's palm in dpose_0. Poses:
+  - `hpose_0..8`: kneel, stand-wait (eyes closed), bow, offer, hands together, crouch-pick, hug knees, core glowing, walk with broom.
+  - `dpose_0..3`: casting, pointing, arms crossed, sitting and reading.
+  - Pose height factors are `HP_H`/`DP_H` in game_src.
+- **Terrain**: `HILLS` lists flat-topped hills; `gz(x,y)` is added inside `proj()`, so everything sits on the ground. Hills are drawn with marching-squares contour lines and slope hatching (`buildTerrain`/`drawTerrain`). Height is zero near the river. There is no collision from height.
+- **Control** (`ctl`, `zoneNow()`): movement input is accepted only inside a zone. Zones come from:
+  - Orders (`ORDER_ZONE`).
+  - Director tasks: free, gather, dig, smash, fly, and camp (camp while he reads, if he chooses it).
+  
+  Otherwise `heroAuto()` drives her in one of these modes: follow, return, wait (罚站), kneel, rest, offer, held, stay. At the zone edge, `clampZone` pulls her back with a core flare and a small core drain. Player transforms and actions outside a zone call `resist()`, and she crosses the river automatically as a bird.
+- **Director** (`demonAI` → `nextAgenda` → `runStep`). The demon runs a plan of steps: walk, say, task, read, wait, cmd, train, appraise, sleep, inject.
+  - Story beats are chosen automatically: first free gather → appraisal (notebook) → collar → mound dig → horn → ring smash → quill → fly for star 3.
+  - A failed task leads to 罚站 as punishment.
+- **Core**: `S.core` drains over time, faster inside zones. Below 30 he injects: he walks to her, uses dpose_0, and a red beam runs from his palm to her core while she is in hpose_7. The core gauge is at top right. Low core shrinks task zones.
+- **Dialogue**: new options are "can I go look for things myself" (a chance-based free gather) and, with the **leash**, "can you take me there" (river, nearest hill, camp). Talking during 罚站 is refused and costs obedience.
+- **Bug fixes**:
+  - v0.6 hid ALL world props after the cinematic, because `MAN_ON` was the number 0 compared with `!==` against a bool.
+  - The cinematic's boulder fade was never reset.
+  - The core glow went NaN during the cinematic.
+
+### Pending / ideas
+- Height does not block movement yet (cliffs and ramps could be added as blocking contour edges).
+- hpose_8 (walk with broom) is unused.
