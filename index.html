@@ -92,10 +92,14 @@ function camUpdate(){
   cam.f=[Math.sin(yaw)*cp, Math.cos(yaw)*cp, -sp];
   cam.r=[Math.cos(yaw), -Math.sin(yaw), 0];
   const r=cam.r,f=cam.f; cam.u=[r[1]*f[2]-r[2]*f[1], r[2]*f[0]-r[0]*f[2], r[0]*f[1]-r[1]*f[0]];
-  cam.C=[cam.tx-f[0]*cam.dist, cam.ty-f[1]*cam.dist, -f[2]*cam.dist];
+  cam.gz=(cam.gz||0)+((gz(cam.tx,cam.ty)*0.7)-(cam.gz||0))*0.08; cam.C=[cam.tx-f[0]*cam.dist, cam.ty-f[1]*cam.dist, -f[2]*cam.dist+cam.gz];
   cam.F=Math.min(W*0.9,H*1.25); cam.cy=H*0.47;
 }
-function proj(x,y,z){ const d0=x-cam.C[0], d1=y-cam.C[1], d2=z-cam.C[2]; const f=cam.f,r=cam.r,u=cam.u;
+/* ---- v0.7 terrain height: flat-topped paper hills ---- */
+const HILLS=[[20,-8,8.5,2.4],[-19,-6,6,1.1],[-28,10,8,3.2],[31,6,7,2.8],[-8,-29,10,3.6],[14,-31,8,2.3],[-34,-22,9,3.0],[33,-30,7,2.6],[-22,36,9,3.4],[24,37,8,2.8],[4,40,6,2.2],[-40,0,6,2.6],[40,-12,6,2.2]];
+function gz(x,y){ if(x>200) return 0; let h=0; for(const H of HILLS){ const dx=x-H[0], dy=y-H[1]; const d2=dx*dx+dy*dy; if(d2>=H[2]*H[2]) continue; const d=Math.sqrt(d2); let t=(H[2]-d)/(H[2]*0.42); t=t>1?1:t; h=Math.max(h,H[3]*t*t*(3-2*t)); }
+  const rd=y<RIVER.y0?RIVER.y0-y:y>RIVER.y1?y-RIVER.y1:0; if(rd<5) h*=rd/5; return h; }
+function proj(x,y,z){ z+=gz(x,y); const d0=x-cam.C[0], d1=y-cam.C[1], d2=z-cam.C[2]; const f=cam.f,r=cam.r,u=cam.u;
   const zc=d0*f[0]+d1*f[1]+d2*f[2]; if(zc<0.5) return null;
   const xc=d0*r[0]+d1*r[1]+d2*r[2], yc=d0*u[0]+d1*u[1]+d2*u[2];
   return {x:W/2+cam.F*xc/zc, y:cam.cy-cam.F*yc/zc, s:cam.F/zc, z:zc}; }
@@ -830,7 +834,7 @@ function cineStep(dt){ time+=dt; if(cine.gen){ const r=cine.gen.next(dt); if(r.d
   if(shake>0) shake-=dt; }
 function startCine(){ cine.on=1; cine.bars=0; cine.arch=ents.find(e=>e.kind==="arch"); document.getElementById("cskip").style.display="block"; refreshUI(); cine.gen=script(); cine.gen.next(0); }
 function endCine(){ if(!cine.on) return; cine.gen=null; cine.sub=null; cine.title=null; cine.show=null; cine.flash=0; cine.vortex=0; if(cine.scene!=="world") toWorld(); collapseArch();
-  hero.z=0; demon.z=0; hero.vz=demon.vz=0; parts.length=0; cine.on=0; document.getElementById("cskip").style.display="none"; beginGame(); }
+  hero.z=0; demon.z=0; hero.vz=demon.vz=0; parts.length=0; for(const e of ents) e.alpha=1; cine.on=0; document.getElementById("cskip").style.display="none"; beginGame(); }
 function drawMansionBG(){ cx.fillStyle="#16130f"; cx.fillRect(0,0,W,H);
   const P=(x,y,z)=>proj(MX+x,MY+y,z||0); const quad=(a,b,c,d,fill)=>{ if(!a||!b||!c||!d) return; cx.fillStyle=fill; cx.beginPath(); cx.moveTo(a.x,a.y); cx.lineTo(b.x,b.y); cx.lineTo(c.x,c.y); cx.lineTo(d.x,d.y); cx.closePath(); cx.fill(); };
   // back wall
@@ -941,13 +945,25 @@ function drawGround(){ const hy=horizonY();
   // big ground hatch patches (world-anchored) for texture
   cx.lineCap="round";
   // path
-  drawPath(); drawRiver();
+  drawTerrain(); drawPath(); drawRiver();
   // marks
   for(const m of MARKS){ const p=proj(m.x,m.y,0); if(!p||p.x<-20||p.x>W+20||p.y<hy||p.y>H+20) continue; const fade=Math.min(1,(p.y-hy)/(H*0.25));
     cx.strokeStyle=`rgba(40,34,28,${0.18+0.35*fade})`; cx.lineWidth=Math.max(0.5,p.s*0.035);
     if(m.k===0){ cx.beginPath(); for(let i=0;i<m.n+1;i++){ const a=-1.57+(i-m.n/2)*0.35; cx.moveTo(p.x+(i-m.n/2)*p.s*0.06,p.y); cx.lineTo(p.x+(i-m.n/2)*p.s*0.06+Math.cos(a)*p.s*m.l*0.5,p.y+Math.sin(a)*p.s*m.l); } cx.stroke(); }
     else { cx.beginPath(); cx.ellipse(p.x,p.y,p.s*0.09*m.l*3,p.s*0.04*m.l*3,0,0,6.3); cx.stroke(); } }
 }
+let CONT=null, HATCH=null;
+function buildTerrain(){ CONT=[]; HATCH=[]; const st=0.8, N=Math.ceil(WORLD*2/st); const G=[]; for(let j=0;j<=N;j++){ G.push([]); for(let i=0;i<=N;i++) G[j].push(gz(-WORLD+i*st,-WORLD+j*st)); }
+  const levels=[0.12,0.7,1.3,1.9,2.5,3.1]; const P=(i,j)=>[-WORLD+i*st,-WORLD+j*st];
+  for(const L of levels){ for(let j=0;j<N;j++) for(let i=0;i<N;i++){ const a=G[j][i],b=G[j][i+1],c=G[j+1][i+1],d=G[j+1][i]; const k=(a>L)|((b>L)<<1)|((c>L)<<2)|((d>L)<<3); if(k===0||k===15) continue;
+    const e=[]; const lerp=(p,q,va,vb)=>{ const t=(L-va)/(vb-va); return [p[0]+(q[0]-p[0])*t,p[1]+(q[1]-p[1])*t]; };
+    const A=P(i,j),B=P(i+1,j),C=P(i+1,j+1),D=P(i,j+1);
+    if((a>L)!==(b>L)) e.push(lerp(A,B,a,b)); if((b>L)!==(c>L)) e.push(lerp(B,C,b,c)); if((c>L)!==(d>L)) e.push(lerp(C,D,c,d)); if((d>L)!==(a>L)) e.push(lerp(D,A,d,a));
+    if(e.length>=2) CONT.push([e[0][0],e[0][1],e[1][0],e[1][1],L]); if(e.length===4) CONT.push([e[2][0],e[2][1],e[3][0],e[3][1],L]); } }
+  const r=rng(99); for(let k=0;k<16000;k++){ const x=(r()*2-1)*WORLD, y=(r()*2-1)*WORLD; const h=gz(x,y); if(h<0.05) continue; const gx=(gz(x+0.2,y)-gz(x-0.2,y))/0.4, gy=(gz(x,y+0.2)-gz(x,y-0.2))/0.4; const g=Math.hypot(gx,gy); if(g<0.25) continue; const shade=(gx*0.6+gy*-0.8)/g; if(shade<-0.2&&r()<0.6) continue; HATCH.push([x,y,-gx/g,-gy/g,Math.min(1,g/1.2),shade]); } }
+function drawTerrain(){ if(!CONT) buildTerrain(); const hy=horizonY();
+  cx.lineCap="round"; for(const c of CONT){ const p=proj(c[0],c[1],0), q=proj(c[2],c[3],0); if(!p||!q||(p.x<-10&&q.x<-10)||(p.x>W+10&&q.x>W+10)||p.y<hy) continue; const base=c[4]<0.2; cx.strokeStyle=base?"rgba(40,34,28,0.55)":"rgba(40,34,28,0.28)"; cx.lineWidth=Math.max(0.6,p.s*(base?0.05:0.03)); cx.beginPath(); cx.moveTo(p.x,p.y); cx.lineTo(q.x,q.y); cx.stroke(); }
+  cx.strokeStyle="rgba(40,34,28,0.42)"; for(const h of HATCH){ const p=proj(h[0],h[1],0); if(!p||p.x<-10||p.x>W+10||p.y<hy||p.y>H+10) continue; const q=proj(h[0]+h[2]*0.9*h[4],h[1]+h[3]*0.9*h[4],0); if(!q) continue; cx.lineWidth=Math.max(0.5,p.s*0.025); cx.beginPath(); cx.moveTo(p.x,p.y); cx.lineTo(q.x,q.y); cx.stroke(); } }
 function drawPath(){ const L=[],Rr=[]; for(let i=0;i<PATH.length;i++){ const p=PATH[i], q=PATH[Math.min(PATH.length-1,i+1)], o=PATH[Math.max(0,i-1)]; const dx=q[0]-o[0], dy=q[1]-o[1], l=Math.hypot(dx,dy)||1; const nx=-dy/l*1.6, ny=dx/l*1.6;
     if(p[1]>RIVER.y0-1&&p[1]<RIVER.y1+1){ L.push(null); Rr.push(null); continue; }
     L.push(proj(p[0]+nx,p[1]+ny,0)); Rr.push(proj(p[0]-nx,p[1]-ny,0)); }
@@ -1048,7 +1064,7 @@ function drawWin(){ if(!won) return; winT+=1/60; if(winT>9) return; const a=Math
 
 function frame(now){ const dt=Math.min(0.05,(now-last)/1000); last=now; if(cine.on) cineStep(dt); if(started&&!S.paused) step(dt); else if(started&&S.order) updOrder(); camUpdate();
   cx.save(); if(shake>0) cx.translate((Math.random()-0.5)*10*shake,(Math.random()-0.5)*10*shake);
-  const MAN_ON=cine.on&&cine.scene==="mansion"; if(MAN_ON) drawMansionBG(); else { drawSky(); drawGround(); }
+  const MAN_ON=!!(cine.on&&cine.scene==="mansion"); if(MAN_ON) drawMansionBG(); else { drawSky(); drawGround(); }
   // depth-sorted billboards
   const list=[]; for(const e of ents){ if(e.gone||((e.kind==="man")!==MAN_ON)) continue; const p=proj(e.x,e.y,0); if(!p||p.x<-p.s*e.h||p.x>W+p.s*e.h) continue; list.push({z:p.z,d:()=>{ if(e.kind!=="grass"&&e.kind!=="mound"&&e.kind!=="mush") shadow(p,Math.max(0.4,e.rad*0.9)); const picked=e.res&&!e.ready; sprite(IMG[e.img],p,e.h*(picked?0.7:1),e.flip,e.alpha*(picked?0.55:1),1,1,(e.kind==="arch"&&e.shake>0?Math.sin(time*50)*0.03:0)+(e.kind==="grass"?Math.sin(time*1.5+e.x)*0.04:0)+(e.shake>0?Math.sin(time*60)*0.05:0)); if(e.nest) drawNest(e,p); if(e.bid==="cabinet") drawCabinetItems(e,p); if(e.bid==="tent"&&demon.hidden){ cx.fillStyle="#2a2622"; cx.font="bold "+Math.round(p.s*0.35)+"px sans-serif"; cx.textAlign="center"; cx.fillText("z",p.x+p.s*0.5,p.y-p.s*(2.4+Math.sin(time*2)*0.1)); cx.fillText("z",p.x+p.s*0.75,p.y-p.s*(2.9+Math.sin(time*2+1)*0.1)); } }}); }
   { const p=proj(hero.x,hero.y,0); if(p) list.push({z:p.z-0.01,d:drawHero}); }
@@ -1069,5 +1085,5 @@ setupResources(); setupMansion(); buildInv(); refreshUI();
 requestAnimationFrame(frame);
 document.getElementById("title").onclick=()=>{ ac(); document.getElementById("title").style.display="none"; startCine(); };
 document.getElementById("cskip").onclick=e=>{ e.stopPropagation(); endCine(); };
-window.__game={issueOrder,gainKey,closeCard,startTraining,hasKey,refreshUI,KEYS,get order(){return S.order;},S,gitems,flora,bugs,digs,invAdd,craft,RECIPES,useSlot,deliverAll,closeAppraisal,openCatalog,issueOrder,COL,ITEMS,ents,hero,demon,cam,transform,STARS,RING,MOUND,toggleProp,toggleDemon,builds,BUILDS,startPlace,confirmPlace,openDialog,closeDialog,pickOpt,dlg,startCine,endCine,cine,start:()=>{ document.getElementById("title").style.display="none"; endCine(); if(!started) beginGame(); }};
+window.__game={proj,gz,IMG,issueOrder,gainKey,closeCard,startTraining,hasKey,refreshUI,KEYS,get order(){return S.order;},S,gitems,flora,bugs,digs,invAdd,craft,RECIPES,useSlot,deliverAll,closeAppraisal,openCatalog,issueOrder,COL,ITEMS,ents,hero,demon,cam,transform,STARS,RING,MOUND,toggleProp,toggleDemon,builds,BUILDS,startPlace,confirmPlace,openDialog,closeDialog,pickOpt,dlg,startCine,endCine,cine,start:()=>{ document.getElementById("title").style.display="none"; endCine(); if(!started) beginGame(); }};
 </script></body></html>
