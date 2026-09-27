@@ -73,6 +73,7 @@ canvas{display:block;width:100vw;height:100vh;touch-action:none}
 <script>
 "use strict";
 const ASSETS=__ASSETS__;
+const CORE=__CORE__;
 const IMG={}; let loaded=0; const keys=Object.keys(ASSETS);
 for(const k of keys){ const im=new Image(); im.onload=()=>{loaded++;}; im.src=ASSETS[k]; IMG[k]=im; }
 const cv=document.getElementById("cv"), cx=cv.getContext("2d");
@@ -147,9 +148,9 @@ const STARS=[
 
 /* ---------------- characters ---------------- */
 const SHEETS={ // side view facing direction in the sheet art (+1 = faces screen-right)
-  heroine:{chibi:"heroine_A_chibi",normal:"heroine_A_chibi",sideDir:1,h:{chibi:2.3,normal:3.3}},
+  heroine:{chibi:"heroine_C_chibi",normal:"heroine_C_chibi",sideDir:-1,h:{chibi:2.3,normal:2.3}},
   demonD5:{chibi:"demon_D5_chibi",normal:"demon_D5_chibi",sideDir:-1,h:{chibi:2.45,normal:2.45}},
-  demonD6:{chibi:"demon_D6_chibi",normal:"demon_D6_chibi",sideDir:-1,h:{chibi:2.45,normal:2.45}},
+  demonD7:{chibi:"demon_D7_chibi",normal:"demon_D7_chibi",sideDir:-1,h:{chibi:2.45,normal:2.45}},
   demonD4:{chibi:"demon_D4_chibi",normal:"demon_D4_chibi",sideDir:-1,h:{chibi:2.4,normal:2.4}},
 };
 const FORMS={
@@ -158,7 +159,7 @@ const FORMS={
   unicorn:{name:"独角兽",key:"3",speed:8.5,front:"animal_2",side:"animal_3",sideDir:-1,h:2.6},
   bird:{name:"鸟",key:"4",speed:10.5,front:"animal_5",side:"animal_4",sideDir:1,h:1.9,fly:2.6},
 };
-let PROP_MODE="chibi", DEMON="demonD6";
+let PROP_MODE="chibi", DEMON="demonD7";
 const hero={x:0,y:-2,z:0,face:0,form:"human",moving:0,bob:0,tf:null,dash:0,dig:0,vx:0,vy:0};
 const demon={x:-1.4,y:-8,face:0,moving:0,bob:0,idle:0,st:"read",t:0};
 let target=null; // click-to-move
@@ -212,7 +213,7 @@ function toggleProp(){}
 function toggleDemon(){}
 document.getElementById("bBuild").onclick=()=>{ac();openBuildMenu();};
 // form buttons
-{ const box=document.getElementById("forms"); for(const k of Object.keys(FORMS)){ const b=document.createElement("div"); b.className="fb"; b.id="f_"+k; const src=k==="human"?ASSETS.heroine_A_chibi_0:ASSETS[FORMS[k].front]; b.innerHTML=`<i>${FORMS[k].key}</i><img src="${src}"><span>${FORMS[k].name}</span>`; b.onclick=()=>{ac();transform(k);}; box.appendChild(b); } }
+{ const box=document.getElementById("forms"); for(const k of Object.keys(FORMS)){ const b=document.createElement("div"); b.className="fb"; b.id="f_"+k; const src=k==="human"?ASSETS.heroine_C_chibi_0:ASSETS[FORMS[k].front]; b.innerHTML=`<i>${FORMS[k].key}</i><img src="${src}"><span>${FORMS[k].name}</span>`; b.onclick=()=>{ac();transform(k);}; box.appendChild(b); } }
 function updForms(){ for(const k of Object.keys(FORMS)) document.getElementById("f_"+k).classList.toggle("on",hero.form===k); }
 updForms();
 
