@@ -1062,7 +1062,7 @@ function drawCineOverlay(){ if(!cine.on) return; const fam=getComputedStyle(docu
     cx.font=(sb.who?"":"italic ")+"19px "+fam; const w=cx.measureText(sb.text).width; const nw=sb.who?60:0; let x0=W/2-(w+nw)/2;
     if(sb.who){ cx.fillStyle="#d8cbb0"; cx.font="bold 15px "+fam; cx.textAlign="left"; cx.fillText(sb.who,x0,y); x0+=nw; cx.font="19px "+fam; cx.fillStyle="#f3efe6"; cx.fillText("「"+txt+(n>=sb.text.length?"」":""),x0-10,y); }
     else { cx.textAlign="left"; cx.fillStyle="#cfc6b4"; cx.fillText(txt,x0,y); } cx.restore(); } }
-function beginGame(){ started=true; cine.on=0; hero.kneel=0; hero.alpha=1; demon.alpha=1; demon.z=0; hero.z=0; cam.yawT=cam.yaw; cam.distT=cam.dist; if(!Number.isFinite(hero.x)||hero.x>100){ hero.x=-1; hero.y=2.5; } hero.face=Math.PI; demon.x=-2.6; demon.y=4.8; demon.plan=[]; demon.cur=null; demon.pose=null; ctl.mode="follow"; ctl.task=null; if(S.core===undefined) S.core=100; shards(hero.x,hero.y,1,20,4);
+function beginGame(){ started=true; cine.on=0; hero.kneel=0; hero.alpha=1; demon.alpha=1; demon.z=0; hero.z=0; cam.yawT=cam.yaw; cam.distT=cam.dist; if(!Number.isFinite(hero.x)||hero.x>100){ hero.x=-1; hero.y=2.5; } hero.face=Math.PI; demon.x=-2.6; demon.y=4.8; demon.plan=S.day<=1&&!ctl.intro?[{k:'say',text:"……醒了？\n去。给我捡点东西回来。\n花、石头……什么都行。别走远。",dur:3.4},{k:'task',def:{k:'free',T:85}}]:(demon.plan||[]); if(!ctl.intro) ctl.intro=1; demon.cur=null; demon.pose=null; ctl.mode="follow"; ctl.task=null; if(S.core===undefined) S.core=100; shards(hero.x,hero.y,1,20,4);
   refreshUI(); setTimeout(()=>{ gainKey("bag"); },700); setTimeout(()=>note("没有主人的命令，她不能自己行动 · 命令允许时：WASD 移动 · 空格 动作 · Q/E 转视角"),1800); updCmd(); }
 
 /* ---------------- update ---------------- */

@@ -233,3 +233,25 @@
 ### Pending / ideas
 - Height does not block movement yet (cliffs and ramps could be added as blocking contour edges).
 - hpose_8 (walk with broom) is unused.
+
+---
+## Round 8 (v0.8) — D4 restored, chapters, ending, mastery pass
+
+### User requests
+- The demon image was wrong again → **revert to D4** (done: DEMON="demonD4"; pose sheet regenerated with D4 as the reference, `concepts/demon_poses_D4.png` → `dpose_0..3`).
+- Keep polishing: a **complete game experience**, master-level, the player should feel great playing it.
+
+### What was added
+- **Chapters** (`CHAPTERS`/`chapterIdx`/`drawChapter`): 序章→终章 with WC3-style title cards (4.2 s) and a live goal panel at top-left; the #cmd panel always shows the current chapter + concrete goal. Story gates: the RING task needs rank ≥ 猎犬, the river/fly task needs ≥ 忠犬 (grinding via 献礼/训练/命令 is the way).
+- **Full ending** (`END`, `startEnding`, `endStep`): giving the third star runs an in-world sequence — three paper stars orbit him, the 星辰罗盘 glows above the arch, a final core injection with red beam/embers, a black-hole seal with red rings, fade to paper, then a "纸之魔女 · 完" card with run stats (days, collection given, rank, obey/favor) and continue (free roam, 尾声 chapter = collect them all) or restart.
+- **Hold F to fast-forward** passive waiting (3× step), disabled inside command zones/orders/ending; hint at bottom right.
+- **罚站 is now a test**: he counts twitches (resist during wait → he snaps, obey −1); while waiting, glints appear near her with notes (temptation to move). Perfect stillness → praise + obey/favor; 3+ twitches → 8 more seconds.
+- **Questions while kneeling** (`QUESTIONS`, 9, persona-derived): asked randomly during read+kneel, Skyrim-style options, obey/favor effects.
+- **Free gather is scored**: combo counter for finds within 4.5 s, and an S–D grade stamp (round seal, "主人的评价") at task end; S rank permanently lengthens the leash (+2 r, max +8). Rare flora sparkle with cross-glints only while a gather task is open (`drawGlints`).
+- **Pacing**: demon walks at 4.3; day 1 always begins with his opening line + a free task (85 s) (`ctl.intro`); chapter progress refreshes the panel every 1.5 s.
+- Foreground props fade harder (0.14/0.22) so the characters are never buried.
+
+### Notes for later rounds
+- Ending is verified by script (appraise → card → continue), not played by hand.
+- `drawWin` stays as a no-op fallback (winT=99 after continue).
+- Unused: hpose_8. Terrain height still doesn't block movement.
