@@ -255,3 +255,13 @@
 - Ending is verified by script (appraise → card → continue), not played by hand.
 - `drawWin` stays as a no-op fallback (winT=99 after continue).
 - Unused: hpose_8. Terrain height still doesn't block movement.
+
+### Mobile pass (v0.8m)
+- TOUCH detection (`maxTouchPoints`/pointer:coarse) adds `body.mo`; desktop is untouched apart from global overscroll/select guards and `viewport-fit=cover`.
+- **Virtual joystick**: press-drag anywhere in the left 48%/bottom 64% of the screen; appears where the finger lands; 16 px dead-zone before activation, so a short tap still uses the old tap-to-move. Feeds `ix/iy` inside step(), so zone gating/resist/punish logic applies unchanged.
+- **Pinch zoom** (two fingers → `cam.distT` 11..34); one-finger drag on the right half still rotates the camera; single tap sets a move target (only works inside a granted zone).
+- **Buttons**: `#act` 100 px (label 动作/点按), `#ff` ▶▶ hold-to-fast-forward (sets `K.KeyF` while pressed), transform row sits above them; `#side` buttons (catalog/build) pushed below the core gauge; all respect safe-area insets. Portrait stacks the cluster above the bag bar.
+- Panels scale: #order max 70vw, #cmd 11 px and hidden while a chapter title card shows, #dlg options ≥44 px and scrollable, overlays get momentum scroll. Touch hints replace "空格/Esc/Q-E" wording via note() and the tip setter ("动作键", "拖动转视角", "再点一次取消"); bBuild tap again cancels placement.
+- Haptics (`vz()`): resist 35 ms, stamp 30, chime 15, unlock card 25.
+- Exports added to `window.__game`: `K`, `FF` getter.
+- Verified headless with 844×390 and 390×844 touch contexts: stick walk, pinch 20→11, FF (wait-step clock runs ~3×), tap-walk blocked during 罚站 by design, no page errors; desktop t7 regression unchanged.

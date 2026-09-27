@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="zh"><head><meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <title>纸之魔女 · 沙盒原型</title>
 <style>
 html,body{margin:0;height:100%;overflow:hidden;background:#efeadf;font-family:"Segoe Print","Bradley Hand","Comic Sans MS","Kaiti SC","STKaiti","KaiTi",cursive;user-select:none;-webkit-user-select:none}
@@ -59,6 +59,46 @@ canvas{display:block;width:100vw;height:100vh;touch-action:none}
 #cutcap .who{font-weight:bold;margin-right:8px;font-size:15px;letter-spacing:.2em}#cutcap i{opacity:.85}
 #cutskip{position:absolute;right:18px;top:14px;color:#f3efe6;background:#0006;border:1.5px solid #f3efe6;padding:5px 14px;border-radius:8px;font-size:14px;cursor:pointer;z-index:2}
 #cuthint{position:absolute;right:22px;bottom:2vh;color:#f3efe6aa;font-size:12px}
+
+#stick{position:fixed;width:126px;height:126px;border-radius:50%;border:2.5px solid rgba(42,38,34,.45);background:rgba(247,243,234,.30);display:none;pointer-events:none;z-index:6}
+#knob{position:absolute;width:56px;height:56px;border-radius:50%;background:rgba(42,38,34,.5);border:2px solid rgba(247,243,234,.85);left:35px;top:35px}
+#ff{position:fixed;right:134px;bottom:24px;width:58px;height:58px;border-radius:50%;border:2.5px solid #2a2622;background:#f7f3ea;font-size:15px;font-family:inherit;color:#2a2622;box-shadow:2px 3px 0 #2a262255;cursor:pointer;z-index:5;display:none;touch-action:none;padding:0}
+html,body{overscroll-behavior:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+@media (pointer:coarse), (max-width:820px){
+ body.mo #help{display:none}
+ body.mo #forms{left:auto;right:calc(16px + env(safe-area-inset-right));bottom:calc(148px + env(safe-area-inset-bottom));}
+ body.mo .fb{width:52px;height:56px;font-size:12px} body.mo .fb i{display:none} body.mo .fb img{height:28px}
+ body.mo #act{right:calc(16px + env(safe-area-inset-right));bottom:calc(22px + env(safe-area-inset-bottom));width:100px;height:100px;font-size:20px}
+ body.mo #ff{right:calc(128px + env(safe-area-inset-right));bottom:calc(30px + env(safe-area-inset-bottom));display:block}
+ body.mo #inv{bottom:calc(6px + env(safe-area-inset-bottom));padding:4px;gap:3px;transform:translateX(-50%) scale(.74);transform-origin:bottom center}
+ body.mo .slot{width:42px;height:42px}
+ body.mo #hud{bottom:60px;font-size:12px;padding:0 8px}
+ body.mo #order{max-width:70vw;font-size:13px;padding:4px 12px;top:calc(6px + env(safe-area-inset-top));min-width:0}
+ body.mo #cmd{top:calc(112px + env(safe-area-inset-top));font-size:11px;padding:5px 10px;max-width:40vw;transition:opacity .3s}
+ @media (orientation:portrait){
+  body.mo #cmd{top:calc(196px + env(safe-area-inset-top))}
+  body.mo #act{bottom:calc(88px + env(safe-area-inset-bottom))}
+  body.mo #ff{bottom:calc(96px + env(safe-area-inset-bottom))}
+  body.mo #forms{bottom:calc(214px + env(safe-area-inset-bottom))}
+  body.mo #hud{bottom:60px}
+  body.mo #notes{bottom:calc(300px + env(safe-area-inset-bottom))}
+  body.mo #dlg{bottom:calc(300px + env(safe-area-inset-bottom))}
+ }
+ body.mo #side{top:calc(156px + env(safe-area-inset-top));gap:4px} body.mo .sb{padding:4px 9px;font-size:12px}
+ body.mo #notes{top:auto;bottom:calc(210px + env(safe-area-inset-bottom));left:8px;max-width:44vw}
+ body.mo .nt{font-size:11px;padding:2px 6px}
+ body.mo #dlg{bottom:calc(150px + env(safe-area-inset-bottom));max-height:56vh;overflow-y:auto;padding:8px 10px 6px}
+ body.mo #dlg .op{min-height:44px;padding:10px 8px;display:flex;align-items:center}
+ body.mo #dlg .dt{font-size:17px}
+ body.mo #card,body.mo #appr,body.mo #catalog,body.mo #bmenu{max-height:88vh;overflow-y:auto;-webkit-overflow-scrolling:touch}
+ body.mo #catalog{height:auto;width:96vw}
+ body.mo .cell img{width:44px;height:44px} body.mo .cell{padding:3px}
+ body.mo .rc img{width:30px;height:30px} body.mo .rc{padding:8px 4px}
+ body.mo #cskip{padding:12px 20px;font-size:15px;top:calc(10px + env(safe-area-inset-top));right:12px}
+ body.mo #cutskip{padding:10px 16px}
+ body.mo #title .go{padding:14px 44px;font-size:20px}
+ body.mo #title{padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
+}
 </style></head><body>
 <canvas id="cv"></canvas>
 <div id="hud"><span id="tip" style="opacity:.8"></span></div><div id="cmd"></div><div id="order"></div><div id="appr"></div><div id="catalog"></div><div id="notes"></div><div id="dlg"></div><div id="bmenu"></div><div id="cskip">SKIP ▸▸</div><div id="card"></div><div id="inv"></div>
@@ -68,6 +108,8 @@ canvas{display:block;width:100vw;height:100vh;touch-action:none}
 </div>
 <div id="forms"></div>
 <button id="act">动作<br><small>空格</small></button>
+<button id="ff">▶▶<br><small>快进</small></button>
+<div id="stick"><div id="knob"></div></div>
 
 <div id="title"><h1>纸之魔女</h1><p>素描线稿 · 沙盒原型 v0.6</p><p style="font-size:15px;max-width:520px;text-align:center;line-height:1.9">她曾经是自由的魔女。<br>直到那天，她翻开了一本黑色的书。<br>……醒来时，她只记得一件事——<b>主人的命令</b>。</p><p style="font-size:13px;opacity:.7">探索纸之界 · 建造营地 · 收集献给主人 · 服从主人的命令</p><div class="go">开始游戏</div></div>
 <script>
@@ -182,7 +224,7 @@ let AC=null; function ac(){ if(!AC){ try{AC=new (window.AudioContext||window.web
 function paperSnd(len=0.35,freq=2400,vol=0.25){ const a=ac(); if(!a)return; const n=Math.floor(a.sampleRate*len), b=a.createBuffer(1,n,a.sampleRate), d=b.getChannelData(0);
   for(let i=0;i<n;i++){ const t=i/n; d[i]=(Math.random()*2-1)*Math.pow(1-t,2)*(Math.random()<0.25?1:0.35); }
   const s=a.createBufferSource(); s.buffer=b; const f=a.createBiquadFilter(); f.type="bandpass"; f.frequency.value=freq; f.Q.value=0.8; const g=a.createGain(); g.gain.value=vol; s.connect(f).connect(g).connect(a.destination); s.start(); }
-function chime(){ const a=ac(); if(!a)return; [880,1320,1760].forEach((fq,i)=>{ const o=a.createOscillator(), g=a.createGain(); o.type="triangle"; o.frequency.value=fq; g.gain.setValueAtTime(0,a.currentTime+i*0.09); g.gain.linearRampToValueAtTime(0.12,a.currentTime+i*0.09+0.02); g.gain.exponentialRampToValueAtTime(0.001,a.currentTime+i*0.09+0.8); o.connect(g).connect(a.destination); o.start(a.currentTime+i*0.09); o.stop(a.currentTime+i*0.09+0.9); }); }
+function chime(){ vz(15); const a=ac(); if(!a)return; [880,1320,1760].forEach((fq,i)=>{ const o=a.createOscillator(), g=a.createGain(); o.type="triangle"; o.frequency.value=fq; g.gain.setValueAtTime(0,a.currentTime+i*0.09); g.gain.linearRampToValueAtTime(0.12,a.currentTime+i*0.09+0.02); g.gain.exponentialRampToValueAtTime(0.001,a.currentTime+i*0.09+0.8); o.connect(g).connect(a.destination); o.start(a.currentTime+i*0.09); o.stop(a.currentTime+i*0.09+0.9); }); }
 function thud(){ const a=ac(); if(!a)return; const o=a.createOscillator(), g=a.createGain(); o.frequency.setValueAtTime(120,a.currentTime); o.frequency.exponentialRampToValueAtTime(40,a.currentTime+0.25); g.gain.setValueAtTime(0.4,a.currentTime); g.gain.exponentialRampToValueAtTime(0.001,a.currentTime+0.3); o.connect(g).connect(a.destination); o.start(); o.stop(a.currentTime+0.32); paperSnd(0.25,700,0.3); }
 
 /* ---------------- speech bubbles ---------------- */
@@ -208,14 +250,41 @@ addEventListener("keyup",e=>{ K[e.code]=0; });
 function rotCam(d){ cam.yawT+=d*Math.PI/4; }
 let drag=null;
 cv.addEventListener("contextmenu",e=>e.preventDefault());
-cv.addEventListener("pointerdown",e=>{ ac(); drag={x:e.clientX,y:e.clientY,btn:e.button,moved:0,yaw:cam.yawT}; cv.setPointerCapture(e.pointerId); });
+cv.addEventListener("pointerdown",e=>{ ac(); drag={x:e.clientX,y:e.clientY,btn:e.button,moved:0,yaw:cam.yawT}; try{cv.setPointerCapture(e.pointerId);}catch(err){} });
 cv.addEventListener("pointermove",e=>{ if(!drag)return; const dx=e.clientX-drag.x; if(Math.abs(dx)>6) drag.moved=1; if(drag.btn===2||(e.pointerType!=="mouse"&&drag.moved&&Math.abs(dx)>30)){ cam.yawT=drag.yaw-dx*0.006; } });
 cv.addEventListener("pointerup",e=>{ if(cine.on){ cine.fast=true; drag=null; return; } if(drag&&!drag.moved&&drag.btn===0){ const g=unproj(e.clientX,e.clientY); if(g) target={x:g[0],y:g[1]}; } drag=null; });
 cv.addEventListener("wheel",e=>{ cam.distT=Math.max(11,Math.min(34,cam.distT*(e.deltaY>0?1.1:0.9))); },{passive:true});
+/* ---------------- mobile ---------------- */
+const TOUCH=(navigator.maxTouchPoints||0)>0||!!(window.matchMedia&&matchMedia("(pointer:coarse)").matches);
+function vz(n){ try{ if(navigator.vibrate) navigator.vibrate(n); }catch(e){} }
+const J={pid:0,ox:0,oy:0,act:false,vx:0,vy:0}; let PM=null, pinch=null;
+(function initMobile(){ if(!TOUCH) return; document.body.classList.add("mo");
+  document.getElementById("act").innerHTML='动作<br><small>点按</small>';
+  addEventListener("contextmenu",e=>e.preventDefault());
+  const stickEl=document.getElementById("stick"), knobEl=document.getElementById("knob");
+  function showStick(x,y){ stickEl.style.display="block"; stickEl.style.left=(x-63)+"px"; stickEl.style.top=(y-63)+"px"; knobEl.style.left="35px"; knobEl.style.top="35px"; }
+  function endStick(){ J.pid=0; J.act=false; J.vx=J.vy=0; stickEl.style.display="none"; }
+  cv.addEventListener("pointerdown",e=>{ if(e.pointerType==="mouse") return; PM=PM||new Map(); PM.set(e.pointerId,{x:e.clientX,y:e.clientY});
+    if(PM.size===2){ endStick(); const a=[...PM.values()]; pinch={d0:Math.hypot(a[0].x-a[1].x,a[0].y-a[1].y),c0:cam.distT}; e.stopPropagation(); drag=null; return; }
+    if(e.clientX>innerWidth*0.48||e.clientY<innerHeight*0.36) return;
+    J.pid=e.pointerId; J.ox=e.clientX; J.oy=e.clientY; J.pend=true; J.movedFar=false; showStick(e.clientX,e.clientY); e.stopPropagation(); },true);
+  cv.addEventListener("pointermove",e=>{ if(!PM||!PM.has(e.pointerId)) return; PM.set(e.pointerId,{x:e.clientX,y:e.clientY});
+    if(pinch&&PM.size>=2){ const a=[...PM.values()]; const d=Math.hypot(a[0].x-a[1].x,a[0].y-a[1].y)||1; cam.distT=Math.max(11,Math.min(34,pinch.c0*pinch.d0/d)); e.stopPropagation(); return; }
+    if(e.pointerId!==J.pid) return; e.stopPropagation();
+    let dx=e.clientX-J.ox, dy=e.clientY-J.oy; if(Math.hypot(dx,dy)>16) J.movedFar=true; if(!J.movedFar) return; J.act=true;
+    const r=Math.min(50,Math.hypot(dx,dy)), a=Math.atan2(dy,dx); knobEl.style.left=(35+Math.cos(a)*r)+"px"; knobEl.style.top=(35+Math.sin(a)*r)+"px";
+    const m=Math.min(1,r/44); J.vx=Math.cos(a)*m; J.vy=Math.sin(a)*m; },true);
+  const up=e=>{ if(PM) PM.delete(e.pointerId); if(PM&&PM.size<2) pinch=null; if(e.pointerId===J.pid){ if(J.movedFar) e.stopPropagation(); endStick(); } };
+  cv.addEventListener("pointerup",up,true); cv.addEventListener("pointercancel",up,true);
+  const ff=document.getElementById("ff");
+  ff.addEventListener("pointerdown",e=>{ e.preventDefault(); e.stopPropagation(); K.KeyF=1; ff.style.background="#e4dccb"; try{ ff.setPointerCapture(e.pointerId); }catch(err){} });
+  const ffu=()=>{ K.KeyF=0; ff.style.background="#f7f3ea"; };
+  ff.addEventListener("pointerup",ffu); ff.addEventListener("pointercancel",ffu); ff.addEventListener("lostpointercapture",ffu);
+})();
 document.getElementById("act").onclick=()=>{ ac(); if(!S.paused) action(); }; document.getElementById("bCat").onclick=()=>{ ac(); openCatalog(); };
 function toggleProp(){}
 function toggleDemon(){}
-document.getElementById("bBuild").onclick=()=>{ac();openBuildMenu();};
+document.getElementById("bBuild").onclick=()=>{ac(); if(placing){ placing=null; note("取消建造"); return; } openBuildMenu();};
 // form buttons
 { const box=document.getElementById("forms"); for(const k of Object.keys(FORMS)){ const b=document.createElement("div"); b.className="fb"; b.id="f_"+k; const src=k==="human"?ASSETS.heroine_C_chibi_0:ASSETS[FORMS[k].front]; b.innerHTML=`<i>${FORMS[k].key}</i><img src="${src}"><span>${FORMS[k].name}</span>`; b.onclick=()=>{ac();transform(k);}; box.appendChild(b); } }
 function updForms(){ for(const k of Object.keys(FORMS)) document.getElementById("f_"+k).classList.toggle("on",hero.form===k); }
@@ -323,7 +392,7 @@ const KEYS={
 const cardQ=[];
 function hasKey(k){ return !!S.keys[k]; }
 function gainKey(k,quiet){ if(S.keys[k]) return; S.keys[k]=1; if(k==="basket"){ S.cap=16; while(S.inv.length<16) S.inv.push(null); buildInv(); } refreshUI(); if(quiet) return; cardQ.push(k); if(document.getElementById("card").style.display!=="block") showCard(); }
-function showCard(){ const k=cardQ.shift(); if(!k) return; const K=KEYS[k], el=document.getElementById("card"); S.paused=1; chime();
+function showCard(){ const k=cardQ.shift(); if(!k) return; const K=KEYS[k], el=document.getElementById("card"); S.paused=1; chime(); vz(25);
   el.innerHTML=`<div class='kt'>得到了</div><img src="${ASSETS[K.img]}"><div class='kn'>${K.n}</div><div class='kf'>${K.f.replace(/\n/g,"<br>")}</div>${K.d?`<div class='kd'>主人：「${K.d}」</div>`:""}<div class='ab' onclick='closeCard()'>是，主人（空格）</div>`; el.style.display="block"; }
 function closeCard(){ const el=document.getElementById("card"); if(el.style.display!=="block") return false; el.style.display="none"; S.paused=0; if(cardQ.length) setTimeout(showCard,250); return true; }
 function formOK(f){ return f==="human"||(f==="dog"&&hasKey("collar"))||(f==="unicorn"&&hasKey("horn"))||(f==="bird"&&hasKey("quill")); }
@@ -634,7 +703,7 @@ function drawHUD(){ const fam=getComputedStyle(document.body).fontFamily; if(!st
 function drawCompass(fam){ if(!hasKey("compass")) return; const s=STARS.find(q=>!q.got); if(!s) return; const p=proj(s.x,s.y,1); const cxp=W/2, cyp=H*0.55; let ang; if(p&&p.x>40&&p.x<W-40&&p.y>60&&p.y<H-120) return; const dx=s.x-hero.x, dy=s.y-hero.y; const sx=dx*cam.r[0]+dy*cam.r[1], sy=dx*Math.sin(cam.yaw)+dy*Math.cos(cam.yaw); ang=Math.atan2(sx,sy);
   const R0=Math.min(W,H)*0.36, x=cxp+Math.sin(ang)*R0*1.3, y=cyp-Math.cos(ang)*R0; cx.save(); cx.translate(Math.max(30,Math.min(W-30,x)),Math.max(90,Math.min(H-130,y))); cx.rotate(ang); cx.fillStyle="#f7f3ea"; cx.strokeStyle="#2a2622"; cx.lineWidth=2; cx.beginPath(); cx.moveTo(0,-16); cx.lineTo(10,8); cx.lineTo(0,3); cx.lineTo(-10,8); cx.closePath(); cx.fill(); cx.stroke(); cx.restore(); }
 /* ================= v0.5: notes · demon AI · dialogue · base building · opening ================= */
-function note(t){ const box=document.getElementById("notes"); if(!box) return; const d=document.createElement("div"); d.className="nt"; d.textContent=t; box.appendChild(d); while(box.children.length>5) box.removeChild(box.firstChild); setTimeout(()=>{ d.style.opacity=0; },2600); setTimeout(()=>{ d.remove(); },3400); }
+function note(t){ if(TOUCH) t=String(t).replace(/空格/g,"动作键").replace(/Q\/E 转视角/g,"拖动转视角").replace(/Esc 取消/g,"再点一次取消"); const box=document.getElementById("notes"); if(!box) return; const d=document.createElement("div"); d.className="nt"; d.textContent=t; box.appendChild(d); while(box.children.length>5) box.removeChild(box.firstChild); setTimeout(()=>{ d.style.opacity=0; },2600); setTimeout(()=>{ d.remove(); },3400); }
 const BASE={x:-1,y:2};
 
 /* ---- demon behaviour: he does NOT follow her; he lives his own life ---- */
@@ -667,7 +736,7 @@ function colN(){ let n=0; for(const q of S.inv) if(q&&ITEMS[q.id].col) n+=q.n; r
 function angTo(a,b){ let d=a-b; return Math.atan2(Math.sin(d),Math.cos(d)); }
 function zoneNow(){ const o=S.order; if(o){ const Z=ORDER_ZONE[o.k]; if(!Z) return null; return Z.c==="d"?{x:demon.x,y:demon.y,r:Z.r}:{x:o.x0,y:o.y0,r:Z.r}; }
   const t=ctl.task; if(t&&t.zone){ const k=t.k==="camp"?1:0.65+0.35*S.core/100; return {x:t.zone.x,y:t.zone.y,r:t.zone.r*k}; } return null; }
-function resist(){ if((ctl.mode==="wait")&&time>ctl.twT){ ctl.twT=time+0.8; ctl.waitTw++; ctl.flare=0.8; S.obey=Math.max(0,S.obey-1); say("demon",["……动了。","我说了，别动。","再动一次试试。","……你是听不懂吗。"][Math.min(3,ctl.waitTw-1)],1.8); demon.face=Math.atan2(hero.x-demon.x,hero.y-demon.y); dPose(1,0.8); } ctl.twitch=0.5; if(time>ctl.resNote){ ctl.resNote=time+15; note("身体不听使唤……没有主人的命令，不能乱动。"); } }
+function resist(){ if((ctl.mode==="wait")&&time>ctl.twT){ ctl.twT=time+0.8; ctl.waitTw++; ctl.flare=0.8; S.obey=Math.max(0,S.obey-1); say("demon",["……动了。","我说了，别动。","再动一次试试。","……你是听不懂吗。"][Math.min(3,ctl.waitTw-1)],1.8); demon.face=Math.atan2(hero.x-demon.x,hero.y-demon.y); dPose(1,0.8); } ctl.twitch=0.5; vz(35); if(time>ctl.resNote){ ctl.resNote=time+15; note("身体不听使唤……没有主人的命令，不能乱动。"); } }
 function clampZone(z){ const dx=hero.x-z.x, dy=hero.y-z.y, d=Math.hypot(dx,dy);
   if(d>z.r){ const k=(z.r-0.2)/d; hero.x=z.x+dx*k; hero.y=z.y+dy*k; ctl.flare=1; if(time>ctl.pullNote){ ctl.pullNote=time+4; note("核心一阵灼热——身体被拉了回来。"); S.core=Math.max(0,S.core-1.5); ember(hero.x,hero.y,1.3,6,2); } ctl.warn=1; }
   else ctl.warn=d>z.r-2.5?1-(z.r-d)/2.5:0; }
@@ -797,11 +866,11 @@ const CHAPTERS=[
  {n:"尾声",t:"主人的东西",g:()=>"自由游玩 · 收集全部收藏"}];
 function chapterIdx(){ if(won) return 6; if(!hasKey("notebook")) return 0; if(!hasKey("collar")) return 1; if(!STARS[0].got) return 2; if(!STARS[1].got) return 3; if(!STARS[2].got) return 4; return 5; }
 const chap={i:-1,t:9};
-function chapterStep(dt){ const i=chapterIdx(); if(i!==chap.i){ if(chap.i>=0||i===0){ chap.t=0; chime(); } chap.i=i; updCmd(); } chap.t+=dt; if((chap.u=(chap.u||0)+dt)>1.5){ chap.u=0; updCmd(); } }
+function chapterStep(dt){ const i=chapterIdx(); if(i!==chap.i){ if(chap.i>=0||i===0){ chap.t=0; chime(); } chap.i=i; updCmd(); } const _ce=document.getElementById("cmd"); if(_ce) _ce.style.opacity=(chap.t<4.3&&started&&!cine.on)?0:1; chap.t+=dt; if((chap.u=(chap.u||0)+dt)>1.5){ chap.u=0; updCmd(); } }
 function drawChapter(fam){ if(chap.t>4.2||chap.i<0) return; const C=CHAPTERS[chap.i]; const a=Math.min(1,chap.t/0.6,(4.2-chap.t)/0.8); cx.save(); cx.globalAlpha=a;
   cx.fillStyle="rgba(247,243,234,0.88)"; cx.fillRect(0,H*0.3,W,H*0.22); cx.strokeStyle="#2a2622"; cx.lineWidth=1.5; cx.beginPath(); cx.moveTo(W*0.2,H*0.3+8); cx.lineTo(W*0.8,H*0.3+8); cx.moveTo(W*0.2,H*0.52-8); cx.lineTo(W*0.8,H*0.52-8); cx.stroke();
-  cx.fillStyle="#2a2622"; cx.textAlign="center"; cx.textBaseline="middle"; cx.font="16px "+fam; cx.fillText(C.n,W/2,H*0.35); cx.font="bold 40px "+fam; cx.fillText("「"+C.t+"」",W/2,H*0.415); cx.font="14px "+fam; cx.globalAlpha=a*0.8; cx.fillText(C.g(),W/2,H*0.48); cx.restore(); }
-function drawFF(fam){ if(!started||cine.on||END.on) return; const ok=ffOK(); if(!ok) return; cx.save(); cx.font="13px "+fam; cx.textAlign="right"; cx.textBaseline="alphabetic"; cx.fillStyle=FF?"#2a2622":"rgba(42,38,34,0.55)"; cx.fillText(FF?"▶▶ 快进中":"按住 F 快进等待",W-20,H-122); cx.restore(); }
+  cx.fillStyle="#2a2622"; cx.textAlign="center"; cx.textBaseline="middle"; cx.font=Math.round(16*Math.min(1,W/880))+"px "+fam; cx.fillText(C.n,W/2,H*0.35); const fsz=Math.min(1,W/880); cx.font="bold "+Math.round(40*fsz)+"px "+fam; cx.fillText("「"+C.t+"」",W/2,H*0.415); cx.font="14px "+fam; cx.globalAlpha=a*0.8; cx.fillText(C.g(),W/2,H*0.48); cx.restore(); }
+function drawFF(fam){ if(!started||cine.on||END.on) return; const ok=ffOK(); if(!ok) return; cx.save(); cx.font="13px "+fam; cx.textAlign="right"; cx.textBaseline="alphabetic"; cx.fillStyle=FF?"#2a2622":"rgba(42,38,34,0.55)"; cx.fillText(FF?"▶▶ 快进中":(TOUCH?"按住 ▶▶ 快进等待":"按住 F 快进等待"),W-(TOUCH?150:20),H-122); cx.restore(); }
 
 
 /* ---- v0.8b: stillness test, questions, gather grades ---- */
@@ -820,7 +889,7 @@ function askQuestion(){ if(dlg.open||S.paused) return; const pool=QUESTIONS.filt
   dlg.open=1; S.paused=1; target=null; paperSnd(0.2,1200,0.15);
   showNode({line:Q.q,opts:Q.o.map(o=>({t:o.t,f:()=>{ eff(o.e); if(o.e&&o.e.obey) floatTxt(hero.x,hero.y,"服从度 +"+o.e.obey); showNode({line:o.a,opts:[{t:"（低下头）",f:closeDialog}]}); }}))}); }
 const STAMP={g:"",t:9,line:""};
-function stamp(g){ STAMP.g=g; STAMP.t=0; thud(); }
+function stamp(g){ STAMP.g=g; STAMP.t=0; thud(); vz(30); }
 function drawStamp(fam){ if(STAMP.t>2.6) return; STAMP.t+=1/60; const k=Math.min(1,STAMP.t/0.18); const a=Math.min(1,(2.6-STAMP.t)/0.5); const x=W*0.72,y=H*0.36,r=64*(1.6-0.6*k);
   cx.save(); cx.globalAlpha=a*0.9; cx.translate(x,y); cx.rotate(-0.22); cx.strokeStyle=STAMP.g==="S"?"#b01828":"#2a2622"; cx.fillStyle=cx.strokeStyle; cx.lineWidth=5; cx.beginPath(); cx.arc(0,0,r,0,6.3); cx.stroke(); cx.lineWidth=2; cx.beginPath(); cx.arc(0,0,r-9,0,6.3); cx.stroke();
   cx.font="bold "+Math.round(r*1.1)+"px "+fam; cx.textAlign="center"; cx.textBaseline="middle"; cx.fillText(STAMP.g,0,4); cx.font=Math.round(r*0.2)+"px "+fam; cx.fillText("主人的评价",0,-r*0.68); cx.restore(); }
@@ -1063,7 +1132,7 @@ function drawCineOverlay(){ if(!cine.on) return; const fam=getComputedStyle(docu
     if(sb.who){ cx.fillStyle="#d8cbb0"; cx.font="bold 15px "+fam; cx.textAlign="left"; cx.fillText(sb.who,x0,y); x0+=nw; cx.font="19px "+fam; cx.fillStyle="#f3efe6"; cx.fillText("「"+txt+(n>=sb.text.length?"」":""),x0-10,y); }
     else { cx.textAlign="left"; cx.fillStyle="#cfc6b4"; cx.fillText(txt,x0,y); } cx.restore(); } }
 function beginGame(){ started=true; cine.on=0; hero.kneel=0; hero.alpha=1; demon.alpha=1; demon.z=0; hero.z=0; cam.yawT=cam.yaw; cam.distT=cam.dist; if(!Number.isFinite(hero.x)||hero.x>100){ hero.x=-1; hero.y=2.5; } hero.face=Math.PI; demon.x=-2.6; demon.y=4.8; demon.plan=S.day<=1&&!ctl.intro?[{k:'say',text:"……醒了？\n去。给我捡点东西回来。\n花、石头……什么都行。别走远。",dur:3.4},{k:'task',def:{k:'free',T:85}}]:(demon.plan||[]); if(!ctl.intro) ctl.intro=1; demon.cur=null; demon.pose=null; ctl.mode="follow"; ctl.task=null; if(S.core===undefined) S.core=100; shards(hero.x,hero.y,1,20,4);
-  refreshUI(); setTimeout(()=>{ gainKey("bag"); },700); setTimeout(()=>note("没有主人的命令，她不能自己行动 · 命令允许时：WASD 移动 · 空格 动作 · Q/E 转视角"),1800); updCmd(); }
+  refreshUI(); setTimeout(()=>{ gainKey("bag"); },700); setTimeout(()=>note(TOUCH?"没有主人的命令，她不能自己行动 · 命令允许时：左侧按住拖动 = 移动 · 右下圆钮 = 动作 / 快进 · 双指 = 缩放视角":"没有主人的命令，她不能自己行动 · 命令允许时：WASD 移动 · 空格 动作 · Q/E 转视角"),1800); updCmd(); }
 
 /* ---------------- update ---------------- */
 let last=performance.now(), time=0, started=false, won=false, winT=0, FF=false;
@@ -1072,7 +1141,7 @@ function step(dt){
   // camera smoothing
   cam.yaw+=(cam.yawT-cam.yaw)*Math.min(1,dt*6); cam.dist+=(cam.distT-cam.dist)*Math.min(1,dt*5);
   // input dir, camera-relative
-  let ix=0,iy=0; if(K.KeyW||K.ArrowUp)iy+=1; if(K.KeyS||K.ArrowDown)iy-=1; if(K.KeyA||K.ArrowLeft)ix-=1; if(K.KeyD||K.ArrowRight)ix+=1;
+  let ix=0,iy=0; if(K.KeyW||K.ArrowUp)iy+=1; if(K.KeyS||K.ArrowDown)iy-=1; if(K.KeyA||K.ArrowLeft)ix-=1; if(K.KeyD||K.ArrowRight)ix+=1; if(J.act){ix=J.vx;iy=J.vy;}
   let mx=0,my=0; const fy=[Math.sin(cam.yaw),Math.cos(cam.yaw)], rx=[Math.cos(cam.yaw),-Math.sin(cam.yaw)];
   const ZN=zoneNow(); let auto=null;
   if(!ZN&&!placing){ target=null; if(ix||iy) resist(); ix=iy=0; auto=heroAuto(dt); if(auto){ mx=auto[0]; my=auto[1]; } }
@@ -1127,7 +1196,7 @@ function step(dt){
     else if(hero.form==="unicorn") t="空格：冲撞 · 石堆出矿石和石头 · 枯树出木头";
     else if(hero.form==="bird"){ const n=nearNestTree(); t=n&&hero.z>1.2?(n.nest.cd>0?"鸟巢是空的":"空格：翻找鸟巢"):"飞到有鸟巢的高树旁"; }
     else { const ni=nearestInteract(); if(ni) t=ni.k==="flora"?(floraOpen(ni.o)?"空格：采 "+COL[ni.o.id][0]:"花苞合着…夜里才开"):"空格：采集 "+ITEMS[ni.o.res].n; else if(nearBank()) t=hasKey("net")?"空格：用网打捞河里的东西":"要捞网才能打捞"; else if(nearNestTree()&&hasKey("quill")) t="树上有鸟巢 — 变成鸟 (4)"; else if(hero.y>RIVER.y0-4&&hero.y<RIVER.y0) t=hasKey("quill")?"变成鸟 (4) 飞过河":"河太宽了，过不去"; }
-    if(S.order) t=""; document.getElementById("tip").textContent=t; }
+    if(S.order) t=""; document.getElementById("tip").textContent=TOUCH?String(t).replace(/空格/g,"动作键"):t; }
 }
 let shake=0;
 
@@ -1297,5 +1366,5 @@ setupResources(); setupMansion(); buildInv(); refreshUI();
 requestAnimationFrame(frame);
 document.getElementById("title").onclick=()=>{ ac(); document.getElementById("title").style.display="none"; startCine(); };
 document.getElementById("cskip").onclick=e=>{ e.stopPropagation(); endCine(); };
-window.__game={END,startEnding,ctl,zoneNow,nextAgenda,makeTask,proj,gz,IMG,issueOrder,gainKey,closeCard,startTraining,hasKey,refreshUI,KEYS,get order(){return S.order;},S,gitems,flora,bugs,digs,invAdd,craft,RECIPES,useSlot,deliverAll,closeAppraisal,openCatalog,issueOrder,COL,ITEMS,ents,hero,demon,cam,transform,STARS,RING,MOUND,toggleProp,toggleDemon,builds,BUILDS,startPlace,confirmPlace,openDialog,closeDialog,pickOpt,dlg,startCine,endCine,cine,start:()=>{ document.getElementById("title").style.display="none"; endCine(); if(!started) beginGame(); }};
+window.__game={END,startEnding,ctl,zoneNow,nextAgenda,makeTask,proj,gz,IMG,issueOrder,gainKey,closeCard,startTraining,hasKey,refreshUI,KEYS,get order(){return S.order;},S,gitems,flora,bugs,digs,invAdd,craft,RECIPES,useSlot,deliverAll,closeAppraisal,openCatalog,issueOrder,COL,ITEMS,ents,hero,demon,cam,transform,STARS,RING,MOUND,toggleProp,toggleDemon,builds,BUILDS,startPlace,confirmPlace,openDialog,closeDialog,pickOpt,dlg,startCine,endCine,cine,start:()=>{ document.getElementById("title").style.display="none"; endCine(); if(!started) beginGame(); },K, get FF(){return FF}};
 </script></body></html>
