@@ -5,7 +5,7 @@
 <style>
 html,body{margin:0;height:100%;overflow:hidden;background:#efeadf;font-family:"Segoe Print","Bradley Hand","Comic Sans MS","Kaiti SC","STKaiti","KaiTi",cursive;user-select:none;-webkit-user-select:none}
 canvas{display:block;width:100vw;height:100vh;touch-action:none}
-#hud{position:fixed;left:50%;transform:translateX(-50%);bottom:84px;text-align:center;font-size:16px!important;color:#2a2622;font-size:15px;line-height:1.5;pointer-events:none}
+#hud{position:fixed;left:50%;transform:translateX(-50%);bottom:84px;text-align:center;background:#f7f3eadd;border-radius:8px;padding:0 10px;font-size:16px!important;color:#2a2622;font-size:15px;line-height:1.5;pointer-events:none}
 #hud b{font-size:22px;letter-spacing:.08em}
 #forms{position:fixed;left:12px;bottom:12px;display:flex;gap:6px}
 #inv{position:fixed;left:50%;bottom:12px;transform:translateX(-50%);display:flex;gap:4px;padding:6px;background:#f7f3eaee;border:2px solid #2a2622;border-radius:12px 9px 13px 10px;box-shadow:2px 3px 0 #2a262244}
@@ -22,7 +22,7 @@ canvas{display:block;width:100vw;height:100vh;touch-action:none}
 #side{position:fixed;right:12px;top:118px;display:flex;flex-direction:column;gap:6px;align-items:flex-end}
 .sb{border:2px solid #2a2622;border-radius:8px 11px 7px 10px;background:#f7f3ea;padding:5px 10px;font-size:14px;cursor:pointer;box-shadow:2px 2px 0 #2a262244;color:#2a2622;font-family:inherit}
 #act{position:fixed;right:24px;bottom:24px;width:92px;height:92px;border-radius:50%;border:3px solid #2a2622;background:#f7f3ea;font-size:17px;font-family:inherit;box-shadow:3px 4px 0 #2a262255;color:#2a2622;cursor:pointer}
-#help{position:fixed;right:12px;top:292px;text-align:right;font-size:11px!important;font-size:13px;color:#2a2622cc;line-height:1.45;pointer-events:none;max-width:300px}
+#help{position:fixed;right:12px;top:292px;text-align:right;background:#f7f3eacc;border-radius:6px;padding:3px 6px;font-size:11px!important;font-size:13px;color:#2a2622cc;line-height:1.45;pointer-events:none;max-width:300px}
 #title{position:fixed;inset:0;background:#efeadf;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9;cursor:pointer}
 #title h1{font-size:64px;margin:0;letter-spacing:.2em;color:#2a2622;font-weight:normal}
 #title p{color:#555;margin:10px}
@@ -380,7 +380,7 @@ function meter(x,y,r,v,max,label,ico){ const f=v/max; cx.save(); cx.lineWidth=2;
   cx.strokeStyle="rgba(247,243,234,0.5)"; cx.lineWidth=1; for(let i=-r;i<r;i+=5){ cx.beginPath(); cx.moveTo(x+i,top); cx.lineTo(x+i+r,top+r*2); cx.stroke(); } cx.restore();
   cx.beginPath(); cx.arc(x,y,r,0,6.3); cx.stroke(); if(f<0.25&&Math.sin(time*8)>0){ cx.strokeStyle="#2a2622"; cx.lineWidth=3; cx.beginPath(); cx.arc(x,y,r+3,0,6.3); cx.stroke(); }
   cx.fillStyle=f>0.5?"#fff":"#2a2622"; cx.font="bold 16px "+getComputedStyle(document.body).fontFamily; cx.textAlign="center"; cx.textBaseline="middle"; cx.fillText(Math.round(v),x,y+1);
-  cx.fillStyle="#2a2622"; cx.font="12px "+getComputedStyle(document.body).fontFamily; cx.fillText(label,x,y+r+11); cx.restore(); }
+  cx.fillStyle="#f7f3eadd"; cx.fillRect(x-17,y+r+3,34,16); cx.fillStyle="#2a2622"; cx.font="12px "+getComputedStyle(document.body).fontFamily; cx.fillText(label,x,y+r+11); cx.restore(); }
 function drawHUD(){ const fam=getComputedStyle(document.body).fontFamily;
   meter(36,40,24,S.hp,100,"生命"); meter(94,40,24,S.hunger,150,"饱食"); meter(152,40,24,S.san,100,"理智");
   // clock dial
@@ -388,7 +388,7 @@ function drawHUD(){ const fam=getComputedStyle(document.body).fontFamily;
   const seg=(a0,a1,col)=>{ cx.fillStyle=col; cx.beginPath(); cx.moveTo(x,y); cx.arc(x,y,r,-Math.PI/2+a0*6.283,-Math.PI/2+a1*6.283); cx.closePath(); cx.fill(); };
   seg(0,0.55,"#f3eee2"); seg(0.55,0.7,"#b8ae9c"); seg(0.7,0.93,"#3a3530"); seg(0.93,1,"#b8ae9c"); cx.beginPath(); cx.arc(x,y,r,0,6.3); cx.stroke();
   const a=-Math.PI/2+S.clock*6.283; cx.lineWidth=3; cx.beginPath(); cx.moveTo(x,y); cx.lineTo(x+Math.cos(a)*(r-4),y+Math.sin(a)*(r-4)); cx.stroke();
-  cx.fillStyle="#2a2622"; cx.font="bold 15px "+fam; cx.textAlign="center"; cx.fillText("第 "+S.day+" 天",x,y+r+16); cx.font="12px "+fam; cx.fillText(phaseName(),x,y+r+31); cx.restore();
+  cx.fillStyle="#f7f3eadd"; cx.fillRect(x-38,y+r+3,76,34); cx.fillStyle="#2a2622"; cx.font="bold 15px "+fam; cx.textAlign="center"; cx.fillText("第 "+S.day+" 天",x,y+r+16); cx.font="12px "+fam; cx.fillText(phaseName(),x,y+r+31); cx.restore();
   if(S.flash>0){ cx.fillStyle=`rgba(20,10,10,${S.flash*0.5})`; cx.fillRect(0,0,W,H); }
   if(S.san<30){ const k=(30-S.san)/30; const vg=cx.createRadialGradient(W/2,H/2,Math.min(W,H)*0.25,W/2,H/2,Math.max(W,H)*0.7); vg.addColorStop(0,"rgba(0,0,0,0)"); vg.addColorStop(1,`rgba(10,8,12,${0.55*k})`); cx.fillStyle=vg; cx.fillRect(0,0,W,H); }
   if(S.dead){ cx.fillStyle="rgba(10,8,8,0.55)"; cx.fillRect(0,0,W,H); cx.fillStyle="#f3efe6"; cx.font="bold 40px "+fam; cx.textAlign="center"; cx.fillText("她倒下了……",W/2,H*0.42); }
@@ -521,6 +521,8 @@ function drawHero(){ const p0=proj(hero.x,hero.y,0); if(!p0) return; const p=pro
   if(hero.form==="bird"){ bob=Math.sin(time*9)*0.05; sq=1+Math.sin(time*18)*0.06; }
   if(hero.dash>0) rot+=0.12*(s.flip?-1:1)*(FORMS.unicorn.sideDir);
   const pp={x:p.x,y:p.y-bob*p.s*3,s:p.s}; sprite(s.img,pp,s.h,s.flip,1,1/sq*0.98+0.02,sq,rot);
+  if(hero.form==="human"&&S.equip){ const side=(Math.sin(hero.face-cam.yaw)>=0?1:-1); const hp2={x:pp.x+side*p.s*0.42,y:pp.y-p.s*(S.equip==="torch"?0.55:0.35),s:p.s}; sprite(IMG[ITEMS[S.equip].img],hp2,S.equip==="torch"?1.0:0.8,side<0,1,1,1,side*0.25+Math.sin(hero.bob)*0.1*run);
+    if(S.equip==="torch"){ cx.save(); cx.globalCompositeOperation="lighter"; const g=cx.createRadialGradient(hp2.x,hp2.y-p.s*0.9,0,hp2.x,hp2.y-p.s*0.9,p.s*0.9); g.addColorStop(0,"rgba(255,220,150,0.45)"); g.addColorStop(1,"rgba(255,200,120,0)"); cx.fillStyle=g; cx.fillRect(hp2.x-p.s,hp2.y-p.s*1.9,p.s*2,p.s*2); cx.restore(); } }
   if(hero.dash>0){ cx.strokeStyle="rgba(40,34,28,0.5)"; cx.lineWidth=1.5; for(let i=0;i<5;i++){ const y=p.y-p.s*(0.4+i*0.35); const d=-Math.sin(hero.face-cam.yaw); cx.beginPath(); cx.moveTo(p.x-d*p.s*1.2,y); cx.lineTo(p.x-d*p.s*(2.2+i*0.2),y); cx.stroke(); } }
 }
 function drawDemon(){ const p=proj(demon.x,demon.y,0); if(!p) return; shadow(p,0.7); const sh=SHEETS[DEMON]; const v=viewOf(demon.face,sh.sideDir);
