@@ -50,3 +50,4 @@
 - 测试钩子：__game.S / fires / gitems / invAdd / craft / RECIPES / useSlot。测试脚本在仓库外的 ~/dev/pt*.py（会丢失；需要时重写）。
 ### 下一步想法
 - 冬天/季节、夜里的敌人（影子怪、狼）、储物箱、烹饪锅、狗形态能嗅出资源、更多地图区域、真正的走路帧。
+- 空间提示：仓库的 .git 大约 42MB，而且还在增长（每次提交 index.html 约 2MB）。工作区接近 128MB 时，可以删掉本地 clone，再用 `git clone --depth 1` 重新 clone。截图请放到 ~/shots，用完就删。
