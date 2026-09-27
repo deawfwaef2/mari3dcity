@@ -38,11 +38,13 @@ def comps(f,k,H,dil=14):
     boxes.sort(key=lambda b:(round(b[0]/ (g.shape[0]/ (3 if k>=6 else 2))), b[2]))
     return [cutbox(g,b,H) for b in boxes]
 out={}
-for name,H in [("heroine_A_chibi",300),("demon_C_chibi",300),("demon_D_chibi",300),("heroine_A",420),("demon_C_normal",420),("demon_D_normal",420),("demon_D3_chibi",300),("demon_D3_normal",420)]:
+for name,H in [("heroine_A_chibi",300),("demon_C_chibi",300),("demon_D_chibi",300),("heroine_A",420),("demon_C_normal",420),("demon_D_normal",420),("demon_D3_chibi",300),("demon_D3_normal",420),("demon_D4_chibi",300),("demon_D4_tall",420)]:
     for i,im in enumerate(sheet5(name,H)): im.save(f"assets/{name}_{i}.png"); 
 for i,im in enumerate(comps("animal_forms",6,260)): im.save(f"assets/animal_{i}.png")
 for i,im in enumerate(comps("props",12,320)): im.save(f"assets/prop_{i}.png")
 for i,im in enumerate(comps("items",12,128,dil=10)): im.save(f"assets/item_{i}.png")
+for sh in ["col_nature","col_treasure","col_relic"]:
+    for i,im in enumerate(comps(sh,12,112,dil=10)): im.save(f"assets/{sh}_{i}.png")
 pan=Image.open("concepts/panorama.png").convert("L"); pan=pan.resize((1800,600)); pan.save("assets/panorama.png")
 # animal grid fix
 import glob,os

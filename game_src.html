@@ -32,7 +32,7 @@ canvas{display:block;width:100vw;height:100vh;touch-action:none}
 <div id="hud"><span id="tip" style="opacity:.8"></span></div><div id="cmd"></div><div id="craft"></div><div id="inv"></div>
 <div id="side">
   <button class="sb" id="bProp">比例：Q版</button>
-  <button class="sb" id="bDemon">恶魔：D3 软发丝</button>
+  <button class="sb" id="bDemon">恶魔：D4 冷淡</button>
   <button class="sb" id="bRotL">⟲ 转视角 (Q)</button>
   <button class="sb" id="bRotR">⟳ 转视角 (E)</button>
 </div>
@@ -118,9 +118,8 @@ const STARS=[
 /* ---------------- characters ---------------- */
 const SHEETS={ // side view facing direction in the sheet art (+1 = faces screen-right)
   heroine:{chibi:"heroine_A_chibi",normal:"heroine_A",sideDir:1,h:{chibi:2.3,normal:3.3}},
-  demonC:{chibi:"demon_C_chibi",normal:"demon_C_normal",sideDir:-1,h:{chibi:2.4,normal:3.6}},
   demonD:{chibi:"demon_D_chibi",normal:"demon_D_normal",sideDir:-1,h:{chibi:2.4,normal:3.6}},
-  demonD3:{chibi:"demon_D3_chibi",normal:"demon_D3_normal",sideDir:-1,h:{chibi:2.4,normal:3.6}},
+  demonD4:{chibi:"demon_D4_chibi",normal:"demon_D4_tall",sideDir:-1,h:{chibi:2.4,normal:3.7}},
 };
 const FORMS={
   human:{name:"人形",key:"1",speed:6.2},
@@ -128,7 +127,7 @@ const FORMS={
   unicorn:{name:"独角兽",key:"3",speed:8.5,front:"animal_2",side:"animal_3",sideDir:-1,h:2.6},
   bird:{name:"鸟",key:"4",speed:10.5,front:"animal_5",side:"animal_4",sideDir:1,h:1.9,fly:2.6},
 };
-let PROP_MODE="chibi", DEMON="demonD3";
+let PROP_MODE="chibi", DEMON="demonD4";
 const hero={x:0,y:-2,z:0,face:0,form:"human",moving:0,bob:0,tf:null,dash:0,dig:0,vx:0,vy:0};
 const demon={x:-2.2,y:-4,face:0,moving:0,bob:0,idle:0};
 let target=null; // click-to-move
@@ -178,7 +177,7 @@ document.getElementById("act").onclick=()=>{ ac(); action(); };
 document.getElementById("bRotL").onclick=()=>rotCam(-1);
 document.getElementById("bRotR").onclick=()=>rotCam(1);
 function toggleProp(){ PROP_MODE=PROP_MODE==="chibi"?"normal":"chibi"; document.getElementById("bProp").textContent="比例："+(PROP_MODE==="chibi"?"Q版":"正常"); }
-function toggleDemon(){ DEMON=DEMON==="demonD3"?"demonD":"demonD3"; document.getElementById("bDemon").textContent="恶魔："+(DEMON==="demonD3"?"D3 软发丝":"D 原版（对比）"); say("demon","……看够了？去干活。",2.2); }
+function toggleDemon(){ DEMON=DEMON==="demonD4"?"demonD":"demonD4"; document.getElementById("bDemon").textContent="恶魔："+(DEMON==="demonD4"?"D4 冷淡":"D 原版（对比）"); say("demon","……看够了？去干活。",2.2); }
 document.getElementById("bProp").onclick=toggleProp; document.getElementById("bDemon").onclick=toggleDemon;
 // form buttons
 { const box=document.getElementById("forms"); for(const k of Object.keys(FORMS)){ const b=document.createElement("div"); b.className="fb"; b.id="f_"+k; const src=k==="human"?ASSETS.heroine_A_chibi_0:ASSETS[FORMS[k].front]; b.innerHTML=`<i>${FORMS[k].key}</i><img src="${src}"><span>${FORMS[k].name}</span>`; b.onclick=()=>{ac();transform(k);}; box.appendChild(b); } }

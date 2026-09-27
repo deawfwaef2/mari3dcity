@@ -1,7 +1,9 @@
 from PIL import Image; import glob, base64, io, json, os
 A={}
 for f in sorted(glob.glob("assets/*.png")):
-    k=os.path.basename(f)[:-4]; im=Image.open(f).convert("RGBA")
+    k=os.path.basename(f)[:-4]
+    if k.startswith(("demon_C","demon_D2","demon_D3")): continue
+    im=Image.open(f).convert("RGBA")
     if k=="panorama": im=im.convert("RGB"); b=io.BytesIO(); im.save(b,"JPEG",quality=78); A[k]="data:image/jpeg;base64,"+base64.b64encode(b.getvalue()).decode(); continue
     b=io.BytesIO(); im.save(b,"WEBP",quality=82,method=4); A[k]="data:image/webp;base64,"+base64.b64encode(b.getvalue()).decode()
 src=open("game_src.html").read().replace("__ASSETS__",json.dumps(A))
