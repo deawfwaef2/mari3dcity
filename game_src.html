@@ -1,0 +1,401 @@
+<!doctype html>
+<html lang="zh"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>纸之魔女 · 沙盒原型</title>
+<style>
+html,body{margin:0;height:100%;overflow:hidden;background:#efeadf;font-family:"Segoe Print","Bradley Hand","Comic Sans MS","Kaiti SC","STKaiti","KaiTi",cursive;user-select:none;-webkit-user-select:none}
+canvas{display:block;width:100vw;height:100vh;touch-action:none}
+#hud{position:fixed;left:14px;top:12px;color:#2a2622;font-size:15px;line-height:1.5;pointer-events:none}
+#hud b{font-size:22px;letter-spacing:.08em}
+#forms{position:fixed;left:50%;bottom:16px;transform:translateX(-50%);display:flex;gap:10px}
+.fb{width:76px;height:76px;border:2px solid #2a2622;border-radius:10px 14px 9px 13px;background:#f7f3ea;box-shadow:2px 3px 0 #2a262255;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;font-size:13px;color:#2a2622;position:relative}
+.fb img{height:44px}
+.fb.on{background:#ddd3bf;transform:translateY(-4px);box-shadow:2px 6px 0 #2a262266;border-width:3px}
+.fb i{position:absolute;left:6px;top:3px;font-style:normal;font-size:11px;opacity:.6}
+#side{position:fixed;right:12px;top:12px;display:flex;flex-direction:column;gap:6px;align-items:flex-end}
+.sb{border:2px solid #2a2622;border-radius:8px 11px 7px 10px;background:#f7f3ea;padding:5px 10px;font-size:14px;cursor:pointer;box-shadow:2px 2px 0 #2a262244;color:#2a2622;font-family:inherit}
+#act{position:fixed;right:24px;bottom:24px;width:92px;height:92px;border-radius:50%;border:3px solid #2a2622;background:#f7f3ea;font-size:17px;font-family:inherit;box-shadow:3px 4px 0 #2a262255;color:#2a2622;cursor:pointer}
+#help{position:fixed;left:14px;bottom:14px;font-size:13px;color:#2a2622cc;line-height:1.45;pointer-events:none;max-width:300px}
+#title{position:fixed;inset:0;background:#efeadf;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9;cursor:pointer}
+#title h1{font-size:64px;margin:0;letter-spacing:.2em;color:#2a2622;font-weight:normal}
+#title p{color:#555;margin:10px}
+#title .go{margin-top:26px;border:2px solid #2a2622;padding:10px 34px;font-size:22px;border-radius:12px 8px 14px 9px;box-shadow:3px 3px 0 #2a262255;background:#f7f3ea}
+</style></head><body>
+<canvas id="cv"></canvas>
+<div id="hud"><b>纸之魔女</b><br><span id="stars">折纸星星 0 / 3</span><br><span id="tip" style="opacity:.75"></span></div>
+<div id="side">
+  <button class="sb" id="bProp">比例：Q版</button>
+  <button class="sb" id="bDemon">恶魔：C 高冷风衣</button>
+  <button class="sb" id="bRotL">⟲ 转视角 (Q)</button>
+  <button class="sb" id="bRotR">⟳ 转视角 (E)</button>
+</div>
+<div id="forms"></div>
+<button id="act">动作<br><small>空格</small></button>
+<div id="help">WASD / 方向键 移动 · 点击地面也能走<br>Q / E 或 右键拖动 旋转视角 · 滚轮 缩放<br>1 人形 · 2 狗 · 3 独角兽 · 4 鸟 · 空格 动作<br>狗：挖 X 土堆 · 独角兽：冲撞碎石 · 鸟：飞过河</div>
+<div id="title"><h1>纸之魔女</h1><p>素描线稿 · 沙盒原型 v0.1</p><p style="font-size:14px">找到 3 颗折纸星星：一颗埋在土里，一颗被巨石围住，一颗在河对岸。</p><div class="go">开始游戏</div></div>
+<script>
+"use strict";
+const ASSETS=__ASSETS__;
+const IMG={}; let loaded=0; const keys=Object.keys(ASSETS);
+for(const k of keys){ const im=new Image(); im.onload=()=>{loaded++;}; im.src=ASSETS[k]; IMG[k]=im; }
+const cv=document.getElementById("cv"), cx=cv.getContext("2d");
+let W=0,H=0,DPR=1;
+function resize(){ DPR=Math.min(2,devicePixelRatio||1); W=innerWidth; H=innerHeight; cv.width=W*DPR; cv.height=H*DPR; cx.setTransform(DPR,0,0,DPR,0,0); }
+addEventListener("resize",resize); resize();
+
+/* ---------------- random ---------------- */
+function rng(s){ return ()=>{ s|=0; s=s+0x6D2B79F5|0; let t=Math.imul(s^s>>>15,1|s); t=t+Math.imul(t^t>>>7,61|t)^t; return ((t^t>>>14)>>>0)/4294967296; }; }
+const R=rng(20260927);
+
+/* ---------------- camera (tilted, rotatable, Don't-Starve-like but sees the horizon) ---------------- */
+const cam={yaw:0.35,yawT:0.35,pitch:0.30,dist:20,distT:20,tx:0,ty:0,F:1,C:[0,0,0],f:[0,0,0],r:[0,0,0],u:[0,0,0],cy:0};
+function camUpdate(){
+  const {yaw,pitch}=cam; const cp=Math.cos(pitch), sp=Math.sin(pitch);
+  cam.f=[Math.sin(yaw)*cp, Math.cos(yaw)*cp, -sp];
+  cam.r=[Math.cos(yaw), -Math.sin(yaw), 0];
+  const r=cam.r,f=cam.f; cam.u=[r[1]*f[2]-r[2]*f[1], r[2]*f[0]-r[0]*f[2], r[0]*f[1]-r[1]*f[0]];
+  cam.C=[cam.tx-f[0]*cam.dist, cam.ty-f[1]*cam.dist, -f[2]*cam.dist];
+  cam.F=Math.min(W*0.9,H*1.25); cam.cy=H*0.47;
+}
+function proj(x,y,z){ const d0=x-cam.C[0], d1=y-cam.C[1], d2=z-cam.C[2]; const f=cam.f,r=cam.r,u=cam.u;
+  const zc=d0*f[0]+d1*f[1]+d2*f[2]; if(zc<0.5) return null;
+  const xc=d0*r[0]+d1*r[1]+d2*r[2], yc=d0*u[0]+d1*u[1]+d2*u[2];
+  return {x:W/2+cam.F*xc/zc, y:cam.cy-cam.F*yc/zc, s:cam.F/zc, z:zc}; }
+function unproj(sx,sy){ const a=(sx-W/2)/cam.F, b=-(sy-cam.cy)/cam.F; const f=cam.f,r=cam.r,u=cam.u;
+  const d=[f[0]+r[0]*a+u[0]*b, f[1]+r[1]*a+u[1]*b, f[2]+r[2]*a+u[2]*b]; if(d[2]>=-1e-4) return null;
+  const t=-cam.C[2]/d[2]; return [cam.C[0]+d[0]*t, cam.C[1]+d[1]*t]; }
+function horizonY(){ return cam.cy-cam.F*Math.tan(cam.pitch); }
+
+/* ---------------- paper texture ---------------- */
+const paper=(()=>{ const c=document.createElement("canvas"); c.width=c.height=512; const g=c.getContext("2d"); const r=rng(7);
+  const id=g.createImageData(512,512); for(let i=0;i<id.data.length;i+=4){ const v=225+r()*30; id.data[i]=v; id.data[i+1]=v-3; id.data[i+2]=v-10; id.data[i+3]=255; } g.putImageData(id,0,0);
+  g.globalAlpha=0.06; g.strokeStyle="#6a5a40"; for(let i=0;i<500;i++){ g.lineWidth=r()*0.8; g.beginPath(); const x=r()*512,y=r()*512,a=r()*6.3,l=4+r()*18; g.moveTo(x,y); g.lineTo(x+Math.cos(a)*l,y+Math.sin(a)*l); g.stroke(); }
+  return c; })();
+let paperPat=null;
+
+/* ---------------- world ---------------- */
+const WORLD=46; // half size
+const RIVER={y0:17,y1:23}; // band along x: water between y0..y1 (north of it = far bank)
+const PROPS={pine:[0,7.5,0.7],dead:[1,6,0.5],round:[2,6.5,0.8],boulder:[3,3.0,1.35],rocks:[4,1.7,0.9],grass:[5,0.9,0],bush:[6,1.5,0.6],sign:[7,2.3,0.3],stump:[8,1.4,0.6],mound:[9,1.3,0],fence:[10,1.7,0.3],mush:[11,1.1,0]};
+const ents=[]; // {kind,x,y,h,rad,img,flip,...}
+function addProp(kind,x,y,sc=1,extra={}){ const p=PROPS[kind]; const e=Object.assign({t:"prop",kind,x,y,h:p[1]*sc,rad:p[2]*sc,img:"prop_"+p[0],flip:R()<0.5,alpha:1},extra); ents.push(e); return e; }
+function freeAt(x,y,r){ if(y>RIVER.y0-2.5&&y<RIVER.y1+2.5) return false; if(Math.hypot(x,y)<6) return false; for(const e of ents){ if(Math.hypot(e.x-x,e.y-y)<r+(e.rad||0.5)+0.6) return false; } return true; }
+// path points (winding road from spawn towards the river & the windmill direction)
+const PATH=[]; for(let i=0;i<=40;i++){ const t=i/40; PATH.push([Math.sin(t*5.2)*6-2+t*4, -WORLD+4+t*(WORLD*2-8)]); }
+function nearPath(x,y,d){ for(const p of PATH) if(Math.hypot(p[0]-x,p[1]-y)<d) return true; return false; }
+// puzzle 1: dog digs the X mound (west)
+const MOUND=addProp("mound",-19,-6,1.3,{puzzle:"dig",dug:0});
+addProp("sign",-15.5,-3.5,1,{say:"西边：松软的土。\n好像有什么东西埋着……"});
+// puzzle 2: boulder ring (east) — unicorn breaks them
+const RING=[]; { const cxr=20, cyr=-8; for(let i=0;i<7;i++){ const a=i/7*Math.PI*2+0.2; RING.push(addProp("boulder",cxr+Math.cos(a)*3.3,cyr+Math.sin(a)*3.3,0.95+R()*0.2,{puzzle:"smash",hp:1})); } }
+addProp("sign",14.5,-2.5,1,{say:"东边：石阵。\n只有很硬的角才撞得开。"});
+// puzzle 3: star across the river (north)
+addProp("sign",3.5,RIVER.y0-3.2,1,{say:"河太深了，走不过去。\n要是能飞就好了……"});
+// scatter
+{ const r=rng(99); let n=0, tries=0; while(n<230&&tries<6000){ tries++; const x=(r()*2-1)*WORLD, y=(r()*2-1)*WORLD; const k=r();
+    const kind=k<0.18?"pine":k<0.26?"dead":k<0.36?"round":k<0.44?"rocks":k<0.66?"grass":k<0.75?"bush":k<0.81?"stump":k<0.9?"mush":k<0.93?"boulder":"grass";
+    const rad=(PROPS[kind][2]||0.4); if(nearPath(x,y,2.2+rad)) continue; if(Math.hypot(x-20,y+8)<6.5||Math.hypot(x+19,y+6)<4.5) continue; if(!freeAt(x,y,rad)) continue;
+    addProp(kind,x,y,0.8+r()*0.45); n++; }
+  // forest edge far north & fence near spawn
+  for(let i=0;i<5;i++) addProp("fence",-6+i*1.9+ (i>2?6:0),-9.5,1);
+}
+// ground scribbles (grass strokes, pebbles) – flat marks
+const MARKS=[]; { const r=rng(5); for(let i=0;i<1700;i++){ const x=(r()*2-1)*WORLD*1.3, y=(r()*2-1)*WORLD*1.3; if(y>RIVER.y0-0.3&&y<RIVER.y1+0.3) continue; MARKS.push({x,y,k:r()<0.75?0:1,a:r()*6.28,l:0.25+r()*0.35,n:1+Math.floor(r()*3)}); } }
+// stars
+const STARS=[
+  {x:MOUND.x,y:MOUND.y,hidden:true,got:false,src:"dig"},
+  {x:20,y:-8,hidden:false,got:false,src:"ring"},
+  {x:4,y:RIVER.y1+7,hidden:false,got:false,src:"river"},
+];
+
+/* ---------------- characters ---------------- */
+const SHEETS={ // side view facing direction in the sheet art (+1 = faces screen-right)
+  heroine:{chibi:"heroine_A_chibi",normal:"heroine_A",sideDir:1,h:{chibi:2.3,normal:3.3}},
+  demonC:{chibi:"demon_C_chibi",normal:"demon_C_normal",sideDir:-1,h:{chibi:2.4,normal:3.6}},
+  demonD:{chibi:"demon_D_chibi",normal:"demon_D_normal",sideDir:-1,h:{chibi:2.4,normal:3.6}},
+};
+const FORMS={
+  human:{name:"人形",key:"1",speed:6.2},
+  dog:{name:"狗",key:"2",speed:9.5,front:"animal_0",side:"animal_1",sideDir:-1,h:1.6},
+  unicorn:{name:"独角兽",key:"3",speed:8.5,front:"animal_2",side:"animal_3",sideDir:-1,h:2.6},
+  bird:{name:"鸟",key:"4",speed:10.5,front:"animal_5",side:"animal_4",sideDir:1,h:1.9,fly:2.6},
+};
+let PROP_MODE="chibi", DEMON="demonC";
+const hero={x:0,y:-2,z:0,face:0,form:"human",moving:0,bob:0,tf:null,dash:0,dig:0,vx:0,vy:0};
+const demon={x:-2.2,y:-4,face:0,moving:0,bob:0,idle:0};
+let target=null; // click-to-move
+
+/* sheet view index from facing vs camera */
+function viewOf(face,sideDir){ // face = world angle character faces (radians, 0 = +y)
+  let rel=face-cam.yaw; rel=Math.atan2(Math.sin(rel),Math.cos(rel)); // 0 = facing away from camera (same dir as camera looks)
+  const a=Math.abs(rel); const toRight = rel>0; // turning to camera-right
+  let idx; if(a<Math.PI*0.125) idx=4; else if(a<Math.PI*0.375) idx=3; else if(a<Math.PI*0.625) idx=2; else if(a<Math.PI*0.875) idx=1; else idx=0;
+  const wantDir = toRight?1:-1; const flip = (idx===0||idx===4)?false : (wantDir!==sideDir);
+  return {idx,flip,rel};
+}
+
+/* ---------------- audio (tiny procedural paper sounds) ---------------- */
+let AC=null; function ac(){ if(!AC){ try{AC=new (window.AudioContext||window.webkitAudioContext)();}catch(e){} } return AC; }
+function paperSnd(len=0.35,freq=2400,vol=0.25){ const a=ac(); if(!a)return; const n=Math.floor(a.sampleRate*len), b=a.createBuffer(1,n,a.sampleRate), d=b.getChannelData(0);
+  for(let i=0;i<n;i++){ const t=i/n; d[i]=(Math.random()*2-1)*Math.pow(1-t,2)*(Math.random()<0.25?1:0.35); }
+  const s=a.createBufferSource(); s.buffer=b; const f=a.createBiquadFilter(); f.type="bandpass"; f.frequency.value=freq; f.Q.value=0.8; const g=a.createGain(); g.gain.value=vol; s.connect(f).connect(g).connect(a.destination); s.start(); }
+function chime(){ const a=ac(); if(!a)return; [880,1320,1760].forEach((fq,i)=>{ const o=a.createOscillator(), g=a.createGain(); o.type="triangle"; o.frequency.value=fq; g.gain.setValueAtTime(0,a.currentTime+i*0.09); g.gain.linearRampToValueAtTime(0.12,a.currentTime+i*0.09+0.02); g.gain.exponentialRampToValueAtTime(0.001,a.currentTime+i*0.09+0.8); o.connect(g).connect(a.destination); o.start(a.currentTime+i*0.09); o.stop(a.currentTime+i*0.09+0.9); }); }
+function thud(){ const a=ac(); if(!a)return; const o=a.createOscillator(), g=a.createGain(); o.frequency.setValueAtTime(120,a.currentTime); o.frequency.exponentialRampToValueAtTime(40,a.currentTime+0.25); g.gain.setValueAtTime(0.4,a.currentTime); g.gain.exponentialRampToValueAtTime(0.001,a.currentTime+0.3); o.connect(g).connect(a.destination); o.start(); o.stop(a.currentTime+0.32); paperSnd(0.25,700,0.3); }
+
+/* ---------------- speech bubbles ---------------- */
+const bubbles=[]; function say(who,text,dur=3){ for(let i=bubbles.length-1;i>=0;i--) if(bubbles[i].who===who) bubbles.splice(i,1); bubbles.push({who,text,t:0,dur}); }
+const DEMON_IDLE=["……","嗯。","别走太远。","……这里的风，有纸的味道。","你又在发呆。","（打哈欠）","……跟上。"];
+let tipTimer=0;
+
+/* ---------------- particles ---------------- */
+const parts=[];
+function shards(x,y,z,n,spd=6,col="#f7f3ea"){ for(let i=0;i<n;i++){ const a=Math.random()*6.28, v=spd*(0.4+Math.random()); parts.push({x,y,z:z+Math.random()*1.2,vx:Math.cos(a)*v,vy:Math.sin(a)*v,vz:3+Math.random()*5,life:1,rot:Math.random()*6,vr:(Math.random()-0.5)*14,sz:0.18+Math.random()*0.25,kind:"shard",col}); } }
+function dirt(x,y,n){ for(let i=0;i<n;i++){ const a=Math.random()*6.28, v=2+Math.random()*4; parts.push({x,y,z:0.2,vx:Math.cos(a)*v,vy:Math.sin(a)*v,vz:4+Math.random()*4,life:1,rot:0,vr:0,sz:0.08+Math.random()*0.1,kind:"dirt"}); } }
+function sparkle(x,y,z){ for(let i=0;i<16;i++){ const a=i/16*6.28; parts.push({x,y,z,vx:Math.cos(a)*4,vy:Math.sin(a)*4,vz:2,life:1,rot:0,vr:0,sz:0.12,kind:"spark"}); } }
+
+/* ---------------- input ---------------- */
+const K={}; addEventListener("keydown",e=>{ K[e.code]=1; if(e.repeat)return;
+  if(e.code==="KeyQ") rotCam(-1); if(e.code==="KeyE") rotCam(1);
+  if(e.code==="Digit1") transform("human"); if(e.code==="Digit2") transform("dog"); if(e.code==="Digit3") transform("unicorn"); if(e.code==="Digit4") transform("bird");
+  if(e.code==="Space"){ e.preventDefault(); action(); } if(e.code==="KeyP") toggleProp(); if(e.code==="KeyC") toggleDemon(); });
+addEventListener("keyup",e=>{ K[e.code]=0; });
+function rotCam(d){ cam.yawT+=d*Math.PI/4; }
+let drag=null;
+cv.addEventListener("contextmenu",e=>e.preventDefault());
+cv.addEventListener("pointerdown",e=>{ ac(); drag={x:e.clientX,y:e.clientY,btn:e.button,moved:0,yaw:cam.yawT}; cv.setPointerCapture(e.pointerId); });
+cv.addEventListener("pointermove",e=>{ if(!drag)return; const dx=e.clientX-drag.x; if(Math.abs(dx)>6) drag.moved=1; if(drag.btn===2||(e.pointerType!=="mouse"&&drag.moved&&Math.abs(dx)>30)){ cam.yawT=drag.yaw-dx*0.006; } });
+cv.addEventListener("pointerup",e=>{ if(drag&&!drag.moved&&drag.btn===0){ const g=unproj(e.clientX,e.clientY); if(g) target={x:g[0],y:g[1]}; } drag=null; });
+cv.addEventListener("wheel",e=>{ cam.distT=Math.max(11,Math.min(34,cam.distT*(e.deltaY>0?1.1:0.9))); },{passive:true});
+document.getElementById("act").onclick=()=>{ ac(); action(); };
+document.getElementById("bRotL").onclick=()=>rotCam(-1);
+document.getElementById("bRotR").onclick=()=>rotCam(1);
+function toggleProp(){ PROP_MODE=PROP_MODE==="chibi"?"normal":"chibi"; document.getElementById("bProp").textContent="比例："+(PROP_MODE==="chibi"?"Q版":"正常"); }
+function toggleDemon(){ DEMON=DEMON==="demonC"?"demonD":"demonC"; document.getElementById("bDemon").textContent="恶魔："+(DEMON==="demonC"?"C 高冷风衣":"D 书卷斗篷"); say("demon",DEMON==="demonC"?"……换了件外套而已。":"……书，别碰。",2); }
+document.getElementById("bProp").onclick=toggleProp; document.getElementById("bDemon").onclick=toggleDemon;
+// form buttons
+{ const box=document.getElementById("forms"); for(const k of Object.keys(FORMS)){ const b=document.createElement("div"); b.className="fb"; b.id="f_"+k; const src=k==="human"?ASSETS.heroine_A_chibi_0:ASSETS[FORMS[k].front]; b.innerHTML=`<i>${FORMS[k].key}</i><img src="${src}"><span>${FORMS[k].name}</span>`; b.onclick=()=>{ac();transform(k);}; box.appendChild(b); } }
+function updForms(){ for(const k of Object.keys(FORMS)) document.getElementById("f_"+k).classList.toggle("on",hero.form===k); }
+updForms();
+
+/* ---------------- transformation (origami fold -> unfold) ---------------- */
+function inRiver(x,y){ return y>RIVER.y0&&y<RIVER.y1; }
+function transform(to){ if(hero.tf||hero.form===to) return;
+  if(hero.form==="bird"&&inRiver(hero.x,hero.y)&&to!=="bird"){ say("hero","在河上变回来会掉下去的！",2); return; }
+  hero.tf={from:hero.form,to,t:0}; paperSnd(0.45,2600,0.28); setTimeout(()=>paperSnd(0.3,1800,0.25),300); setTimeout(()=>paperSnd(0.25,3200,0.3),520);
+}
+const TF_DUR=1.05;
+
+/* ---------------- actions ---------------- */
+function action(){ if(hero.tf) return; const f=hero.form;
+  if(f==="dog"){ if(Math.hypot(hero.x-MOUND.x,hero.y-MOUND.y)<2.6&&!MOUND.dug){ hero.dig=1.4; say("hero","汪！汪！（刨刨刨）",1.4); } else { hero.dig=0.5; say("hero","汪？",1); } return; }
+  if(f==="unicorn"){ if(hero.dash<=0){ hero.dash=0.45; paperSnd(0.3,900,0.3); } return; }
+  if(f==="bird"){ say("hero",inRiver(hero.x,hero.y)?"飞呀飞～":"啾啾！",1.2); return; }
+  // human: read signs / talk to demon
+  let best=null,bd=3; for(const e of ents){ if(e.say){ const d=Math.hypot(e.x-hero.x,e.y-hero.y); if(d<bd){bd=d;best=e;} } }
+  if(best){ say("sign",best.say,4); bubbles[bubbles.length-1].at=best; return; }
+  if(Math.hypot(demon.x-hero.x,demon.y-hero.y)<3.2){ const got=STARS.filter(s=>s.got).length; say("hero","喂，帮我找星星嘛！",1.8); setTimeout(()=>say("demon",got===3?"……做得不错。":got===0?"……自己的星星，自己找。\n你不是会变身吗。":"还差 "+(3-got)+" 颗。……别看我。",3.2),900); return; }
+  say("hero",pick(["嘿咻！","嗯……该变成什么呢？","这里什么都没有～"]),1.4);
+}
+function pick(a){ return a[Math.floor(Math.random()*a.length)]; }
+
+/* ---------------- collisions ---------------- */
+function blocked(x,y,flying){ if(Math.abs(x)>WORLD-1||Math.abs(y)>WORLD-1) return true; if(!flying&&y>RIVER.y0-0.2&&y<RIVER.y1+0.2) return true;
+  if(flying) return false;
+  for(const e of ents){ if(e.rad>0&&!e.gone){ if(Math.hypot(e.x-x,e.y-y)<e.rad+0.45) return e; } } return false; }
+
+/* ---------------- update ---------------- */
+let last=performance.now(), time=0, started=false, won=false, winT=0;
+function step(dt){
+  time+=dt;
+  // camera smoothing
+  cam.yaw+=(cam.yawT-cam.yaw)*Math.min(1,dt*6); cam.dist+=(cam.distT-cam.dist)*Math.min(1,dt*5);
+  // input dir, camera-relative
+  let ix=0,iy=0; if(K.KeyW||K.ArrowUp)iy+=1; if(K.KeyS||K.ArrowDown)iy-=1; if(K.KeyA||K.ArrowLeft)ix-=1; if(K.KeyD||K.ArrowRight)ix+=1;
+  let mx=0,my=0; const fy=[Math.sin(cam.yaw),Math.cos(cam.yaw)], rx=[Math.cos(cam.yaw),-Math.sin(cam.yaw)];
+  if(ix||iy){ target=null; mx=fy[0]*iy+rx[0]*ix; my=fy[1]*iy+rx[1]*ix; const l=Math.hypot(mx,my); mx/=l; my/=l; }
+  else if(target){ const dx=target.x-hero.x, dy=target.y-hero.y, l=Math.hypot(dx,dy); if(l<0.3) target=null; else { mx=dx/l; my=dy/l; } }
+  const F=FORMS[hero.form]; const flying=!!F.fly;
+  if(hero.tf){ hero.tf.t+=dt; if(hero.tf.t>=TF_DUR*0.55&&!hero.tf.sw){ hero.tf.sw=1; hero.form=hero.tf.to; updForms(); shards(hero.x,hero.y,1.2,14,5); } if(hero.tf.t>=TF_DUR){ hero.tf=null; const L={human:"变回来啦！",dog:"汪！",unicorn:"咴——！",bird:"啾！"}; say("hero",L[hero.form],1.2); if(hero.form!=="human"&&Math.random()<0.5) setTimeout(()=>say("demon",pick(["……纸做的。","嗯，还挺像。","……别咬我。","……折得不错。"]),2),700); } mx=my=0; }
+  if(hero.dig>0){ hero.dig-=dt; mx=my=0; if(Math.random()<dt*14) dirt(hero.x+Math.sin(hero.face)*0.6,hero.y+Math.cos(hero.face)*0.6,2);
+    if(hero.dig<=0&&Math.hypot(hero.x-MOUND.x,hero.y-MOUND.y)<2.6&&!MOUND.dug){ MOUND.dug=1; MOUND.gone=true; STARS[0].hidden=false; STARS[0].pop=0; dirt(MOUND.x,MOUND.y,40); thud(); say("hero","找到了！",1.6); } }
+  let sp=F.speed;
+  if(hero.dash>0){ hero.dash-=dt; sp=24; if(!(mx||my)){ mx=Math.sin(hero.face); my=Math.cos(hero.face); } }
+  if(mx||my){ const nx=hero.x+mx*sp*dt, ny=hero.y+my*sp*dt; const bk=blocked(nx,ny,flying);
+    if(!bk){ hero.x=nx; hero.y=ny; }
+    else { if(bk!==true&&bk.puzzle==="smash"&&hero.form==="unicorn"&&hero.dash>0&&!bk.gone){ bk.gone=true; shards(bk.x,bk.y,1,26,7,"#dcd6ca"); dirt(bk.x,bk.y,20); thud(); shake=0.35; hero.dash=0; if(RING.every(b=>b.gone)||RING.filter(b=>!b.gone).length<=5){ if(!RING.msg){RING.msg=1; say("hero","撞开了！",1.4);} } }
+      else if(bk!==true&&bk.puzzle==="smash"&&hero.form!=="unicorn"&&!bk.tip){ bk.tip=1; say("hero",hero.form==="human"?"好重……推不动。":"……撞不动。",1.6); }
+      if(!blocked(nx,hero.y,flying)) hero.x=nx; else if(!blocked(hero.x,ny,flying)) hero.y=ny; }
+    const tf=Math.atan2(mx,my); let d=tf-hero.face; d=Math.atan2(Math.sin(d),Math.cos(d)); hero.face+=d*Math.min(1,dt*14); hero.moving=Math.min(1,hero.moving+dt*6); }
+  else hero.moving=Math.max(0,hero.moving-dt*6);
+  hero.bob+=dt*(hero.moving>0.1?sp*1.3:2);
+  const zt=flying?F.fly+Math.sin(time*3)*0.25:0; hero.z+=(zt-hero.z)*Math.min(1,dt*5);
+  if(!flying&&inRiver(hero.x,hero.y)) { hero.y=hero.y<(RIVER.y0+RIVER.y1)/2?RIVER.y0-0.3:RIVER.y1+0.3; }
+  // river tip
+  if(hero.form!=="bird"&&hero.y>RIVER.y0-1.4&&hero.y<RIVER.y0&&!step.riverTip){ step.riverTip=1; say("hero","河好宽……游不过去。",2); setTimeout(()=>say("demon","……你不是会变成鸟吗。",2.4),1400); }
+  // demon follows (calm, lagging, keeps distance)
+  { const dx=hero.x-demon.x, dy=hero.y-demon.y, d=Math.hypot(dx,dy); const across=(hero.y>RIVER.y1)!==(demon.y>RIVER.y1);
+    if(across&&d>3){ // he just... teleports with a puff of paper when separated by the river
+      demon.tp=(demon.tp||0)+dt; if(demon.tp>1.6){ shards(demon.x,demon.y,1.2,10,3,"#2a2622"); demon.x=hero.x-Math.sin(hero.face)*2.4; demon.y=hero.y-Math.cos(hero.face)*2.4; if(inRiver(demon.x,demon.y)) demon.y=hero.y>RIVER.y1?RIVER.y1+1:RIVER.y0-1; shards(demon.x,demon.y,1.2,10,3,"#2a2622"); demon.tp=0; say("demon",pick(["……麻烦。","我不会飞。……但我会别的。"]),2); } }
+    else demon.tp=0;
+    if(d>3.2){ const s=Math.min(8.5,(d-3)*2.6); const nx=demon.x+dx/d*s*dt, ny=demon.y+dy/d*s*dt; if(!blocked(nx,ny,false)){demon.x=nx;demon.y=ny;} else if(!blocked(nx,demon.y,false))demon.x=nx; else if(!blocked(demon.x,ny,false))demon.y=ny; demon.moving=Math.min(1,demon.moving+dt*5); const tf=Math.atan2(dx,dy); let dd=tf-demon.face; dd=Math.atan2(Math.sin(dd),Math.cos(dd)); demon.face+=dd*Math.min(1,dt*8); }
+    else { demon.moving=Math.max(0,demon.moving-dt*4); // idle: look at her
+      const tf=Math.atan2(dx,dy); let dd=tf-demon.face; dd=Math.atan2(Math.sin(dd),Math.cos(dd)); demon.face+=dd*Math.min(1,dt*2); }
+    demon.bob+=dt*(demon.moving>0.1?7:1.5);
+    demon.idle+=dt; if(demon.idle>14+Math.random()*10){ demon.idle=0; say("demon",pick(DEMON_IDLE),2.4); } }
+  // stars
+  for(const s of STARS){ if(s.got||s.hidden) continue; if(s.pop!==undefined&&s.pop<1) s.pop+=dt*2;
+
+    if(Math.hypot(hero.x-s.x,hero.y-s.y)<1.3){ s.got=true; chime(); sparkle(s.x,s.y,1.4); const n=STARS.filter(q=>q.got).length; document.getElementById("stars").textContent=`折纸星星 ${n} / 3`;
+      if(n===3){ won=true; winT=0; setTimeout(()=>say("demon","……三颗都找齐了。\n嗯，你做得很好。",4),1200); } else say("hero",["一颗！","两颗了！"][n-1],1.6); } }
+  // occlusion fade for props in front of hero
+  const hp=proj(hero.x,hero.y,hero.z+1);
+  for(const e of ents){ let ta=1; if(hp&&(e.kind==="pine"||e.kind==="round"||e.kind==="dead")){ const p=proj(e.x,e.y,0); if(p&&p.z<hp.z){ const wpx=e.h*p.s*0.35; if(Math.abs(p.x-hp.x)<wpx&&hp.y<p.y&&hp.y>p.y-e.h*p.s) ta=0.35; else if(p.z<hp.z-4&&e.h*p.s>H*0.55) ta=0.5; } } e.alpha+=(ta-e.alpha)*Math.min(1,dt*8); }
+  // particles
+  for(let i=parts.length-1;i>=0;i--){ const p=parts[i]; p.life-=dt*(p.kind==="spark"?1.6:0.9); p.x+=p.vx*dt; p.y+=p.vy*dt; p.z+=p.vz*dt; p.vz-=14*dt; p.rot+=p.vr*dt; if(p.z<0){p.z=0;p.vz*=-0.3;p.vx*=0.6;p.vy*=0.6;} if(p.life<=0) parts.splice(i,1); }
+  for(let i=bubbles.length-1;i>=0;i--){ bubbles[i].t+=dt; if(bubbles[i].t>bubbles[i].dur) bubbles.splice(i,1); }
+  // camera target: ahead of the hero so she sits in the lower-middle and the horizon stays in view
+  cam.tx+=(hero.x+Math.sin(cam.yaw)*5-cam.tx)*Math.min(1,dt*4); cam.ty+=(hero.y+Math.cos(cam.yaw)*5-cam.ty)*Math.min(1,dt*4);
+  if(shake>0) shake-=dt;
+  // tips
+  tipTimer-=dt; if(tipTimer<=0){ tipTimer=0.5; let t=""; if(Math.hypot(hero.x-MOUND.x,hero.y-MOUND.y)<4&&!MOUND.dug) t=hero.form==="dog"?"按 空格 挖！":"松软的土…狗鼻子能闻到"; else if(Math.hypot(hero.x-20,hero.y+8)<7&&RING.some(b=>!b.gone)) t=hero.form==="unicorn"?"朝石头冲，按 空格 冲撞！":"石阵…需要独角兽的角"; else if(hero.y>RIVER.y0-4&&hero.y<RIVER.y0&&hero.form!=="bird") t="变成鸟 (4) 飞过河"; document.getElementById("tip").textContent=t; }
+}
+let shake=0;
+
+/* ---------------- drawing ---------------- */
+function drawSky(){ const hy=horizonY();
+  const g=cx.createLinearGradient(0,0,0,hy+40); g.addColorStop(0,"#f3efe6"); g.addColorStop(1,"#ebe5d8"); cx.fillStyle=g; cx.fillRect(0,0,W,hy+60);
+  // panorama cylinder (mirror-tiled so there is no seam)
+  const pan=IMG.panorama; if(pan&&pan.complete){ const ph=Math.max(H*0.5,260), pw=pan.width*ph/pan.height; const tile=pw*2; // pan + mirrored pan
+    const circ=tile*2; // full turn = 2 tiles
+    let off=-((cam.yaw/(Math.PI*2))*circ)%tile; if(off>0) off-=tile; const top=hy-ph*0.585;
+    cx.globalAlpha=0.8;
+    for(let x=off;x<W;x+=tile){ cx.drawImage(pan,x,top,pw,ph); cx.save(); cx.translate(x+tile,top); cx.scale(-1,1); cx.drawImage(pan,0,0,pw,ph); cx.restore(); }
+    cx.globalAlpha=1; }
+}
+function drawGround(){ const hy=horizonY();
+  // base ground (paper) with distance haze
+  const g=cx.createLinearGradient(0,hy-4,0,H); g.addColorStop(0,"rgba(236,231,220,0.0)"); g.addColorStop(0.04,"rgba(236,231,220,0.92)"); g.addColorStop(1,"#e6dfcf"); cx.fillStyle=g; cx.fillRect(0,hy-4,W,H-hy+4);
+  // soft horizon haze line
+  cx.strokeStyle="rgba(60,50,40,0.25)"; cx.lineWidth=1; cx.beginPath(); for(let x=0;x<=W;x+=8){ const y=hy+6+Math.sin(x*0.02+cam.yaw*9)*1.5; x?cx.lineTo(x,y):cx.moveTo(x,y); } cx.stroke();
+  // big ground hatch patches (world-anchored) for texture
+  cx.lineCap="round";
+  // path
+  drawPath(); drawRiver();
+  // marks
+  for(const m of MARKS){ const p=proj(m.x,m.y,0); if(!p||p.x<-20||p.x>W+20||p.y<hy||p.y>H+20) continue; const fade=Math.min(1,(p.y-hy)/(H*0.25));
+    cx.strokeStyle=`rgba(40,34,28,${0.18+0.35*fade})`; cx.lineWidth=Math.max(0.5,p.s*0.035);
+    if(m.k===0){ cx.beginPath(); for(let i=0;i<m.n+1;i++){ const a=-1.57+(i-m.n/2)*0.35; cx.moveTo(p.x+(i-m.n/2)*p.s*0.06,p.y); cx.lineTo(p.x+(i-m.n/2)*p.s*0.06+Math.cos(a)*p.s*m.l*0.5,p.y+Math.sin(a)*p.s*m.l); } cx.stroke(); }
+    else { cx.beginPath(); cx.ellipse(p.x,p.y,p.s*0.09*m.l*3,p.s*0.04*m.l*3,0,0,6.3); cx.stroke(); } }
+}
+function drawPath(){ const L=[],Rr=[]; for(let i=0;i<PATH.length;i++){ const p=PATH[i], q=PATH[Math.min(PATH.length-1,i+1)], o=PATH[Math.max(0,i-1)]; const dx=q[0]-o[0], dy=q[1]-o[1], l=Math.hypot(dx,dy)||1; const nx=-dy/l*1.6, ny=dx/l*1.6;
+    if(p[1]>RIVER.y0-1&&p[1]<RIVER.y1+1){ L.push(null); Rr.push(null); continue; }
+    L.push(proj(p[0]+nx,p[1]+ny,0)); Rr.push(proj(p[0]-nx,p[1]-ny,0)); }
+  cx.fillStyle="rgba(210,200,180,0.45)"; 
+  for(let i=0;i<L.length-1;i++){ const a=L[i],b=L[i+1],c=Rr[i+1],d=Rr[i]; if(!a||!b||!c||!d) continue; cx.beginPath(); cx.moveTo(a.x,a.y); cx.lineTo(b.x,b.y); cx.lineTo(c.x,c.y); cx.lineTo(d.x,d.y); cx.fill(); }
+  cx.strokeStyle="rgba(50,42,34,0.45)"; cx.setLineDash([10,6]);
+  for(const side of [L,Rr]){ cx.lineWidth=1.3; cx.beginPath(); let pen=false; for(const p of side){ if(!p){pen=false;continue;} if(!pen){cx.moveTo(p.x,p.y);pen=true;} else cx.lineTo(p.x,p.y); } cx.stroke(); }
+  cx.setLineDash([]); }
+function drawRiver(){ const x0=-WORLD*1.6,x1=WORLD*1.6; const pts=[]; const N=60;
+  const bank=(y,s)=>{ const a=[]; for(let i=0;i<=N;i++){ const x=x0+(x1-x0)*i/N; const w=Math.sin(x*0.3+s)*0.35+Math.sin(x*0.11)*0.5; const p=proj(x,y+w,0); if(p)a.push(p); } return a; };
+  const nb=bank(RIVER.y0,0), fb=bank(RIVER.y1,2); if(nb.length<2||fb.length<2) return;
+  cx.fillStyle="rgba(200,205,205,0.55)"; cx.beginPath(); nb.forEach((p,i)=>i?cx.lineTo(p.x,p.y):cx.moveTo(p.x,p.y)); for(let i=fb.length-1;i>=0;i--)cx.lineTo(fb[i].x,fb[i].y); cx.closePath(); cx.fill();
+  // flowing hatch lines
+  cx.save(); cx.clip(); cx.strokeStyle="rgba(40,48,52,0.35)"; cx.lineWidth=1;
+  for(let k=0;k<14;k++){ const yy=RIVER.y0+0.4+(RIVER.y1-RIVER.y0-0.8)*k/13; cx.beginPath(); let pen=false; for(let i=0;i<=80;i++){ const x=x0+(x1-x0)*i/80; const seg=((x*0.5+time*1.6+k*3.1)%4); if(seg>2.2){pen=false;continue;} const p=proj(x,yy+Math.sin(x*0.8+time*2+k)*0.08,0); if(!p){pen=false;continue;} if(!pen){cx.moveTo(p.x,p.y);pen=true;} else cx.lineTo(p.x,p.y); } cx.stroke(); }
+  cx.restore();
+  cx.strokeStyle="rgba(35,30,25,0.8)"; cx.lineWidth=1.6; for(const b of [nb,fb]){ cx.beginPath(); b.forEach((p,i)=>i?cx.lineTo(p.x,p.y):cx.moveTo(p.x,p.y)); cx.stroke(); }
+  // bank hatching
+  cx.strokeStyle="rgba(35,30,25,0.35)"; cx.lineWidth=1; for(let i=0;i<nb.length;i+=1){ const p=nb[i]; cx.beginPath(); cx.moveTo(p.x,p.y); cx.lineTo(p.x-3*p.s*0.05,p.y+6*p.s*0.05); cx.stroke(); }
+}
+function shadow(p,r){ cx.fillStyle="rgba(40,34,28,0.18)"; cx.beginPath(); cx.ellipse(p.x,p.y,r*p.s,r*p.s*0.32,0,0,6.3); cx.fill();
+  cx.strokeStyle="rgba(40,34,28,0.22)"; cx.lineWidth=1; cx.beginPath(); for(let i=-3;i<=3;i++){ cx.moveTo(p.x+i*r*p.s*0.25-r*p.s*0.1,p.y+r*p.s*0.2); cx.lineTo(p.x+i*r*p.s*0.25+r*p.s*0.1,p.y-r*p.s*0.2);} cx.stroke(); }
+function sprite(img,p,h,flip,alpha=1,sx=1,sy=1,rot=0){ if(!img||!img.complete||!img.width) return; const dh=h*p.s*sy, dw=img.width/img.height*h*p.s*sx;
+  const hy=horizonY(); const haze=Math.max(0,Math.min(0.55,1-(p.y-hy)/(H*0.3))); // distant = lighter
+  cx.save(); cx.globalAlpha=alpha*(1-haze*0.6); cx.translate(p.x,p.y); if(rot)cx.rotate(rot); if(flip)cx.scale(-1,1); cx.drawImage(img,-dw/2,-dh,dw,dh); cx.restore(); }
+function wobble(seed){ // "boiling line" hand-drawn jitter, changes 8x / s
+  const f=Math.floor(time*8); return Math.sin(f*12.9898+seed*78.233)*0.012; }
+function heroSprite(){ const F=FORMS[hero.form];
+  if(hero.form==="human"){ const sh=SHEETS.heroine; const v=viewOf(hero.face,sh.sideDir); return {img:IMG[sh[PROP_MODE]+"_"+v.idx],flip:v.flip,h:sh.h[PROP_MODE]}; }
+  if(hero.form==="bird"&&(hero.moving>0.2||hero.z>1)){ const v=viewOf(hero.face,F.sideDir); const wantDir=v.rel>0?1:-1; return {img:IMG[F.side],flip:wantDir!==F.sideDir,h:F.h*1.1}; }
+  const v=viewOf(hero.face,F.sideDir); const side=v.idx>=1&&v.idx<=3; const useSide=Math.abs(Math.abs(v.rel)-Math.PI/2)<Math.PI*0.36;
+  let flip=false; if(useSide){ const wantDir=v.rel>0?1:-1; flip=wantDir!==F.sideDir; }
+  return {img:IMG[useSide?F.side:F.front],flip,h:F.h*(useSide&&hero.form!=="bird"?1:1)}; }
+function drawHero(){ const p0=proj(hero.x,hero.y,0); if(!p0) return; const p=proj(hero.x,hero.y,hero.z)||p0;
+  shadow(p0,hero.form==="unicorn"?1.1:0.7*(hero.z>0.5?0.8:1));
+  const tf=hero.tf;
+  if(tf){ drawTransform(p,tf); return; }
+  const s=heroSprite(); const run=hero.moving; let bob=Math.abs(Math.sin(hero.bob))*0.09*run, sq=1-Math.abs(Math.sin(hero.bob))*0.04*run;
+  let rot=Math.sin(hero.bob)*0.04*run+wobble(1);
+  if(hero.dig>0){ rot=Math.sin(time*30)*0.08; bob=Math.abs(Math.sin(time*30))*0.05; }
+  if(hero.form==="bird"){ bob=Math.sin(time*9)*0.05; sq=1+Math.sin(time*18)*0.06; }
+  if(hero.dash>0) rot+=0.12*(s.flip?-1:1)*(FORMS.unicorn.sideDir);
+  const pp={x:p.x,y:p.y-bob*p.s*3,s:p.s}; sprite(s.img,pp,s.h,s.flip,1,1/sq*0.98+0.02,sq,rot);
+  if(hero.dash>0){ cx.strokeStyle="rgba(40,34,28,0.5)"; cx.lineWidth=1.5; for(let i=0;i<5;i++){ const y=p.y-p.s*(0.4+i*0.35); const d=-Math.sin(hero.face-cam.yaw); cx.beginPath(); cx.moveTo(p.x-d*p.s*1.2,y); cx.lineTo(p.x-d*p.s*(2.2+i*0.2),y); cx.stroke(); } }
+}
+function drawDemon(){ const p=proj(demon.x,demon.y,0); if(!p) return; shadow(p,0.7); const sh=SHEETS[DEMON]; const v=viewOf(demon.face,sh.sideDir);
+  const run=demon.moving; const bob=Math.abs(Math.sin(demon.bob))*0.05*run + Math.sin(time*1.6)*0.006; const pp={x:p.x,y:p.y-bob*p.s*3,s:p.s};
+  sprite(IMG[sh[PROP_MODE]+"_"+v.idx],pp,sh.h[PROP_MODE],v.flip,1,1,1+Math.sin(time*1.6)*0.006,Math.sin(demon.bob)*0.02*run+wobble(2)); }
+/* origami transform: sprite -> flat paper sheet (creases) -> folds to a square -> sharp flaps burst open -> new form */
+function drawTransform(p,tf){ const t=tf.t/TF_DUR; const base=p.s*1.9; const cyy=p.y-base*0.55;
+  const heroFrom=tf.from, heroTo=tf.to;
+  const ink="#2a2622", pap="#faf7f0";
+  cx.save(); cx.lineJoin="round";
+  if(t<0.18){ // squash old sprite into a sheet
+    const k=t/0.18; const sv=hero.form; const s=heroSprite(); const pp={x:p.x,y:p.y,s:p.s}; sprite(s.img,pp,s.h,s.flip,1-k*0.7,Math.max(0.05,1-k*0.95),1-k*0.2,0);
+    cx.globalAlpha=k; sheet(p.x,cyy,base*0.45*(0.6+k*0.4),base*0.62,k*0.3);
+  } else if(t<0.36){ const k=(t-0.18)/0.18; sheet(p.x,cyy,base*0.45,base*0.62*(1-k*0.3),0.3+k*1.2); }
+  else if(t<0.55){ // folding into a square: 4 flaps close towards the centre
+    const k=(t-0.36)/0.19; const S=base*0.42*(1-k*0.35); cx.translate(p.x,cyy); cx.rotate(0.8+k*1.6);
+    cx.fillStyle=pap; cx.strokeStyle=ink; cx.lineWidth=1.8; cx.beginPath(); cx.rect(-S,-S,S*2,S*2); cx.fill(); cx.stroke();
+    for(let i=0;i<4;i++){ cx.save(); cx.rotate(i*Math.PI/2); const tipY=-S+(S)*k*1.0; cx.fillStyle=i%2?"#efe9dc":"#f6f1e6"; cx.beginPath(); cx.moveTo(-S,-S); cx.lineTo(S,-S); cx.lineTo(0,tipY); cx.closePath(); cx.fill(); cx.stroke(); cx.restore(); }
+    cx.setLineDash([4,4]); cx.lineWidth=1; cx.beginPath(); cx.moveTo(-S,-S); cx.lineTo(S,S); cx.moveTo(S,-S); cx.lineTo(-S,S); cx.stroke(); cx.setLineDash([]);
+  } else { // burst: flaps spring outward, new creature unfolds (scale overshoot)
+    const k=(t-0.55)/0.45; const e=1-Math.pow(1-k,3); const over=k<0.7?e*1.12:1.12-(k-0.7)/0.3*0.12;
+    const s=heroSprite(); sprite(s.img,{x:p.x,y:p.y,s:p.s},s.h,s.flip,Math.min(1,k*2.2),over*(0.6+0.4*e),over,(1-e)*0.5);
+    cx.translate(p.x,cyy); for(let i=0;i<8;i++){ const a=i/8*Math.PI*2+k*2; const r=base*(0.2+e*0.9); cx.save(); cx.globalAlpha=Math.max(0,1-k*1.3); cx.translate(Math.cos(a)*r,Math.sin(a)*r*0.7); cx.rotate(a+k*5); cx.fillStyle=pap; cx.strokeStyle=ink; cx.lineWidth=1.5; cx.beginPath(); cx.moveTo(0,-base*0.12); cx.lineTo(base*0.09,base*0.08); cx.lineTo(-base*0.09,base*0.08); cx.closePath(); cx.fill(); cx.stroke(); cx.restore(); }
+  }
+  cx.restore();
+}
+function sheet(x,y,w,h,ang){ cx.save(); cx.translate(x,y); cx.rotate(Math.sin(ang)*0.5); const sk=Math.cos(ang*2)*0.3; cx.transform(1,sk*0.3,0,1,0,0);
+  cx.fillStyle="#faf7f0"; cx.strokeStyle="#2a2622"; cx.lineWidth=1.8; cx.beginPath(); cx.moveTo(-w,-h); cx.lineTo(w,-h*0.95); cx.lineTo(w*0.97,h); cx.lineTo(-w*1.02,h*0.97); cx.closePath(); cx.fill(); cx.stroke();
+  cx.setLineDash([5,4]); cx.lineWidth=1; cx.beginPath(); cx.moveTo(-w,-h); cx.lineTo(w*0.97,h); cx.moveTo(w,-h*0.95); cx.lineTo(-w,h); cx.moveTo(0,-h); cx.lineTo(0,h); cx.moveTo(-w,0); cx.lineTo(w,0); cx.stroke(); cx.setLineDash([]); cx.restore(); }
+function drawStar(s){ if(s.got||s.hidden) return; const pop=s.pop!==undefined?Math.min(1,s.pop):1; const z=1.2+Math.sin(time*2.4+s.x)*0.25; const p=proj(s.x,s.y,z*pop); const p0=proj(s.x,s.y,0); if(!p||!p0) return;
+  shadow(p0,0.45); const r=p.s*0.5*(0.4+0.6*pop); cx.save(); cx.translate(p.x,p.y); cx.rotate(time*0.9); const sc=Math.cos(time*1.8); cx.scale(Math.abs(sc)*0.8+0.2,1);
+  cx.lineJoin="round"; for(let i=0;i<5;i++){ const a=i/5*Math.PI*2-Math.PI/2, a2=a+Math.PI/5, a0=a-Math.PI/5; cx.fillStyle=sc>0?(i%2?"#fbf8f0":"#e9e2d2"):(i%2?"#d8cfbd":"#f2ecdf"); cx.strokeStyle="#2a2622"; cx.lineWidth=1.6;
+    cx.beginPath(); cx.moveTo(0,0); cx.lineTo(Math.cos(a0)*r*0.45,Math.sin(a0)*r*0.45); cx.lineTo(Math.cos(a)*r,Math.sin(a)*r); cx.lineTo(Math.cos(a2)*r*0.45,Math.sin(a2)*r*0.45); cx.closePath(); cx.fill(); cx.stroke(); }
+  cx.restore();
+  // glint lines
+  cx.strokeStyle="rgba(40,34,28,0.5)"; cx.lineWidth=1; for(let i=0;i<4;i++){ const a=i*1.57+time; const r1=r*1.3, r2=r*1.6; cx.beginPath(); cx.moveTo(p.x+Math.cos(a)*r1,p.y+Math.sin(a)*r1); cx.lineTo(p.x+Math.cos(a)*r2,p.y+Math.sin(a)*r2); cx.stroke(); } }
+function drawParts(){ for(const p of parts){ const q=proj(p.x,p.y,p.z); if(!q) continue; cx.save(); cx.globalAlpha=Math.max(0,Math.min(1,p.life*1.5)); cx.translate(q.x,q.y); cx.rotate(p.rot); const s=p.sz*q.s;
+    if(p.kind==="shard"){ cx.fillStyle=p.col; cx.strokeStyle="#2a2622"; cx.lineWidth=1; cx.beginPath(); cx.moveTo(0,-s); cx.lineTo(s*0.8,s*0.6); cx.lineTo(-s*0.7,s*0.5); cx.closePath(); cx.fill(); cx.stroke(); }
+    else if(p.kind==="dirt"){ cx.fillStyle="#3a3128"; cx.beginPath(); cx.arc(0,0,s,0,6.3); cx.fill(); }
+    else { cx.strokeStyle="#2a2622"; cx.lineWidth=1.2; cx.beginPath(); cx.moveTo(-s,0); cx.lineTo(s,0); cx.moveTo(0,-s); cx.lineTo(0,s); cx.stroke(); }
+    cx.restore(); } }
+function drawBubbles(){ cx.font="15px "+getComputedStyle(document.body).fontFamily; cx.textAlign="center"; cx.textBaseline="middle";
+  for(const b of bubbles){ let wx,wy,wz; if(b.who==="hero"){wx=hero.x;wy=hero.y;wz=hero.z+(hero.form==="human"?SHEETS.heroine.h[PROP_MODE]:FORMS[hero.form].h)+0.4;} else if(b.who==="demon"){wx=demon.x;wy=demon.y;wz=SHEETS[DEMON].h[PROP_MODE]+0.4;} else if(b.at){wx=b.at.x;wy=b.at.y;wz=b.at.h+0.3;} else continue;
+    const p=proj(wx,wy,wz); if(!p) continue; const lines=b.text.split("\n"); const w=Math.max(...lines.map(l=>cx.measureText(l).width))+26, h=lines.length*20+14; const a=Math.min(1,b.t*6,(b.dur-b.t)*3);
+    const x=Math.max(w/2+6,Math.min(W-w/2-6,p.x)), y=Math.max(h+6,p.y-12);
+    cx.save(); cx.globalAlpha=a; cx.fillStyle=b.who==="demon"?"#2a2622":"#fbf8f0"; cx.strokeStyle="#2a2622"; cx.lineWidth=1.8;
+    cx.beginPath(); const x0=x-w/2,y0=y-h; cx.moveTo(x0+8,y0); cx.lineTo(x0+w-6,y0+1); cx.quadraticCurveTo(x0+w+1,y0+2,x0+w,y0+9); cx.lineTo(x0+w-1,y0+h-7); cx.quadraticCurveTo(x0+w,y0+h,x0+w-9,y0+h); cx.lineTo(p.x+7,y0+h); cx.lineTo(p.x,y0+h+9); cx.lineTo(p.x-3,y0+h); cx.lineTo(x0+7,y0+h+1); cx.quadraticCurveTo(x0,y0+h,x0+1,y0+h-8); cx.lineTo(x0,y0+8); cx.quadraticCurveTo(x0,y0,x0+8,y0); cx.fill(); cx.stroke();
+    cx.fillStyle=b.who==="demon"?"#f3efe6":"#2a2622"; lines.forEach((l,i)=>cx.fillText(l,x,y0+17+i*20)); cx.restore(); } }
+function drawWin(){ if(!won) return; winT+=1/60; const a=Math.min(1,winT/1.2); cx.save(); cx.globalAlpha=a*0.9; cx.fillStyle="#2a2622"; cx.font="bold 54px "+getComputedStyle(document.body).fontFamily; cx.textAlign="center"; cx.fillText("三颗星星 · 全部找到！",W/2,H*0.2); cx.font="18px "+getComputedStyle(document.body).fontFamily; cx.fillText("沙盒原型到此为止 —— 继续随便逛逛吧",W/2,H*0.2+40); cx.restore(); }
+
+function frame(now){ const dt=Math.min(0.05,(now-last)/1000); last=now; if(started) step(dt); camUpdate();
+  cx.save(); if(shake>0) cx.translate((Math.random()-0.5)*10*shake,(Math.random()-0.5)*10*shake);
+  drawSky(); drawGround();
+  // depth-sorted billboards
+  const list=[]; for(const e of ents){ if(e.gone) continue; const p=proj(e.x,e.y,0); if(!p||p.x<-p.s*e.h||p.x>W+p.s*e.h) continue; list.push({z:p.z,d:()=>{ if(e.kind!=="grass"&&e.kind!=="mound"&&e.kind!=="mush") shadow(p,Math.max(0.4,e.rad*0.9)); sprite(IMG[e.img],p,e.h,e.flip,e.alpha,1,1,e.kind==="grass"?Math.sin(time*1.5+e.x)*0.04:0); }}); }
+  { const p=proj(hero.x,hero.y,0); if(p) list.push({z:p.z-0.01,d:drawHero}); }
+  { const p=proj(demon.x,demon.y,0); if(p) list.push({z:p.z,d:drawDemon}); }
+  for(const s of STARS){ const p=proj(s.x,s.y,0); if(p) list.push({z:p.z-0.02,d:()=>drawStar(s)}); }
+  list.sort((a,b)=>b.z-a.z); for(const it of list) it.d();
+  drawParts(); drawBubbles();
+  // paper grain + vignette
+  if(!paperPat) paperPat=cx.createPattern(paper,"repeat"); cx.globalCompositeOperation="multiply"; cx.globalAlpha=0.35; cx.fillStyle=paperPat; cx.fillRect(0,0,W,H); cx.globalAlpha=1; cx.globalCompositeOperation="source-over";
+  const vg=cx.createRadialGradient(W/2,H*0.55,Math.min(W,H)*0.35,W/2,H*0.55,Math.max(W,H)*0.75); vg.addColorStop(0,"rgba(60,50,40,0)"); vg.addColorStop(1,"rgba(60,50,40,0.28)"); cx.fillStyle=vg; cx.fillRect(0,0,W,H);
+  drawWin(); cx.restore();
+  requestAnimationFrame(frame); }
+requestAnimationFrame(frame);
+document.getElementById("title").onclick=()=>{ ac(); document.getElementById("title").style.display="none"; started=true; setTimeout(()=>say("hero","好——今天也要找星星！",2.2),400); setTimeout(()=>say("demon","……别迷路就行。",2.4),2400); };
+window.__game={hero,demon,cam,transform,STARS,RING,MOUND,toggleProp,toggleDemon,start:()=>document.getElementById("title").onclick()};
+</script></body></html>
