@@ -1498,7 +1498,7 @@ function drawCineOverlay(){ if(!cine.on) return; const fam=getComputedStyle(docu
     else { cx.textAlign="left"; cx.fillStyle="#cfc6b4"; cx.fillText(txt,x0,y); } cx.restore(); } }
 function beginGame(){ started=true; setTimeout(()=>{ try{ spawnSupplyInit(); }catch(e){} },1200); cine.on=0; hero.kneel=0; hero.alpha=1; demon.alpha=1; demon.z=0; hero.z=0; cam.yawT=cam.yaw; cam.distT=cam.dist; if(!Number.isFinite(hero.x)||hero.x>100){ hero.x=-1; hero.y=2.5; } hero.face=Math.PI; demon.x=-2.6; demon.y=4.8; demon.plan=S.day<=1&&!ctl.intro?[{k:'say',text:"……醒了？\n这是霜之城。外面在下雪。\n去，捡点东西回来。纸、铁片、什么破烂都行。别走远。",dur:3.6},{k:'task',def:{k:'free',T:85}}]:(demon.plan||[]); if(!ctl.intro) ctl.intro=1; demon.cur=null; demon.pose=null; ctl.mode="follow"; ctl.task=null; if(S.core===undefined) S.core=100; shards(hero.x,hero.y,1,20,4);
   refreshUI(); setTimeout(()=>{ gainKey("bag"); },700); setTimeout(()=>note(TOUCH?"没有主人的命令，她不能自己行动 · 命令允许时：左侧按住拖动 = 移动 · 右下圆钮 = 动作 / 快进 · 双指 = 缩放视角":"没有主人的命令，她不能自己行动 · 命令允许时：WASD 移动 · 空格 动作 · Q/E 转视角"),1800);
-  setTimeout(()=>note("霜之城 · 冬天｜公寓里的事也要人管：饭 · 打扫 · 暖气"),4200); updCmd(); }
+  setTimeout(()=>note(TOUCH?"霜之城 · 冬天｜公寓里的事也要人管：饭 · 打扫 · 暖气（点「公寓」键进出）":"霜之城 · 冬天｜公寓里的事也要人管：饭 · 打扫 · 暖气（H 键进出公寓）"),4200); updCmd(); }
 
 /* ---------------- update ---------------- */
 let last=performance.now(), time=0, started=false, won=false, winT=0, FF=false;
