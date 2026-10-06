@@ -275,7 +275,10 @@ let drag=null;
 cv.addEventListener("contextmenu",e=>e.preventDefault());
 cv.addEventListener("pointerdown",e=>{ ac(); drag={x:e.clientX,y:e.clientY,btn:e.button,moved:0,yaw:cam.yawT}; try{cv.setPointerCapture(e.pointerId);}catch(err){} });
 cv.addEventListener("pointermove",e=>{ if(!drag)return; const dx=e.clientX-drag.x; if(Math.abs(dx)>6) drag.moved=1; if(drag.btn===2||(e.pointerType!=="mouse"&&drag.moved&&Math.abs(dx)>30)){ cam.yawT=drag.yaw-dx*0.006; } });
-cv.addEventListener("pointerup",e=>{ if(cine.on){ cine.fast=true; drag=null; return; } if(drag&&!drag.moved&&drag.btn===0){ const g=unproj(e.clientX,e.clientY); if(g) target={x:g[0],y:g[1]}; } drag=null; });
+cv.addEventListener("pointerup",e=>{ if(cine.on){ cine.fast=true; drag=null; return; } if(drag&&!drag.moved&&drag.btn===0){ const g=unproj(e.clientX,e.clientY); if(g){ let tx=g[0],ty=g[1];
+    // if the tapped spot is inside furniture / outside the room, aim at the closest reachable point on the way there
+    if(blocked(tx,ty,false)){ for(let t=0.96;t>0.06;t-=0.04){ const cx=hero.x+(tx-hero.x)*t, cy=hero.y+(ty-hero.y)*t; if(!blocked(cx,cy,false)){ tx=cx; ty=cy; break; } } }
+    target={x:tx,y:ty}; } } drag=null; });
 cv.addEventListener("wheel",e=>{ cam.distT=Math.max(11,Math.min(34,cam.distT*(e.deltaY>0?1.1:0.9))); },{passive:true});
 /* ---------------- mobile ---------------- */
 const TOUCH=(navigator.maxTouchPoints||0)>0||!!(window.matchMedia&&matchMedia("(pointer:coarse)").matches);
@@ -650,7 +653,7 @@ function orderStep(dt){ const o=S.order;
   else if(o.k==="cook"){ if(NEED.feedT>=o.t0) ok=true; }
   else if(o.k==="clean"){ if(!NEED.mess.some(m=>!m.cleaned)) ok=true; }
   else if(o.k==="heat"){ if(NEED.warm>=70) ok=true; }
-  else if(o.k==="tea"){ if(hero.carry&&hero.carry.id==="tea"&&d<2.9){ ok=true; hero.carry=0; hero.pose={i:3,t:1.2}; S.favor+=2; desUp("use",3); say("demon",pick(["……放下。","温的。可以。"]),2.2); } }
+  else if(o.k==="tea"){ if(hero.carry&&hero.carry.id==="tea"&&d<2.9){ o.hold+=dt; if(o.hold>=0.8){ ok=true; hero.carry=0; hero.pose={i:3,t:1.2}; S.favor+=2; desUp("use",3); say("demon",pick(["……放下。","温的。可以。"]),2.2); } } else o.hold=Math.max(0,o.hold-dt); }
   else if(o.k==="kneel"){ if(d>4.6){ o.hold=0; } else { if(!o.started){ o.started=1; hero.pose={i:0,t:1e9}; note("跪坐 —— 动作键可以低头示意，但别起身。"); } hero.pose={i:0,t:1e9};
       if(hero.moving<0.05&&hero.z<0.4){ o.hold+=dt; const n=Math.floor(o.hold/2); if(n>=(o.cnt||0)+1&&n<=5){ o.cnt=n; say("demon",String(n)+"。",0.9); paperSnd(0.12,1800,0.1); } if(o.hold>=10) ok=true; } else o.hold=Math.max(0,o.hold-dt*3); } }
   else if(o.k==="massage"){ if(d<2.4){ if(!o.started){ note("动作键：把手放上去。"); } if(o.started){ hero.pose={i:4,t:1e9}; if(hero.moving<0.05){ o.hold+=dt; if(o.hold>=6) ok=true; } else o.hold=Math.max(0,o.hold-dt*4); }
@@ -662,8 +665,8 @@ function orderStep(dt){ const o=S.order;
     if(o.src==="train"){ S.train.scores.push({k:o.k,t:o.t,sc}); }
     else { const dObey=fail?-6:sc>=2?4:2; S.obey=Math.max(0,Math.min(100,S.obey+dObey)); if(!fail) S.favor+=1;
       if((o.src==="svc"||o.src==="serve")&&!fail){ const st=NEED.stat; st.svc++; if(o.k==="cook") st.meals++; if(o.k==="tea") st.tea++; if(o.k==="heat") st.coal++; if(o.k==="clean") st.clean++;
-        const fast=1-Math.min(1,(o.left||0)/o.T); st.score.push(fast);
-        if(st.svc%4===0){ const avg=st.score.slice(-4).reduce((a,b)=>a+b,0)/4; const g=avg>0.62?"S":avg>0.45?"A":avg>0.3?"B":avg>0.15?"C":"D";
+        const fast=1-Math.min(1,(o.left||0)/o.T); st.score.push(0.5+0.5*fast);
+        if(st.svc%4===0){ const avg=st.score.slice(-4).reduce((a,b)=>a+b,0)/4; const g=avg>0.9?"S":avg>0.78?"A":avg>0.68?"B":avg>0.6?"C":"D";
           stamp(g); const L={S:"四次。都很快。\n……今天你算好用。",A:"四次做完。勉强像个佣人。",B:"四次。不快不慢。",C:"四次。……磨磨蹭蹭。",D:"四次。我等到雪都停了。"}[g];
           S.favor+={S:6,A:3,B:1,C:0,D:0}[g]; if(g==="S") S.obey=Math.min(100,S.obey+3); setTimeout(()=>say("demon",L,3),900); } }
       if(!fail&&o.k==="kneel"){ desUp("company",5); desUp("recog",4); desUp("use",2); }
@@ -704,11 +707,12 @@ const APT_HS=[
  {k:"chair",x:-2.6,y:3.2,r:1.5,n:"主人的椅子"}
 ];
 const NEED={food:66,clean:74,warm:52,trash:1,mess:[],cook:0,ready:0,eat:0,sinkT:0,lastWarn:{},feedT:-99,serveT:-99,cleanT:-99,heatT:-99,stat:{meals:0,tea:0,coal:0,spot:0,svc:0,score:[],clean:0}};
+function aptFreeSpotIn(px,py){ for(let r=1.2;r<4;r+=0.6) for(let a=0;a<8;a++){ const x=px+Math.cos(a/8*6.28)*r-APT.x, y=py+Math.sin(a/8*6.28)*r-APT.y; if(x<APT_RECT.x0+0.4||x>APT_RECT.x1-0.4||y<APT_RECT.y0+0.4||y>APT_RECT.y1-0.4) continue; let bad=false; for(const b of APT_BLOCK) if(x>b[0]&&x<b[1]&&y>b[2]&&y<b[3]) bad=true; if(!bad) return {x:APT.x+x,y:APT.y+y}; } return null; }
 function aptFreeSpot(){ for(let i=0;i<40;i++){ const x=-6.0+Math.random()*11.6, y=0.2+Math.random()*6.6; let bad=false; for(const b of APT_BLOCK) if(x>b[0]-0.4&&x<b[1]+0.4&&y>b[2]-0.4&&y<b[3]+0.4) bad=true; if(!bad) return {x,y}; } return {x:0,y:2}; }
 function spawnMess(n){ for(let i=0;i<n;i++){ const p=aptFreeSpot(); NEED.mess.push({x:p.x,y:p.y,cleaned:0,a:Math.random()*6.28}); } }
 function aptInit(){ if(APT.inited) return; APT.inited=1; spawnMess(4); }
 function aptEnter(silent){ if(APT.on) return; aptInit(); APT.on=1; APT.entered=1; cine.scene="apt";
-  hero.x=APT.x+4.4; hero.y=APT.y+6.4; hero.z=0; hero.kneel=0; hero.carry=0; hero.face=Math.PI;
+  hero.x=APT.x+0.2; hero.y=APT.y+6.5; hero.z=0; hero.kneel=0; hero.carry=0; hero.face=Math.PI;
   demon.x=APT.x-2.6; demon.y=APT.y+3.4; demon.sit=1; demon.pose=null; demon.face=Math.PI; demon.goal=null; demon.plan=[]; demon.cur=null;
   camSnap(APT.x+0.2,APT.y+4.4,0.30,14); camTo(APT.x+0.2,APT.y+4.4,0.30,13,0.6); cam.distT=13;
   if(!silent){ note("回到公寓 · 外面还在下雪"); chime(); }
@@ -758,10 +762,19 @@ function drawNeedWorld(){ if(!started||cine.on||!APT.on) return; }
 /* ---- apartment interactions (action key in the flat) ---- */
 function aptNear(){ if(!APT.on) return null; let best=null,bd=99; for(const h of APT_HS){ const d=Math.hypot(hero.x-(APT.x+h.x),hero.y-(APT.y+h.y)); if(d<h.r&&d<bd){ bd=d; best=h; } } return best; }
 function aptCleanNear(){ let best=null,bd=1.5; for(const m of NEED.mess){ if(m.cleaned) continue; const d=Math.hypot(hero.x-(APT.x+m.x),hero.y-(APT.y+m.y)); if(d<bd){ bd=d; best=m; } } return best; }
+function aptNearD(){ if(!APT.on) return 99; let bd=99; for(const h of APT_HS){ const d=Math.hypot(hero.x-(APT.x+h.x),hero.y-(APT.y+h.y)); if(d<h.r&&d<bd) bd=d; } return bd; }
+function aptSpotD(){ let bd=99; for(const m of NEED.mess){ if(m.cleaned) continue; const d=Math.hypot(hero.x-(APT.x+m.x),hero.y-(APT.y+m.y)); if(d<bd) bd=d; } return bd; }
 function aptDoClean(){ const m=aptCleanNear(); if(!m) return false; m.cleaned=1; NEED.clean=Math.min(100,NEED.clean+10); NEED.cleanT=time; hero.pose={i:5,t:1.0}; paperSnd(0.25,2200,0.2);
   for(let i=0;i<6;i++) parts.push({x:APT.x+m.x,y:APT.y+m.y,z:0.3,vx:(Math.random()-0.5)*2,vy:(Math.random()-0.5)*2,vz:1+Math.random(),life:1,rot:0,vr:0,sz:0.09,kind:"dirt"});
   const left=NEED.mess.filter(q=>!q.cleaned).length; if(!left) note("都擦干净了。地板反光。"); else note("擦掉一处。还剩 "+left+" 处。"); desUp("use",1); return true; }
-function aptAction(){ if(!APT.on) return false; if(aptDoClean()) return true; const h=aptNear(); if(!h) return false; const nearM=Math.hypot(demon.x-hero.x,demon.y-hero.y)<3.0;
+aptAction._serve=aptServeMeal;
+function aptAction(){ if(!APT.on) return false;
+  if(NEED.ready){ const T=APT_HS.find(q=>q.k==="table"); if(T&&Math.hypot(hero.x-(APT.x+T.x),hero.y-(APT.y+T.y))<T.r+0.6){ return aptAction._serve(); } }
+  const hAll=aptNear();
+  if(hAll){ if(aptNearD()<=aptSpotD()+0.2){ return aptAction._hot(hAll); } if(aptDoClean()) return true; }
+  else { if(aptDoClean()) return true; }
+  const h=hAll; if(!h) return false; return aptAction._hot(h); }
+aptAction._hot=function(h){ const nearM=Math.hypot(demon.x-hero.x,demon.y-hero.y)<3.0;
   if(h.k==="kitchen"){ if(NEED.ready){ note("饭已经好了——端给主人（桌上的位置在他手边）"); return true; }
     if(invCount("food_mat")>0){ invTake("food_mat",1); NEED.cook=2.6; hero.pose={i:5,t:2.6}; paperSnd(0.3,1800,0.2); note("开火……热一下就行。"); return true; }
     note("没有食材。街上捡（纸箱、便利店门口的袋子）"); return true; }
@@ -777,7 +790,11 @@ function aptAction(){ if(!APT.on) return false; if(aptDoClean()) return true; co
     else if(hero.carry&&hero.carry.id==="tea"&&nearM===false){}
     return true; }
   return false; }
-function aptServeTea(){ if(S.order&&S.order.k==="massage"&&S.order.started) return false; if(!(hero.carry&&hero.carry.id==="tea")) return false; const d=Math.hypot(demon.x-hero.x,demon.y-hero.y); if(d>3.6){ note("水在手上——端到主人身边再按动作键"); return false; }
+function aptServeMeal(){ const T=APT_HS.find(q=>q.k==="table"); if(!NEED.ready||!T) return false;
+  if(Math.hypot(demon.x-(APT.x+T.x),demon.y-(APT.y+T.y))>9){ note("把饭端到桌上——主人没在这边。"); return true; }
+  NEED.ready=0; NEED.eat=9; NEED.food=Math.min(100,NEED.food+52); NEED.serveT=time; hero.pose={i:3,t:1.6}; demon.sit=1;
+  say("demon",pick(["端过来。……嗯。", "放着。我自己会吃。"]),2.4); note("把饭端到桌上——主人过来了。"); desUp("use",5); chime(); return true; }
+function aptServeTea(){ if(S.order) return false; if(!(hero.carry&&hero.carry.id==="tea")) return false; const d=Math.hypot(demon.x-hero.x,demon.y-hero.y); if(d>3.6){ note("水在手上——端到主人身边再按动作键"); return false; }
   hero.carry=0; hero.pose={i:3,t:1.2}; S.favor+=3; NEED.stat.tea++; desUp("use",4); desUp("recog",3); chime(); vz(20); floatTxt(demon.x,demon.y,"满意度 +3");
   say("demon",pick(["……放这儿。温的。下次记得。","嗯。嗓子刚好干。"],),2.4); return true; }
 function drawAptState(){ if(!APT.on) return; const o={x:APT.x,y:APT.y};
@@ -797,14 +814,17 @@ function drawAptState(){ if(!APT.on) return; const o={x:APT.x,y:APT.y};
   const h=aptNear(); if(h&&!S.order){ const p=proj(o.x+h.x,o.y+h.y,0.02); if(p){ cx.save(); cx.setLineDash([5,4]); cx.lineDashOffset=-time*16; cx.strokeStyle="rgba(42,38,34,0.55)"; cx.lineWidth=1.8; cx.beginPath(); cx.ellipse(p.x,p.y,p.s*0.6,p.s*0.22,0,0,6.3); cx.stroke(); cx.restore(); } }
 }
 /* ---- master's life inside the flat ---- */
-const APT_PT={chair:[-2.6,3.0],window:[3.1,6.2],counter:[-2.0,6.4],table:[-0.4,4.4]};
+const APT_PT={chair:[-2.6,4.2],window:[0.6,6.6],counter:[-2.0,6.6],table:[-0.4,4.6]};
 function aptDemon(dt){ if(demon.pose&&demon.pose.t<1e8){ demon.pose.t-=dt; if(demon.pose.t<=0) demon.pose=null; }
   if(demon.inj){ demon.injT-=dt; if(demon.injT<=0){ demon.inj=0; } }
   if(!demon.aim){ demon.aim=null; demon.act="read"; demon.actT=6+Math.random()*8; }
   if(demon.actT>0){ demon.actT-=dt; }
   else { const r=Math.random(); demon.act=r<0.45?"read":r<0.7?"window":r<0.85?"counter":"table"; demon.actT=9+Math.random()*14; }
+  const hold=S.order&&(S.order.k==="kneel"||S.order.k==="massage"||S.order.k==="blind");
+  if(hold) demon.act="chair";
   const P=NEED.eat>0?APT_PT.table:(APT_PT[demon.act]||APT_PT.chair); const g={x:APT.x+P[0],y:APT.y+P[1]};
   const d=Math.hypot(g.x-demon.x,g.y-demon.y);
+  if(hold){ demon.moving=Math.max(0,demon.moving-dt*4); demon.sit=1; demon.face+=angTo(Math.atan2(hero.x-demon.x,hero.y-demon.y),demon.face)*Math.min(1,dt*2); return; }
   if(d>0.55){ demon.sit=0; demonMoveTo(g,3.2,dt); }
   else { demon.moving=Math.max(0,demon.moving-dt*4); demon.face+=angTo(Math.atan2(hero.x-demon.x,hero.y-demon.y),demon.face)*Math.min(1,dt*1.2);
     if(demon.act==="read"){ demon.sit=1; if(!demon._rd||demon._rd<time){ demon._rd=time+7+Math.random()*6; if(Math.random()<0.5) dPose(3,7); } }
@@ -812,7 +832,6 @@ function aptDemon(dt){ if(demon.pose&&demon.pose.t<1e8){ demon.pose.t-=dt; if(de
     if(demon.act==="window"&&Math.random()<dt*0.5) say("demon",pick(["……雪下得没完。","那条街的灯，又坏了两盏。","……屋里还行。"]),2.4); }
   // he reads her core now and then -> desire analysis
   aptAnalyze(dt);
-  if(NEED.eat>0){ NEED.eat-=dt; }
 }
 function aptAnalyze(dt){ const cd=140-Math.min(60,rankIdx()*12); if(time-(APT.anT||-99)<cd) return; if(S.order||ctl.task||S.paused||dlg.open) return;
   if(Math.hypot(demon.x-hero.x,demon.y-hero.y)>7) return; APT.anT=time;
@@ -950,7 +969,7 @@ const BASE={x:-1,y:2};
 function poiNear(){ const c=[]; for(const e of ents){ if(e.gone) continue; if((e.kind==="pine"||e.kind==="round"||e.kind==="boulder"||e.kind==="rocks"||e.kind==="bush"||e.kind==="bld")&&Math.hypot(e.x-BASE.x,e.y-BASE.y)<17) c.push({x:e.x+(e.rad+1.1)*(Math.random()<0.5?1:-1),y:e.y+(e.rad+1.1)*(Math.random()<0.5?1:-1)}); }
   c.push({x:BASE.x+4,y:RIVER.y0-2}); c.push({x:-3.5,y:4.6}); const p=pick(c); if(inRiver(p.x,p.y)||p.y>RIVER.y0-1.5) p.y=RIVER.y0-2; return p; }
 function readSpot(){ const ch=builds.find(b=>b.bid==="chair"); return ch?{x:ch.x+Math.cos(cam.yaw)*0.1,y:ch.y+0.05,chair:ch}:{x:BASE.x-2.2,y:BASE.y+1.5}; }
-function demonMoveTo(g,sp,dt){ const dx=g.x-demon.x, dy=g.y-demon.y, l=Math.hypot(dx,dy); if(l<0.35){ demon.moving=Math.max(0,demon.moving-dt*4); return true; }
+function demonMoveTo(g,sp,dt){ if(APT.on){ const lx=g.x-APT.x, ly=g.y-APT.y; let bad=false; for(const b of APT_BLOCK) if(lx>b[0]+0.2&&lx<b[1]-0.2&&ly>b[2]+0.2&&ly<b[3]-0.2) bad=true; if(bad){ const alt=aptFreeSpotIn(g.x,g.y); if(alt) g={x:alt.x,y:alt.y}; } } const dx=g.x-demon.x, dy=g.y-demon.y, l=Math.hypot(dx,dy); if(l<0.35){ demon.moving=Math.max(0,demon.moving-dt*4); return true; }
   const s=Math.min(sp,l*3); const nx=demon.x+dx/l*s*dt, ny=demon.y+dy/l*s*dt; const ign=(x,y)=>{ const b=blocked(x,y,false); return b&&!(b.bid==="chair"||b.bid==="tent"); };
   if(!ign(nx,ny)){demon.x=nx;demon.y=ny;} else if(!ign(nx,demon.y)) demon.x=nx; else if(!ign(demon.x,ny)) demon.y=ny; else { demon.stuck=(demon.stuck||0)+dt; if(demon.stuck>1.5){ demon.stuck=0; demon.x=g.x; demon.y=g.y; } }
   demon.moving=Math.min(1,demon.moving+dt*5); const tf=Math.atan2(dx,dy); let dd=tf-demon.face; dd=Math.atan2(Math.sin(dd),Math.cos(dd)); demon.face+=dd*Math.min(1,dt*8); return false; }
@@ -1503,7 +1522,7 @@ function step(dt){
   let sp=F.speed; if(auto) sp*=ctl.spd;
   if(hero.dash>0){ hero.dash-=dt; sp=24; if(!(mx||my)){ mx=Math.sin(hero.face); my=Math.cos(hero.face); } }
   if(mx||my){ const nx=hero.x+mx*sp*dt, ny=hero.y+my*sp*dt; const bk=blocked(nx,ny,flying);
-    if(!bk){ hero.x=nx; hero.y=ny; }
+    const curStuckC=blocked(hero.x,hero.y,flying); if(!bk||curStuckC===true){ hero.x=nx; hero.y=ny; }
     else { if(bk!==true&&bk.puzzle==="smash"&&hero.form==="unicorn"&&hero.dash>0&&!bk.gone){ bk.gone=true; shards(bk.x,bk.y,1,26,7,"#dcd6ca"); dirt(bk.x,bk.y,20); thud(); shake=0.35; hero.dash=0; drop(bk.x,bk.y,wpick(BOULDER_TAB),1); if(RING.filter(b=>!b.gone).length<=5){ if(!RING.msg){RING.msg=1; drop(20,-8,"k_quill",1); note("冻住的料堆被撞开了");} } }
       else if(bk!==true&&(bk.kind==="dead"||bk.kind==="stump")&&hero.form==="unicorn"&&hero.dash>0&&!bk.gone){ bk.gone=true; bk.respawn=200; drop(bk.x,bk.y,"log",1); if(bk.kind==="dead"){ drop(bk.x,bk.y,"log",1); drop(bk.x,bk.y,"twig",1); } shards(bk.x,bk.y,1,14,5,"#e8dfcc"); thud(); shake=0.25; hero.dash=0; }
       else if(bk!==true&&(bk.kind==="rocks"||bk.kind==="boulder")&&!bk.puzzle&&hero.form==="unicorn"&&hero.dash>0&&!bk.gone){ breakRock(bk); shards(bk.x,bk.y,0.8,16,6,"#dcd6ca"); dirt(bk.x,bk.y,12); thud(); shake=0.25; hero.dash=0; }
