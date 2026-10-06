@@ -63,6 +63,20 @@ canvas{display:block;width:100vw;height:100vh;touch-action:none}
 #stick{position:fixed;width:126px;height:126px;border-radius:50%;border:2.5px solid rgba(42,38,34,.45);background:rgba(247,243,234,.30);display:none;pointer-events:none;z-index:6}
 #knob{position:absolute;width:56px;height:56px;border-radius:50%;background:rgba(42,38,34,.5);border:2px solid rgba(247,243,234,.85);left:35px;top:35px}
 #ff{position:fixed;right:134px;bottom:24px;width:58px;height:58px;border-radius:50%;border:2.5px solid #2a2622;background:#f7f3ea;font-size:15px;font-family:inherit;color:#2a2622;box-shadow:2px 3px 0 #2a262255;cursor:pointer;z-index:5;display:none;touch-action:none;padding:0}
+#need{position:fixed;left:10px;top:172px;width:150px;background:#f7f3eae8;border:2px solid #2a2622;border-radius:9px 12px 8px 11px;padding:4px 7px;font-size:12px;color:#2a2622;box-shadow:2px 3px 0 #2a262244;display:none}
+#need .nr{display:flex;align-items:center;gap:5px;margin:2px 0}
+#need .nn{width:34px;opacity:.75}#need .nb{flex:1;height:8px;border:1px solid #2a2622;position:relative;background:#fbf8f1}
+#need .nb i{position:absolute;left:0;top:0;bottom:0;background:#2a2622}
+#need .nv{width:26px;text-align:right;font-size:11px}
+#desire{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);width:min(620px,94vw);max-height:88vh;overflow:auto;background:#f7f3ea;border:3px solid #2a2622;border-radius:12px 16px 10px 14px;box-shadow:5px 6px 0 #2a262266;z-index:8;display:none;color:#2a2622;padding:12px 16px;-webkit-overflow-scrolling:touch}
+#desire .dh2{font-size:20px;letter-spacing:.22em;text-align:center;border-bottom:1.5px dashed #2a2622;padding-bottom:4px}
+#desire .dsub{font-size:12px;text-align:center;opacity:.7;margin-top:3px;letter-spacing:.1em}
+.dbar{margin:9px 0}.dbar .dl{display:flex;justify-content:space-between;font-size:14px}
+.dbar .dtr{height:12px;border:1.5px solid #2a2622;background:#fbf8f1;position:relative;margin-top:2px}
+.dbar .dtr i{position:absolute;left:0;top:0;bottom:0;background:#2a2622}
+.dbar .dtr b{position:absolute;top:-1px;font-size:10px;opacity:.65;font-weight:normal}
+#desire .dcon{margin-top:10px;border-top:1.5px dashed #2a2622;padding-top:8px;font-size:14px;line-height:1.85}
+#desire .dcon b{letter-spacing:.15em}
 html,body{overscroll-behavior:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
 @media (pointer:coarse), (max-width:820px){
  body.mo #help{display:none}
@@ -103,9 +117,12 @@ html,body{overscroll-behavior:none;-webkit-user-select:none;user-select:none;-we
 <canvas id="cv"></canvas>
 <div id="hud"><span id="tip" style="opacity:.8"></span></div><div id="cmd"></div><div id="order"></div><div id="appr"></div><div id="catalog"></div><div id="notes"></div><div id="dlg"></div><div id="bmenu"></div><div id="cskip">SKIP ▸▸</div><div id="card"></div><div id="inv"></div>
 <div id="side">
+  <button class="sb" id="bApt"><b>公寓 (H)</b></button>
+  <button class="sb" id="bDes"><b>欲望分析 (V)</b></button>
   <button class="sb" id="bCat"><b>收藏目录 (B)</b></button>
   <button class="sb" id="bBuild"><b>建造 (G)</b></button>
 </div>
+<div id="need"></div><div id="desire"></div>
 <div id="forms"></div>
 <button id="act">动作<br><small>空格</small></button>
 <button id="ff">▶▶<br><small>快进</small></button>
@@ -302,6 +319,7 @@ const TF_DUR=1.05;
 
 /* ---------------- actions ---------------- */
 function action(){ if(hero.tf) return; if(S.order&&S.order.k==="quiet"){ S.order.broke=1; return; } const f=hero.form; const nearM=Math.hypot(demon.x-hero.x,demon.y-hero.y)<3.2&&!demon.hidden;
+  if(APT.on){ if(f!=="human"){ note("先变回人形（1）再做家务。"); return; } if(aptServeTea()) return; if(aptAction()) return; }
   if(placing){ confirmPlace(); return; }
   if(nearM){ openDialog(); return; }
   if(!zoneNow()){ if(ctl.mode==="rest"&&isNight()){ S.clock=0.999; note("蜷在主人脚边，睡到了天亮。"); return; } resist(); return; }
@@ -322,7 +340,9 @@ function action(){ if(hero.tf) return; if(S.order&&S.order.k==="quiet"){ S.order
 function pick(a){ return a[Math.floor(Math.random()*a.length)]; }
 
 /* ---------------- collisions ---------------- */
-function blocked(x,y,flying){ if(Math.abs(x)>WORLD-1||Math.abs(y)>WORLD-1) return true; if(!flying&&y>RIVER.y0-0.2&&y<RIVER.y1+0.2) return true;
+function blocked(x,y,flying){ if(APT.on){ const lx=x-APT.x, ly=y-APT.y; if(lx<APT_RECT.x0||lx>APT_RECT.x1||ly<APT_RECT.y0||ly>APT_RECT.y1) return true;
+    for(const b of APT_BLOCK) if(lx>b[0]&&lx<b[1]&&ly>b[2]&&ly<b[3]) return true; return false; }
+  if(Math.abs(x)>WORLD-1||Math.abs(y)>WORLD-1) return true; if(!flying&&y>RIVER.y0-0.2&&y<RIVER.y1+0.2) return true;
   if(flying) return false;
   for(const e of ents){ if(e.rad>0&&!e.gone){ if(Math.hypot(e.x-x,e.y-y)<e.rad+0.45) return e; } } return false; }
 
@@ -371,7 +391,7 @@ const COL={
  star:["折纸星星","item_11","special",4,"三处谜题：土堆 · 石阵 · 河对岸","……星星。好东西。"],
 };
 const COL_IDS=Object.keys(COL);
-const ITEMS={ k_horn:{n:"螺旋角",img:"key_1",key:"horn"}, k_quill:{n:"黑羽笔",img:"key_2",key:"quill"}, k_net:{n:"捞网",img:"col_relic_0",key:"net"}, twig:{n:"树枝",img:"item_2",mat:1}, grass:{n:"干草",img:"item_1",mat:1}, net:{n:"捞网",img:"col_relic_0",tool:1}, flint:{n:"燧石",img:"item_3",mat:1}, stone:{n:"石头",img:"item_4",mat:1}, log:{n:"木头",img:"item_5",mat:1}, stick:{n:"主人的书签",img:"col_relic_6",fetch:1}, bait:{n:"亮晶晶的东西",img:"col_treasure_3",bait:1} };
+const ITEMS={ k_horn:{n:"螺旋角",img:"key_1",key:"horn"}, k_quill:{n:"黑羽笔",img:"key_2",key:"quill"}, k_net:{n:"捞网",img:"col_relic_0",key:"net"}, twig:{n:"树枝",img:"item_2",mat:1}, grass:{n:"干草",img:"item_1",mat:1}, net:{n:"捞网",img:"col_relic_0",tool:1}, flint:{n:"燧石",img:"item_3",mat:1}, stone:{n:"石头",img:"item_4",mat:1}, log:{n:"木头",img:"item_5",mat:1}, stick:{n:"主人的书签",img:"col_relic_6",fetch:1}, bait:{n:"亮晶晶的东西",img:"col_treasure_3",bait:1}, food_mat:{n:"食材",img:"col_treasure_1",mat:1}, coal:{n:"煤块",img:"item_4",mat:1}, tea:{n:"一杯温水",img:"col_relic_2",mat:1}, meal:{n:"热好的饭",img:"col_treasure_2",mat:1} };
 for(const id of COL_IDS){ const c=COL[id]; ITEMS[id]={n:c[0],img:c[1],col:1,r:c[3],cat:c[2]}; }
 const RECIPES=[
   {id:"net",n:"捞网",need:{twig:3,grass:2},desc:"人形时在河边按空格打捞"},
@@ -399,7 +419,7 @@ function showCard(){ const k=cardQ.shift(); if(!k) return; const K=KEYS[k], el=d
 function closeCard(){ const el=document.getElementById("card"); if(el.style.display!=="block") return false; el.style.display="none"; S.paused=0; if(cardQ.length) setTimeout(showCard,250); return true; }
 function formOK(f){ return f==="human"||(f==="dog"&&hasKey("collar"))||(f==="unicorn"&&hasKey("horn"))||(f==="bird"&&hasKey("quill")); }
 function refreshUI(){ const k=S.keys; const sh=(id,v)=>{ const e=document.getElementById(id); if(e) e.classList.toggle("hide",!v); };
-  sh("inv",k.bag); sh("bCat",k.notebook); sh("bBuild",k.mallet); sh("side",k.notebook||k.mallet);
+  sh("inv",k.bag); sh("bCat",k.notebook); sh("bBuild",k.mallet); sh("side",started||k.notebook||k.mallet); sh("bApt",started&&APT.entered); sh("bDes",started);
   let nf=0; for(const f of Object.keys(FORMS)){ const ok=formOK(f); nf+=ok; sh("f_"+f,ok); } sh("forms",nf>1); sh("act",started&&!cine.on); updCmd(); }
 function checkUnlocks(){ if(!started||cine.on) return; const rk=RANKS.findIndex(r=>r[1]===rankOf(S.favor)[1]);
   if(rk>=1&&!hasKey("mallet")&&hasKey("notebook")) gainKey("mallet");
@@ -568,6 +588,10 @@ const CMDS={
  spot:{t:"站到那里。",T:25,st:"站到地上的圆圈里（5 秒）"},
  spin:{t:"转圈。",T:12,dog:1,st:"变成狗，原地转两圈"},
  quiet:{t:"安静。",T:15,st:"不许按空格、不许变身"},
+ cook:{t:"我饿了。做饭。",T:150,svc:1,st:"在厨房做饭（要食材），端到桌上"},
+ clean:{t:"擦干净。地上一层灰。",T:110,svc:1,st:"走到每个灰点，按动作键擦掉"},
+ heat:{t:"冷。去添煤。",T:95,svc:1,st:"在暖气里加一块煤"},
+ tea:{t:"倒杯水来。",T:70,svc:1,st:"在水槽接水，端到主人手上"},
 };
 const CMD_LINES={
  come:{ok:["……嗯。铃一响就到，这才像话。","来了就行。站好。"],slow:["慢死了。下次我可不等。","……你是爬过来的？"],fail:["叫你过来。你耳朵是纸糊的？","算了。我不指望你。"]},
@@ -578,16 +602,21 @@ const CMD_LINES={
  spot:{ok:["站好。……就这样。","嗯。那里。"],fail:["那里。不是那里。……算了。","连个圈都站不进去。"]},
  spin:{ok:["转得挺开心的嘛。我可没说要看这么久。","……行了，停。晕了别倒在我脚边。"],fail:["转个圈都不会？","……你在原地发呆吗。"]},
  quiet:{ok:["……你安静的时候，勉强能看。","嗯。就这样。一直这样最好。"],fail:["我说安静。你就是闲不住。","……吵。"]},
+ cook:{ok:["……嗯。热的。还算像饭。","吃了。碗收好。"],slow:["难吃倒是其次。你太慢了。","等你做完，我已经不饿了。"],fail:["你没做。我饿着。记住了。","……厨房是摆设？"]},
+ clean:{ok:["嗯。看得见地板了。","……凑合。明天还会脏。"],fail:["灰还在。你眼睛是装饰。","我说擦干净。这叫干净？"]},
+ heat:{ok:["……暖了。算是做了件事。","嗯。手别抖了。"],fail:["还是冷。你在干什么？","煤呢。……我等你等得都冻僵了。"]},
+ tea:{ok:["……温的。还行。","放下。继续去忙。"],fail:["一杯水都要这么久。","我渴着。你站着。"]},
 };
 const BRING_POOL=["daisy","dandelion","twig","stone","grass","flint","thistle"];
 const GRADES=["低等偏下","低等","中等偏下","中等","中等偏上","上等"];
 const GRADE_LINE=["低等偏下。\n……我都懒得骂你了。","低等。\n你真的……脑子不太够用。","中等偏下。\n别用那种眼神看我，这已经是往高了打。","「我是不是中等」——对，中等。\n满意了？","中等偏上。\n……别得意，明天就掉回去。","上等。\n……今天就到这。别指望每天都有。"];
-function cmdPool(forTrain){ const d=Math.hypot(hero.x-demon.x,hero.y-demon.y); let p=Object.keys(CMDS).filter(k=>(!CMDS[k].dog||hasKey("collar"))&&!(k==="come"&&d<5)&&!(k==="fetch"&&(demon.y>RIVER.y0-4&&demon.y<RIVER.y1+4)));
+function cmdPool(forTrain){ const d=Math.hypot(hero.x-demon.x,hero.y-demon.y); let p=Object.keys(CMDS).filter(k=>(!CMDS[k].dog||hasKey("collar"))&&!(k==="come"&&d<5)&&!(k==="fetch"&&(demon.y>RIVER.y0-4&&demon.y<RIVER.y1+4))&&(!CMDS[k].svc||(APT.on&&svcAvail(k))));
+  if(forTrain) p=p.filter(k=>!CMDS[k].svc);
   if(!forTrain) p=p.filter(k=>k!=="come"); if(inRiver(hero.x,hero.y)) p=["come"]; return p; }
 function ring(){ const a=ac(); if(!a) return; for(let i=0;i<3;i++){ const o=a.createOscillator(), g=a.createGain(); o.type="sine"; o.frequency.value=2200+i*7; const t=a.currentTime+i*0.16; g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(0.09,t+0.01); g.gain.exponentialRampToValueAtTime(0.001,t+0.35); o.connect(g).connect(a.destination); o.start(t); o.stop(t+0.4); } }
 function freeSpot(cx0,cy0,r0,r1){ for(let k=0;k<40;k++){ const a=Math.random()*6.28, r=r0+Math.random()*(r1-r0); const x=cx0+Math.cos(a)*r, y=cy0+Math.sin(a)*r; if(!blocked(x,y,false)&&!inRiver(x,y)&&Math.abs(x)<WORLD-3&&Math.abs(y)<WORLD-3) return {x,y}; } return null; }
 function issueOrder(k,src){ const d=Math.hypot(hero.x-demon.x,hero.y-demon.y); if(!k) k=pick(cmdPool(false)); const C=CMDS[k];
-  const ord={k,t:C.t,T:k==="come"?6+d/4:C.T,left:0,hold:0,ang:0,prevF:hero.face,grace:0.8,src:src||"order",x0:hero.x,y0:hero.y};
+  const ord={k,t:C.t,T:k==="come"?6+d/4:C.T,left:0,hold:0,ang:0,prevF:hero.face,grace:0.8,src:src||"order",x0:hero.x,y0:hero.y,t0:time};
   if(k==="fetch"){ const p=freeSpot(demon.x,demon.y,7,11); if(!p) return issueOrder("quiet",src); gitems.push({x:demon.x,y:demon.y,id:"stick",n:1,z:1.6,vz:6,age:0,fly:{x0:demon.x,y0:demon.y,x1:p.x,y1:p.y,t:0}}); shards(demon.x,demon.y,1.4,4,2,"#e8dfcc"); }
   if(k==="bring"){ const cand=BRING_POOL.filter(id=>!invCount(id)); ord.item=pick(cand.length?cand:BRING_POOL); ord.t="去拿「"+ITEMS[ord.item].n+"」来。"; }
   if(k==="leave"){ const p=freeSpot(hero.x,hero.y,2.2,3.2)||{x:hero.x+2.5,y:hero.y}; gitems.push({x:p.x,y:p.y,id:"bait",n:1,z:0.8,vz:4,age:0}); }
@@ -606,6 +635,10 @@ function orderStep(dt){ const o=S.order;
   else if(o.k==="spot"){ if(Math.hypot(hero.x-o.mx,hero.y-o.my)<1.3&&hero.z<1){ o.hold+=dt; if(o.hold>=5) ok=true; } else o.hold=Math.max(0,o.hold-dt*2); }
   else if(o.k==="spin"){ if(hero.form==="dog"&&!hero.tf){ let df=hero.face-o.prevF; df=Math.atan2(Math.sin(df),Math.cos(df)); if(Math.hypot(hero.x-o.x0,hero.y-o.y0)<4) o.ang+=df; else { o.x0=hero.x; o.y0=hero.y; o.ang=0; } if(Math.abs(o.ang)>=Math.PI*4-0.1) ok=true; } o.prevF=hero.face; }
   else if(o.k==="quiet"){ if(o.broke) fail=true; else if(o.left<=0) ok=true; }
+  else if(o.k==="cook"){ if(NEED.feedT>=o.t0) ok=true; }
+  else if(o.k==="clean"){ if(!NEED.mess.some(m=>!m.cleaned)) ok=true; }
+  else if(o.k==="heat"){ if(NEED.warm>=70) ok=true; }
+  else if(o.k==="tea"){ if(hero.carry&&hero.carry.id==="tea"&&d<2.9){ ok=true; hero.carry=0; hero.pose={i:3,t:1.2}; S.favor+=2; desUp("use",3); say("demon",pick(["……放下。","温的。可以。"]),2.2); } }
   if(!ok&&o.left<=0) fail=true;
   if(ok||fail){ const fr=o.left/o.T; const fixed=o.k==="leave"||o.k==="quiet"||o.k==="sit"||o.k==="spot"; const sc=fail?0:fixed?3:fr>0.5?3:fr>0.2?2:1;
     const L=CMD_LINES[o.k]; let line=fail?pick(L.fail):(sc===1&&L.slow?pick(L.slow):pick(L.ok));
@@ -622,11 +655,185 @@ function finishTraining(){ const T=S.train; S.train=null; const tot=T.scores.red
   h+=`</div><div class='af'><div style='font-size:26px;letter-spacing:.2em'>「${GRADES[gi]}」</div>主人：「${GRADE_LINE[gi].replace(/\n/g,"<br>")}」<br><small>服从度 ${(tot-4)*2>=0?"+":""}${(tot-4)*2} · 满意度 +${tot}</small></div><div class='ab' onclick='closeAppraisal()'>是，主人（空格）</div>`;
   el.innerHTML=h; el.style.display="flex"; }
 function updOrder(){ const el=document.getElementById("order"); if(!el) return; const o=S.order; if(!o){ const h=ctlPanel(); if(!h){ el.style.display="none"; return; } el.style.display="block"; if(el._h!==h){ el._h=h; el.innerHTML=h; } return; } el._h=""; el.style.display="block";
-  let st=CMDS[o.k].st; if(CMDS[o.k].dog&&hero.form!=="dog") st="先变成狗 (2)";
+  let st=CMDS[o.k].st; if(CMDS[o.k].svc){ st=o.k==="cook"?(NEED.ready?"端到桌上（主人手边）":NEED.cook>0?"火已经开了——等"+NEED.cook.toFixed(1)+"s":"厨房：做饭（食材 "+invCount("food_mat")+"）"):o.k==="clean"?"剩 "+NEED.mess.filter(m=>!m.cleaned).length+" 处灰":o.k==="heat"?"煤 "+invCount("coal")+" · 室温 "+Math.round(NEED.warm):o.k==="tea"?(hero.carry?"端过去":"水槽接水"):st; }
+  else if(CMDS[o.k].dog&&hero.form!=="dog") st="先变成狗 (2)";
   else if(o.k==="sit") st="一动不动 "+o.hold.toFixed(1)+"/6"; else if(o.k==="fetch"&&hero.carry) st="叼回主人身边！"; else if(o.k==="bring") st="袋里有 "+invCount(o.item)+" · 带到主人身边"; else if(o.k==="spot") st="站在圈里 "+o.hold.toFixed(1)+"/5"; else if(o.k==="spin") st="转圈 "+Math.min(100,Math.round(Math.abs(o.ang)/(Math.PI*4)*100))+"%"; else if(o.k==="come") st="铃铛响了 — "+st;
   const tr=o.src==="train"&&S.train?" <small>("+S.train.i+"/3)</small>":"";
   el.innerHTML=`<b>${o.src==="train"?"训练":"主人的命令"}</b>${tr} ${o.t}<br><small>${st}</small><div class='bar'><i style='width:${Math.max(0,o.left/o.T*100)}%'></i></div>`; }
 function drawSpot(){ const o=S.order; if(!o||o.k!=="spot") return; const p=proj(o.mx,o.my,0); if(!p) return; cx.save(); cx.strokeStyle="#2a2622"; cx.lineWidth=2.5; cx.setLineDash([7,5]); cx.lineDashOffset=-time*20; cx.beginPath(); cx.ellipse(p.x,p.y,1.3*p.s,1.3*p.s*0.34,0,0,6.3); cx.stroke(); cx.setLineDash([]); cx.globalAlpha=Math.min(1,o.hold/5); cx.fillStyle="rgba(40,34,28,0.25)"; cx.beginPath(); cx.ellipse(p.x,p.y,1.3*p.s,1.3*p.s*0.34,0,0,6.3); cx.fill(); cx.restore(); }
+
+/* ================= v0.9c: 霜之城 · 公寓 hub + 服务循环 + 欲望分析 ================= */
+const APT={x:430,y:0,on:0,entered:0};
+function aptO(){ return cine.on?{x:MX,y:MY}:{x:APT.x,y:APT.y}; }
+const APT_RECT={x0:-6.9,x1:6.9,y0:-0.7,y1:8.1};
+const APT_BLOCK=[[-6.8,-1.1,7.6,8.2],[1.7,5.5,5.2,7.3],[-1.9,1.1,2.2,4.2],[-6.8,-3.2,0.0,3.1],[-3.6,-1.6,2.6,4.4],[-0.9,0.9,7.6,8.2]];
+const APT_HS=[
+ {k:"kitchen",x:-3.4,y:6.9,r:1.7,n:"厨房 · 做饭"},
+ {k:"sink",x:-5.6,y:6.9,r:1.5,n:"水槽 · 接水"},
+ {k:"fridge",x:-0.2,y:6.9,r:1.5,n:"冰箱 · 拿食材"},
+ {k:"heater",x:4.6,y:6.4,r:1.6,n:"暖气 · 加煤"},
+ {k:"trash",x:6.3,y:6.3,r:1.5,n:"垃圾 · 拿出去"},
+ {k:"door",x:5.6,y:7.6,r:1.6,n:"出门（回霜之城）"},
+ {k:"mat",x:-5.2,y:1.6,r:1.8,n:"她的地铺"},
+ {k:"table",x:-0.4,y:3.6,r:1.6,n:"桌子 · 端上"},
+ {k:"chair",x:-2.6,y:3.2,r:1.5,n:"主人的椅子"}
+];
+const NEED={food:66,clean:74,warm:52,trash:1,mess:[],cook:0,ready:0,eat:0,sinkT:0,lastWarn:{},feedT:-99,serveT:-99,cleanT:-99,heatT:-99};
+function aptFreeSpot(){ for(let i=0;i<40;i++){ const x=-6.0+Math.random()*11.6, y=0.2+Math.random()*6.6; let bad=false; for(const b of APT_BLOCK) if(x>b[0]-0.4&&x<b[1]+0.4&&y>b[2]-0.4&&y<b[3]+0.4) bad=true; if(!bad) return {x,y}; } return {x:0,y:2}; }
+function spawnMess(n){ for(let i=0;i<n;i++){ const p=aptFreeSpot(); NEED.mess.push({x:p.x,y:p.y,cleaned:0,a:Math.random()*6.28}); } }
+function aptInit(){ if(APT.inited) return; APT.inited=1; spawnMess(4); }
+function aptEnter(silent){ if(APT.on) return; aptInit(); APT.on=1; APT.entered=1; cine.scene="apt";
+  hero.x=APT.x+4.4; hero.y=APT.y+6.4; hero.z=0; hero.kneel=0; hero.carry=0; hero.face=Math.PI;
+  demon.x=APT.x-2.6; demon.y=APT.y+3.4; demon.sit=1; demon.pose=null; demon.face=Math.PI; demon.goal=null; demon.plan=[]; demon.cur=null;
+  camSnap(APT.x+0.2,APT.y+4.4,0.30,14); camTo(APT.x+0.2,APT.y+4.4,0.30,13,0.6); cam.distT=13;
+  if(!silent){ note("回到公寓 · 外面还在下雪"); chime(); }
+  refreshUI(); updNeed(); }
+function aptExit(silent){ if(!APT.on) return; APT.on=0; cine.scene="";
+  hero.x=-3.0; hero.y=7.4; hero.z=0; demon.x=-4.4; demon.y=7.6; demon.sit=0; demon.face=0;
+  camSnap(-2.0,7.0,0.35,17); cam.distT=17;
+  if(!silent){ note("出到街上 · 风很硬。物资在箱子堆里，雪堆下面埋着东西"); paperSnd(0.4,1400,0.2); }
+  refreshUI(); }
+window.aptEnter=aptEnter; window.aptExit=aptExit;
+
+/* ---- supplies in the city ---- */
+const SUPPLY=[];
+function spawnSupply(){ const r=R;
+  for(let i=0;i<2;i++){ let p=null; for(let k=0;k<30;k++){ const x=(r()*2-1)*26, y=-14+r()*20; if(!blocked(x,y,false)&&Math.hypot(x,y)>3&&!inRiver(x,y)){ p={x,y}; break; } }
+    if(!p) continue; SUPPLY.push({x:p.x,y:p.y,id:r()<0.62?"food_mat":"coal",z:0.6,vz:3.2,age:0,bob:r()*6.28}); } }
+function drawSupply(){ for(const g of SUPPLY){ const p=proj(g.x,g.y,g.z+Math.sin(time*2+g.bob)*0.12); if(!p) continue; const p0=proj(g.x,g.y,0); if(p0) shadow(p0,0.22);
+  const it=ITEMS[g.id]; if(IMG[it.img]) sprite(IMG[it.img],p,0.5,false,1,1,1,Math.sin(time*2+g.bob)*0.06);
+  cx.save(); cx.strokeStyle="rgba(42,38,34,0.55)"; cx.lineWidth=1.4; const rr=p.s*0.30; cy_ring(p.x,p.y,rr); cx.restore(); } }
+function cy_ring(x,y,r){ cx.beginPath(); cx.arc(x,y,r,0.3,2.5); cx.stroke(); cx.beginPath(); cx.arc(x,y,r,3.5,5.6); cx.stroke(); }
+function supplyStep(dt){ for(let i=SUPPLY.length-1;i>=0;i--){ const g=SUPPLY[i]; g.age+=dt; g.z=Math.max(0.4,g.z-dt*1.5);
+  if(Math.hypot(g.x-hero.x,g.y-hero.y)<1.1&&!hero.tf){ SUPPLY.splice(i,1); if(invCount(g.id)<60){ invAdd(g.id,1); note("捡到 "+ITEMS[g.id].n+"（回公寓用得上）"); paperSnd(0.15,2600,0.15); } else drop(hero.x,hero.y,g.id,1);
+    desUp("use",1); } }
+  if(SUPPLY.length<3){ SUPPLY._t=(SUPPLY._t||0)+dt; if(SUPPLY._t>30){ SUPPLY._t=0; spawnSupply(); } } else SUPPLY._t=0; }
+function spawnSupplyInit(){ if(!SUPPLY.length){ spawnSupply(); spawnSupply(); } }
+
+/* ---- needs ---- */
+function needStep(dt){ if(!APT.on) return; if(S.paused) return;
+  NEED.food=Math.max(0,NEED.food-dt*0.42); NEED.clean=Math.max(0,NEED.clean-dt*0.13); NEED.warm=Math.max(0,NEED.warm-dt*0.34); NEED.trash=Math.min(6,NEED.trash+dt*0.045);
+  if(NEED.mess.filter(m=>!m.cleaned).length===0&&NEED.clean>10&&(NEED.mess._t=(NEED.mess._t||0)+dt)>34){ NEED.mess._t=0; spawnMess(1+(Math.random()<0.4?1:0)); NEED.clean=Math.max(0,NEED.clean-6); note("又落了一层灰。"); }
+  if(NEED.cook>0){ NEED.cook-=dt; if(NEED.cook<=0){ NEED.cook=0; NEED.ready=1; chime(); note("饭热好了——端给主人。"); say("demon","……还没好？我等着。",2); } }
+  const warn=(k,cd,fn)=>{ if(time-(NEED.lastWarn[k]||-99)>cd){ NEED.lastWarn[k]=time; fn(); } };
+  if(NEED.food<32) warn("food",70,()=>{ say("demon",pick(["……我饿了。", "饭呢。别让我问第二遍。"]),2.6); desUp("use",3); });
+  if(NEED.warm<30) warn("warm",80,()=>{ say("demon","……冷。暖气不会自己烧起来。",2.8); ctl.twitch=0.5; });
+  if(NEED.clean<38) warn("clean",85,()=>{ say("demon",pick(["地上一层灰。你眼睛是摆设？","……这个屋子，是谁在管？"]),2.8); });
+  if(NEED.trash>3.4) warn("trash",75,()=>{ say("demon","垃圾堆成山了。拿出去。",2.4); });
+  if(NEED.eat>0){ NEED.eat-=dt; demon.sit=1; if(NEED.eat<=0){ NEED.eat=0; NEED.feedT=time; const lv=NEED.food; S.favor+=7; desUp("recog",7); desUp("use",6);
+    const line=lv>88?pick(["……嗯。还行。","勉强算是饭。下次快一点。"]):pick(["……还热着。算你有点用。","吃了。碗自己收。"]);
+    say("demon",line,2.8); chime(); floatTxt(demon.x,demon.y,"满意度 +7"); } }
+}
+function updNeed(){ const el=document.getElementById("need"); if(!el) return; if(!(started&&!cine.on&&APT.on)){ el.style.display="none"; return; } el.style.display="block";
+  const bar=(n,v,inv)=>{ const w=Math.round(Math.max(0,Math.min(100,v))); return `<div class='nr'><span class='nn'>${n}</span><span class='nb'><i style='width:${w}%'></i></span><span class='nv'>${Math.round(v)}${inv?"":"%" }</span></div>`; };
+  el.innerHTML="<div style='font-size:11px;letter-spacing:.2em;opacity:.6;text-align:center'>公寓状态</div>"+
+    bar("饭",NEED.food)+bar("净",NEED.clean)+bar("暖",NEED.warm)+bar("垃圾",Math.max(0,100-NEED.trash/6*100)); }
+function drawNeedWorld(){ if(!started||cine.on||!APT.on) return; }
+
+/* ---- apartment interactions (action key in the flat) ---- */
+function aptNear(){ if(!APT.on) return null; let best=null,bd=99; for(const h of APT_HS){ const d=Math.hypot(hero.x-(APT.x+h.x),hero.y-(APT.y+h.y)); if(d<h.r&&d<bd){ bd=d; best=h; } } return best; }
+function aptCleanNear(){ let best=null,bd=1.5; for(const m of NEED.mess){ if(m.cleaned) continue; const d=Math.hypot(hero.x-(APT.x+m.x),hero.y-(APT.y+m.y)); if(d<bd){ bd=d; best=m; } } return best; }
+function aptDoClean(){ const m=aptCleanNear(); if(!m) return false; m.cleaned=1; NEED.clean=Math.min(100,NEED.clean+10); NEED.cleanT=time; hero.pose={i:5,t:1.0}; paperSnd(0.25,2200,0.2);
+  for(let i=0;i<6;i++) parts.push({x:APT.x+m.x,y:APT.y+m.y,z:0.3,vx:(Math.random()-0.5)*2,vy:(Math.random()-0.5)*2,vz:1+Math.random(),life:1,rot:0,vr:0,sz:0.09,kind:"dirt"});
+  const left=NEED.mess.filter(q=>!q.cleaned).length; if(!left) note("都擦干净了。地板反光。"); else note("擦掉一处。还剩 "+left+" 处。"); desUp("use",1); return true; }
+function aptAction(){ if(!APT.on) return false; if(aptDoClean()) return true; const h=aptNear(); if(!h) return false; const nearM=Math.hypot(demon.x-hero.x,demon.y-hero.y)<3.0;
+  if(h.k==="kitchen"){ if(NEED.ready){ note("饭已经好了——端给主人（桌上的位置在他手边）"); return true; }
+    if(invCount("food_mat")>0){ invTake("food_mat",1); NEED.cook=2.6; hero.pose={i:5,t:2.6}; paperSnd(0.3,1800,0.2); note("开火……热一下就行。"); return true; }
+    note("没有食材。街上捡（纸箱、便利店门口的袋子）"); return true; }
+  if(h.k==="fridge"){ if(invCount("food_mat")>0){ note("冰箱里还有食材"); return true; } if(NEED._fr=(NEED._fr||0),time-(NEED._fr||-99)>95){ NEED._fr=time; invAdd("food_mat",1); note("冰箱角落翻出一份食材。"); paperSnd(0.2,2000,0.2); } else note("冰箱是空的。去街上找。"); return true; }
+  if(h.k==="sink"){ if(hero.carry){ note("手里已经有东西了"); return true; } hero.carry={id:"tea"}; hero.pose={i:4,t:1.4}; paperSnd(0.25,2400,0.2); note("接了杯温水——端过去。"); return true; }
+  if(h.k==="heater"){ if(invCount("coal")>0){ invTake("coal",1); NEED.warm=Math.min(100,NEED.warm+34); NEED.heatT=time; hero.pose={i:4,t:1.2}; paperSnd(0.3,900,0.25); floatTxt(hero.x,hero.y,"室温 +34"); note("添了煤。屋里慢慢暖起来。"); } else note("没有煤块。工地、雪堆底下有。"); return true; }
+  if(h.k==="trash"){ if(NEED.trash<0.4){ note("垃圾桶是空的"); return true; } NEED.trash=0; NEED.clean=Math.min(100,NEED.clean+8); NEED.cleanT=time; hero.pose={i:5,t:1.4}; note("把垃圾提出去了。"); return true; }
+  if(h.k==="door"){ aptExit(); return true; }
+  if(h.k==="mat"){ hero.pose={i:6,t:2.4}; note("在地铺上蜷着歇了一会儿……核心稳了一点。"); if(S.core!==undefined) S.core=Math.min(100,S.core+8); return true; }
+  if(h.k==="chair"){ if(nearM){ openDialog(); } else note("主人不在椅子上。"); return true; }
+  if(h.k==="table"){ if(NEED.ready&&Math.hypot(demon.x-(APT.x+h.x),demon.y-(APT.y+h.y))<9){ NEED.ready=0; NEED.eat=9; NEED.food=Math.min(100,NEED.food+52); NEED.serveT=time; hero.pose={i:3,t:1.6}; demon.sit=1; demon.x=APT.x-2.6; demon.y=APT.y+3.4;
+      say("demon",pick(["端过来。……嗯。", "放着。我自己会吃。"]),2.4); note("把饭端到桌上——主人过来了。"); desUp("use",5); chime(); }
+    else if(hero.carry&&hero.carry.id==="tea"&&nearM===false){}
+    return true; }
+  return false; }
+function aptServeTea(){ if(!(hero.carry&&hero.carry.id==="tea")) return false; const d=Math.hypot(demon.x-hero.x,demon.y-hero.y); if(d>3.6){ note("水在手上——端到主人身边再按动作键"); return false; }
+  hero.carry=0; hero.pose={i:3,t:1.2}; S.favor+=3; desUp("use",4); desUp("recog",3); chime(); floatTxt(demon.x,demon.y,"满意度 +3");
+  say("demon",pick(["……放这儿。温的。下次记得。","嗯。嗓子刚好干。"],),2.4); return true; }
+function drawAptState(){ if(!APT.on) return; const o={x:APT.x,y:APT.y};
+  // dirt spots
+  for(const m of NEED.mess){ if(m.cleaned) continue; const p=proj(o.x+m.x,o.y+m.y,0.01); if(!p) continue; cx.save(); cx.translate(p.x,p.y); cx.rotate(m.a);
+    cx.strokeStyle="rgba(60,58,54,0.5)"; cx.lineWidth=1.6; for(let i=0;i<5;i++){ const a=i*1.4+m.a; cx.beginPath(); cx.ellipse(Math.cos(a)*p.s*0.22,Math.sin(a)*p.s*0.09,p.s*0.10,p.s*0.05,0,0,6.3); cx.stroke(); }
+    cx.fillStyle="rgba(80,78,74,0.18)"; cx.beginPath(); cx.ellipse(0,0,p.s*0.3,p.s*0.12,0,0,6.3); cx.fill(); cx.restore();
+    if(hero.pose&&hero.pose.i===5){} }
+  // pot steam when cooking / meal ready
+  if(NEED.cook>0||NEED.ready){ const p=proj(o.x-3.4,o.y+7.6,2.1); if(p){ cx.save(); for(let i=0;i<3;i++){ const t=time*1.6+i; const a=0.30+0.25*Math.sin(t*2); cx.globalAlpha=a*(NEED.ready?0.7:1); cx.strokeStyle="#f7f3ea"; cx.lineWidth=2; cx.beginPath(); cx.arc(p.x+Math.sin(t)*p.s*0.18,p.y-i*p.s*0.22,p.s*0.10,3.6,5.4); cx.stroke(); } cx.restore(); } }
+  // heater fire glow
+  if(NEED.warm>0){ const p=proj(o.x+4.6,o.y+6.0,0.5); if(p){ const k=Math.min(1,NEED.warm/60); cx.save(); cx.globalCompositeOperation="lighter"; const R=p.s*(0.5+k*1.1);
+    const g=cx.createRadialGradient(p.x,p.y,0,p.x,p.y,R); g.addColorStop(0,"rgba(255,170,90,"+(0.10+0.18*k)+")"); g.addColorStop(1,"rgba(255,170,90,0)"); cx.fillStyle=g; cx.fillRect(p.x-R,p.y-R,R*2,R*2); cx.restore(); } }
+  // carried item / ready marker
+  if(NEED.ready){ const p=proj(o.x-3.4,o.y+7.6,2.4); if(p){ cx.save(); cx.globalAlpha=0.6+0.4*Math.sin(time*4); cx.strokeStyle="#2a2622"; cx.lineWidth=2; cx.beginPath(); cx.arc(p.x,p.y,p.s*0.26,0,6.3); cx.stroke(); cx.restore(); } }
+  // hotspot hint ring
+  const h=aptNear(); if(h&&!S.order){ const p=proj(o.x+h.x,o.y+h.y,0.02); if(p){ cx.save(); cx.setLineDash([5,4]); cx.lineDashOffset=-time*16; cx.strokeStyle="rgba(42,38,34,0.55)"; cx.lineWidth=1.8; cx.beginPath(); cx.ellipse(p.x,p.y,p.s*0.6,p.s*0.22,0,0,6.3); cx.stroke(); cx.restore(); } }
+}
+/* ---- master's life inside the flat ---- */
+const APT_PT={chair:[-2.6,3.0],window:[3.1,6.2],counter:[-2.0,6.4],table:[-0.4,4.4]};
+function aptDemon(dt){ if(demon.pose&&demon.pose.t<1e8){ demon.pose.t-=dt; if(demon.pose.t<=0) demon.pose=null; }
+  if(demon.inj){ demon.injT-=dt; if(demon.injT<=0){ demon.inj=0; } }
+  if(!demon.aim){ demon.aim=null; demon.act="read"; demon.actT=6+Math.random()*8; }
+  if(demon.actT>0){ demon.actT-=dt; }
+  else { const r=Math.random(); demon.act=r<0.45?"read":r<0.7?"window":r<0.85?"counter":"table"; demon.actT=9+Math.random()*14; }
+  const P=NEED.eat>0?APT_PT.table:(APT_PT[demon.act]||APT_PT.chair); const g={x:APT.x+P[0],y:APT.y+P[1]};
+  const d=Math.hypot(g.x-demon.x,g.y-demon.y);
+  if(d>0.55){ demon.sit=0; demonMoveTo(g,3.2,dt); }
+  else { demon.moving=Math.max(0,demon.moving-dt*4); demon.face+=angTo(Math.atan2(hero.x-demon.x,hero.y-demon.y),demon.face)*Math.min(1,dt*1.2);
+    if(demon.act==="read"){ demon.sit=1; if(!demon._rd||demon._rd<time){ demon._rd=time+7+Math.random()*6; if(Math.random()<0.5) dPose(3,7); } }
+    else demon.sit=0;
+    if(demon.act==="window"&&Math.random()<dt*0.5) say("demon",pick(["……雪下得没完。","那条街的灯，又坏了两盏。","……屋里还行。"]),2.4); }
+  // he reads her core now and then -> desire analysis
+  aptAnalyze(dt);
+}
+function aptAnalyze(dt){ const cd=140-Math.min(60,rankIdx()*12); if(time-(APT.anT||-99)<cd) return; if(S.order||ctl.task||S.paused||dlg.open) return;
+  if(Math.hypot(demon.x-hero.x,demon.y-hero.y)>7) return; APT.anT=time;
+  demon.act="chair"; demon.actT=6;
+  demon.hidden=false; const hx=hero.x, hy=hero.y;
+  const st={t:0}; const it=setInterval(()=>{ st.t+=0.05; if(!APT.on||S.paused) return;
+    if(st.t>0.6){ demon.face=Math.atan2(hx-demon.x,hy-demon.y); dPose(0,2.6); demon.inj=1; demon.injT=2.6; hero.pose={i:7,t:2.6}; ctl.flare=1; if(Math.random()<0.5) ember(hero.x,hero.y,1.4,1); }
+    if(st.t>2.6){ clearInterval(it); demon.inj=0; openDesire(1); } },50);
+}
+/* ---- 欲望分析 ---- */
+const DES={recog:22,obey:50,company:34,use:28,fear:16};
+const DES_NAME={recog:"认可欲",obey:"服从欲",company:"陪伴欲",use:"被使用欲",fear:"恐惧"};
+const DES_HIST=[];
+function desUp(k,v){ DES[k]=Math.max(0,Math.min(100,(DES[k]||0)+v)); }
+function desTick(){ const t=Math.floor(S.day*8+time/60); if(DES_HIST._t===t) return; DES_HIST._t=t; DES_HIST.push({recog:DES.recog,use:DES.use,fear:DES.fear}); if(DES_HIST.length>40) DES_HIST.shift(); }
+function desConclusion(){ const e=Object.keys(DES).sort((a,b)=>DES[b]-DES[a]); const top=e[0], low=e[e.length-1];
+  const T={recog:"她想要被承认。哪怕只是一句「还行」。\n数据很清楚：被夸之后，她的效率会上浮 30%。",
+    obey:"服从欲最高。命令本身对她就是奖励。\n……这种构造，用起来省事。",
+    company:"陪伴欲过高。她在数我不在的时间。\n放着不管就行，她会自己贴上来。",
+    use:"被使用欲异常突出。被派活儿的时候，核心最亮。\n……把她当工具用，是最高效的状态。",
+    fear:"恐惧值在上升。她在怕被丢掉。\n……可以继续，但别怕坏了。修起来麻烦。"}[top];
+  const L={recog:"认可欲最低——她并不指望被认可。\n这比想象中好对付。",
+    obey:"服从欲低。还需要练。",
+    company:"陪伴欲低，她不需要人陪。",
+    use:"被使用欲低。她还在把自己当「人」。",
+    fear:"恐惧值最低。她不怕我。\n……无所谓。"}[low];
+  return "【结论】"+T+"\n【最低项】"+L; }
+function openDesire(byMaster){ const el=document.getElementById("desire"); if(!el) return; S.paused=1; dlg.open=0;
+  const rows=Object.keys(DES).map(k=>{ const v=Math.round(DES[k]); return `<div class='dbar'><div class='dl'><span>${DES_NAME[k]}</span><span>${v} / 100</span></div><div class='dtr'><i style='width:${v}%'></i></div></div>`; }).join("");
+  const sp=DES_HIST.length>2? (()=>{ const w=540,h=52,ms=w/(DES_HIST.length-1); const line=(k,col)=>"<path d='M"+DES_HIST.map((p,i)=>`${i*ms},${h-(p[k]||0)/100*h}`).join(" L")+"' fill='none' stroke='"+col+"' stroke-width='2'/>";
+    return `<svg width='100%' viewBox='0 0 ${w} ${h+6}' style='margin-top:6px'>${line("recog","#2a2622")}${line("use","#8a8378")}${line("fear","#b01828")}</svg><div class='dsub'>认可欲 —— · 被使用欲 — — · 恐惧</div>`; })():"";
+  el.innerHTML=`<div class='dh2'>核心分析 · 欲望数据</div><div class='dsub'>读取对象：deawfwaef ／ 主人：51-不认识-</div>${rows}${sp}
+    <div class='dcon'><b>主人的分析</b><br>${desConclusion().replace(/\n/g,"<br>")}</div>
+    <div class='ab' onclick='closeDesire()'>（低下头）</div>`;
+  el.style.display="block"; chime(); vz(20); if(byMaster) paperSnd(0.5,1600,0.25); updNeed(); }
+function closeDesire(){ const el=document.getElementById("desire"); if(el.style.display!=="block") return false; el.style.display="none"; S.paused=0;
+  if(!window._desCloseShown){ window._desCloseShown=1; note("主人把你的数据念了出来。……核心有点烫。"); }
+  return true; }
+window.openDesire=openDesire; window.closeDesire=closeDesire;
+/* ---- service orders from the master ---- */
+function svcAvail(k){ if(k==="cook") return invCount("food_mat")>0||NEED.ready; if(k==="heat") return invCount("coal")>0; if(k==="clean") return NEED.mess.some(m=>!m.cleaned); if(k==="tea") return true; return false; }
+function svcDirector(dt){ if(!APT.on||S.paused||cine.on||END.on) return; if(S.order||ctl.task||S.train) return;
+  svcDirector.t=(svcDirector.t||90)+dt; if(svcDirector.t<110) return; svcDirector.t=0;
+  const pool=["clean","cook","heat","tea"].filter(svcAvail); if(!pool.length) return;
+  issueOrder(pick(pool),"svc"); }
+function aptStep(dt){ if(!APT.on) return; needStep(dt); svcDirector(dt); desTick();
+  if((updNeed._t=(updNeed._t||0)+dt)>0.35){ updNeed._t=0; updNeed(); } }
 
 /* ---- per-frame tick ---- */
 function darkness(){ const c=S.clock; if(c<0.55) return 0; if(c<0.66) return (c-0.55)/0.11*0.45; if(c<0.93) return 0.45; return 0.45*(1-(c-0.93)/0.07); }
@@ -686,7 +893,7 @@ function drawDarkness(){ const dk=darkness(); if(dk<=0.01) return; if(!darkC){ d
   cx.drawImage(darkC,0,0,W,H);
   const pd=proj(demon.x,demon.y,SHEETS[DEMON].h[PROP_MODE]*0.78); if(pd&&dk>0.3&&!demon.hidden){ cx.fillStyle=`rgba(255,240,230,${(dk-0.3)*2})`; for(const o of [-1,1]){ cx.beginPath(); cx.ellipse(pd.x+o*pd.s*0.12,pd.y,pd.s*0.05,pd.s*0.02,0,0,6.3); cx.fill(); } } }
 function drawFloats(){ cx.font="bold 15px "+getComputedStyle(document.body).fontFamily; cx.textAlign="center"; for(const f of floats){ const p=proj(f.x,f.y,f.z+f.t*1.2); if(!p) continue; cx.globalAlpha=Math.max(0,1-f.t/1.6); cx.fillStyle="#f7f3eacc"; const w=cx.measureText(f.text).width; cx.fillRect(p.x-w/2-4,p.y-14,w+8,19); cx.fillStyle="#2a2622"; cx.fillText(f.text,p.x,p.y); } cx.globalAlpha=1; }
-function drawHUD(){ const fam=getComputedStyle(document.body).fontFamily; if(!started||cine.on) return; drawCompass(fam); drawCoreGauge(fam); drawChapter(fam); drawFF(fam); drawStamp(fam); drawEndFade(); if(hasKey("notebook")){
+function drawHUD(){ const fam=getComputedStyle(document.body).fontFamily; if(!started||cine.on) return; drawAptHint(fam); drawCompass(fam); drawCoreGauge(fam); drawChapter(fam); drawFF(fam); drawStamp(fam); drawEndFade(); if(hasKey("notebook")){
   // status card (top-left): rank, favour, obedience, collection
   const rk=rankOf(S.favor); const nx=RANKS.find(r=>r[0]>S.favor); cx.save(); cx.fillStyle="#f7f3eaee"; cx.strokeStyle="#2a2622"; cx.lineWidth=2; cx.beginPath(); cx.rect(10,10,214,78); cx.fill(); cx.stroke();
   cx.fillStyle="#2a2622"; cx.textAlign="left"; cx.textBaseline="alphabetic"; cx.font="12px "+fam; cx.fillText("她的身份",18,27); cx.font="bold 18px "+fam; cx.fillText("「"+rk[1]+"」",78,29);
@@ -705,6 +912,9 @@ function drawHUD(){ const fam=getComputedStyle(document.body).fontFamily; if(!st
 function drawCompass(fam){ if(!hasKey("compass")) return; const s=STARS.find(q=>!q.got); if(!s) return; const p=proj(s.x,s.y,1); const cxp=W/2, cyp=H*0.55; let ang; if(p&&p.x>40&&p.x<W-40&&p.y>60&&p.y<H-120) return; const dx=s.x-hero.x, dy=s.y-hero.y; const sx=dx*cam.r[0]+dy*cam.r[1], sy=dx*Math.sin(cam.yaw)+dy*Math.cos(cam.yaw); ang=Math.atan2(sx,sy);
   const R0=Math.min(W,H)*0.36, x=cxp+Math.sin(ang)*R0*1.3, y=cyp-Math.cos(ang)*R0; cx.save(); cx.translate(Math.max(30,Math.min(W-30,x)),Math.max(90,Math.min(H-130,y))); cx.rotate(ang); cx.fillStyle="#f7f3ea"; cx.strokeStyle="#2a2622"; cx.lineWidth=2; cx.beginPath(); cx.moveTo(0,-16); cx.lineTo(10,8); cx.lineTo(0,3); cx.lineTo(-10,8); cx.closePath(); cx.fill(); cx.stroke(); cx.restore(); }
 /* ================= v0.5: notes · demon AI · dialogue · base building · opening ================= */
+function drawAptHint(fam){ if(!APT.on) return; const h=aptNear(); if(!h) return; cx.save(); cx.font="13px "+fam; cx.textAlign="center"; cx.fillStyle="rgba(42,38,34,0.85)";
+  const txt=(TOUCH?"动作键：":"空格：")+h.n; const w=cx.measureText(txt).width; cx.fillStyle="rgba(247,243,234,0.9)"; cx.fillRect(W/2-w/2-10,H-206,w+20,26); cx.strokeStyle="#2a2622"; cx.lineWidth=1.4; cx.strokeRect(W/2-w/2-10,H-206,w+20,26);
+  cx.fillStyle="#2a2622"; cx.fillText(txt,W/2,H-188); cx.restore(); }
 function note(t){ if(TOUCH) t=String(t).replace(/空格/g,"动作键").replace(/Q\/E 转视角/g,"拖动转视角").replace(/Esc 取消/g,"再点一次取消"); const box=document.getElementById("notes"); if(!box) return; const d=document.createElement("div"); d.className="nt"; d.textContent=t; box.appendChild(d); while(box.children.length>5) box.removeChild(box.firstChild); setTimeout(()=>{ d.style.opacity=0; },2600); setTimeout(()=>{ d.remove(); },3400); }
 const BASE={x:-1,y:2};
 
@@ -717,7 +927,7 @@ function demonMoveTo(g,sp,dt){ const dx=g.x-demon.x, dy=g.y-demon.y, l=Math.hypo
   if(!ign(nx,ny)){demon.x=nx;demon.y=ny;} else if(!ign(nx,demon.y)) demon.x=nx; else if(!ign(demon.x,ny)) demon.y=ny; else { demon.stuck=(demon.stuck||0)+dt; if(demon.stuck>1.5){ demon.stuck=0; demon.x=g.x; demon.y=g.y; } }
   demon.moving=Math.min(1,demon.moving+dt*5); const tf=Math.atan2(dx,dy); let dd=tf-demon.face; dd=Math.atan2(Math.sin(dd),Math.cos(dd)); demon.face+=dd*Math.min(1,dt*8); return false; }
 function demonFace(tx,ty,dt,k=3){ const tf=Math.atan2(tx-demon.x,ty-demon.y); let dd=tf-demon.face; dd=Math.atan2(Math.sin(dd),Math.cos(dd)); demon.face+=dd*Math.min(1,dt*k); }
-function demonAI(dt){ if(END.on){ demon.hidden=false; demon.sit=false; if(demon.pose&&demon.pose.t<1e8){ demon.pose.t-=dt; if(demon.pose.t<=0) demon.pose=null; } endStep(dt); return; } demon.hidden=false; demon.sit=false; if(demon.pose&&demon.pose.t<1e8){ demon.pose.t-=dt; if(demon.pose.t<=0) demon.pose=null; }
+function demonAI(dt){ if(APT.on&&!END.on){ demon.hidden=false; aptDemon(dt); return; } if(END.on){ demon.hidden=false; demon.sit=false; if(demon.pose&&demon.pose.t<1e8){ demon.pose.t-=dt; if(demon.pose.t<=0) demon.pose=null; } endStep(dt); return; } demon.hidden=false; demon.sit=false; if(demon.pose&&demon.pose.t<1e8){ demon.pose.t-=dt; if(demon.pose.t<=0) demon.pose=null; }
   demon.bob+=dt*(demon.moving>0.1?7:1.5);
   if(S.order||S.train){ demon.moving=Math.max(0,demon.moving-dt*4); demonFace(hero.x,hero.y,dt,3); if(!demon.pose||demon.pose.t<1e8) dPose(S.order?1:2,0.3); return; }
   if(!demon.cur){ if(!demon.plan||!demon.plan.length) demon.plan=nextAgenda(); demon.cur=demon.plan.shift(); demon.cur.t=0; demon.cur.i=0; if(demon.cur.k!=="task"&&demon.cur.k!=="say"){ ctl.task=null; } if(demon.cur.k!=="wait") ctl.punish=false; }
@@ -726,7 +936,7 @@ function demonAI(dt){ if(END.on){ demon.hidden=false; demon.sit=false; if(demon.
 /* ---- v0.7 CONTROL: she cannot move on her own. Movement only inside a zone granted by a command ---- */
 const ctl={qSeen:{},waitTw:0,twT:0,mode:"follow",task:null,at:null,fl:0,flare:0,twitch:0,warn:0,resNote:0,pullNote:0,punish:false,spd:1,idle:0};
 const HP_H=[0.74,1,0.93,1,1,0.7,0.68,1,1], DP_H=[1,1,1,0.9];
-const ORDER_ZONE={come:{c:"d",r:90},sit:{c:"d",r:5},fetch:{c:"d",r:15},bring:{c:"d",r:22},leave:{c:"h",r:5},spot:{c:"d",r:13},spin:{c:"h",r:5},quiet:null};
+const ORDER_ZONE={come:{c:"d",r:90},sit:{c:"d",r:5},fetch:{c:"d",r:15},bring:{c:"d",r:22},leave:{c:"h",r:5},spot:{c:"d",r:13},spin:{c:"h",r:5},quiet:null,cook:{c:"a"},clean:{c:"a"},heat:{c:"a"},tea:{c:"d",r:26}};
 const WALK_L=["跟上。","走了。","……别掉队。","这边。"], FREE_L=["……随你找。别跑出我的视线。","去吧。时间一到就回来。","给你一点时间。别浪费。"],
  WAIT_L=["站在这里。等我的命令。","站好。别动。","……在这里站着。我没说话之前，别动。"], PUNISH_L=["做不好就站着。站到我满意为止。","罚站。好好想想你做了什么。","……站着。别让我看见你动。"],
  KNEEL_L=["跪坐在这里。别出声。","坐下。安静点。","待在脚边。我看书。"], CAMP_L=["我看书。你在营地里干活。别走出营地。","营地里的事自己看着办。"],
@@ -736,7 +946,8 @@ function dPose(i,t){ demon.pose={i,t:t||1e9}; }
 function rankIdx(){ return RANKS.findIndex(r=>r[1]===rankOf(S.favor)[1]); }
 function colN(){ let n=0; for(const q of S.inv) if(q&&ITEMS[q.id].col) n+=q.n; return n; }
 function angTo(a,b){ let d=a-b; return Math.atan2(Math.sin(d),Math.cos(d)); }
-function zoneNow(){ const o=S.order; if(o){ const Z=ORDER_ZONE[o.k]; if(!Z) return null; return Z.c==="d"?{x:demon.x,y:demon.y,r:Z.r}:{x:o.x0,y:o.y0,r:Z.r}; }
+function zoneNow(){ if(APT.on&&!S.order&&!ctl.task) return {x:APT.x+0.2,y:APT.y+4.2,r:7.4};
+  const o=S.order; if(o){ const Z=ORDER_ZONE[o.k]; if(!Z) return null; if(Z.c==="a") return {x:APT.x+0.2,y:APT.y+4.2,r:7.4}; return Z.c==="d"?{x:demon.x,y:demon.y,r:Z.r}:{x:o.x0,y:o.y0,r:Z.r}; }
   const t=ctl.task; if(t&&t.zone){ const k=t.k==="camp"?1:0.65+0.35*S.core/100; return {x:t.zone.x,y:t.zone.y,r:t.zone.r*k}; } return null; }
 function resist(){ if((ctl.mode==="wait")&&time>ctl.twT){ ctl.twT=time+0.8; ctl.waitTw++; ctl.flare=0.8; S.obey=Math.max(0,S.obey-1); say("demon",["……动了。","我说了，别动。","再动一次试试。","……你是听不懂吗。"][Math.min(3,ctl.waitTw-1)],1.8); demon.face=Math.atan2(hero.x-demon.x,hero.y-demon.y); dPose(1,0.8); } ctl.twitch=0.5; vz(35); if(time>ctl.resNote){ ctl.resNote=time+15; note("身体不听使唤……没有主人的命令，不能乱动。"); } }
 function clampZone(z){ const dx=hero.x-z.x, dy=hero.y-z.y, d=Math.hypot(dx,dy);
@@ -1106,17 +1317,29 @@ function cineStep(dt){ time+=dt; if(cine.gen){ const r=cine.gen.next(dt); if(r.d
 function startCine(){ cine.on=1; cine.bars=0; cine.arch=ents.find(e=>e.kind==="arch"); document.getElementById("cskip").style.display="block"; refreshUI(); cine.gen=script(); cine.gen.next(0); }
 function endCine(){ if(!cine.on) return; cine.gen=null; cine.sub=null; cine.title=null; cine.show=null; cine.flash=0; cine.vortex=0; if(cine.scene!=="world") toWorld(); collapseArch();
   hero.z=0; demon.z=0; hero.vz=demon.vz=0; parts.length=0; for(const e of ents) e.alpha=1; cine.on=0; document.getElementById("cskip").style.display="none"; beginGame(); }
-function drawAptBG(){ cx.fillStyle="#14161a"; cx.fillRect(0,0,W,H);
-  const P=(x,y,z)=>proj(MX+x,MY+y,z||0);
+function drawAptBG(){ cx.fillStyle="#20232a"; cx.fillRect(0,0,W,H);
+  const O=aptO();
+  const P=(x,y,z)=>proj(O.x+x,O.y+y,z||0);
   const quad=(a,b,c,d,fill,stroke)=>{ if(!a||!b||!c||!d) return; if(fill){ cx.fillStyle=fill; cx.beginPath(); cx.moveTo(a.x,a.y); cx.lineTo(b.x,b.y); cx.lineTo(c.x,c.y); cx.lineTo(d.x,d.y); cx.closePath(); cx.fill(); } if(stroke){ cx.strokeStyle=stroke; cx.lineWidth=1.4; cx.beginPath(); cx.moveTo(a.x,a.y); cx.lineTo(b.x,b.y); cx.lineTo(c.x,c.y); cx.lineTo(d.x,d.y); cx.closePath(); cx.stroke(); } };
   const line=(a,b,col,lw)=>{ if(!a||!b) return; cx.strokeStyle=col||"rgba(30,32,36,0.45)"; cx.lineWidth=lw||1; cx.beginPath(); cx.moveTo(a.x,a.y); cx.lineTo(b.x,b.y); cx.stroke(); };
   const RY=8.6, RZ=3.5;                            // back wall depth / height
   const box=(x0,x1,y0,y1,z0,z1,top,front,edge)=>{ quad(P(x0,y0,z1),P(x1,y0,z1),P(x1,y1,z1),P(x0,y1,z1),top,edge); quad(P(x0,y0,z0),P(x1,y0,z0),P(x1,y0,z1),P(x0,y0,z1),front,edge); if(edge===undefined){ cx.save(); cx.strokeStyle="rgba(34,32,30,0.7)"; cx.lineWidth=1.3; const o=[[x0,y0,z0],[x1,y0,z0],[x1,y0,z1],[x0,y0,z1]]; cx.beginPath(); o.forEach((q,k)=>{ const pp=P(q[0],q[1],q[2]); if(!pp) return; k?cx.lineTo(pp.x,pp.y):cx.moveTo(pp.x,pp.y); }); cx.closePath(); cx.stroke(); cx.restore(); } };
-  // ---------- floor (light grey concrete planks) + walls
-  quad(P(-7,-1),P(7,-1),P(7,RY),P(-7,RY),"#c3bfb5");
-  cx.save(); cx.strokeStyle="rgba(70,68,64,0.35)"; for(let y=-1;y<=RY;y+=0.75){ cx.lineWidth=Math.max(0.6,1); line(P(-7,y),P(7,y)); } for(let x=-7;x<=7;x+=1.6){ line(P(x,-1),P(x,RY)); } cx.restore();
-  quad(P(-7,RY,0),P(7,RY,0),P(7,RY,RZ),P(-7,RY,RZ),"#8b8e94");
-  cx.save(); cx.strokeStyle="rgba(40,42,46,0.22)"; for(let x=-7;x<=7;x+=2.0) line(P(x,RY,0),P(x,RY,RZ)); for(let z=1.75;z<RZ;z+=1.75) line(P(-7,RY,z),P(7,RY,z)); cx.restore();
+  // ---------- room shell: tiled floor / ceiling / four walls (tiles so nothing pops out behind the camera)
+  const RX0=-7.6, RX1=7.6, RY0=-4.0, RY1=RY, RH=RZ;
+  const tile=(N,fn)=>{ const step=N; for(let a=RX0;a<RX1-0.001;a+=step) for(let b=RY0;b<RY1-0.001;b+=step){
+      const A=P(a,b,0),B=P(Math.min(a+step,RX1),b,0),C=P(Math.min(a+step,RX1),Math.min(b+step,RY1),0),D=P(a,Math.min(b+step,RY1),0);
+      if(!A||!B||!C||!D) continue; const u=(a-RX0)/(RX1-RX0), v=(b-RY0)/(RY1-RY0);
+      fn(A,B,C,D,u,v,a,b); } };
+  tile(1.6,(A,B,C,D,u,v,a,b)=>{ const g=0.62+((Math.round((a-RX0)/1.6)+Math.round((b-RY0)/1.6))%2)*0.03+(Math.random()*0.012);
+    quad(A,B,C,D,"rgb("+Math.round(196*g+22)+","+Math.round(193*g+22)+","+Math.round(184*g+22)+")","rgba(52,50,46,0.34)"); });
+  // ceiling
+  for(let a=RX0;a<RX1-0.001;a+=2.4) for(let b=RY0;b<RY1-0.001;b+=2.4){ const A=P(a,b,RH),B=P(Math.min(a+2.4,RX1),b,RH),C=P(Math.min(a+2.4,RX1),Math.min(b+2.4,RY1),RH),D=P(a,Math.min(b+2.4,RY1),RH);
+    if(!A||!B||!C||!D) continue; quad(A,B,C,D,"#9d9a94","rgba(60,58,54,0.22)"); }
+  // four walls (panels)
+  const wall=(ax,az,bx,bz,n)=>{ for(let i=0;i<n;i++){ const t0=i/n,t1=(i+1)/n;
+      const A=P(ax+(bx-ax)*t0,az+(bz-az)*t0,0),B=P(ax+(bx-ax)*t1,az+(bz-az)*t1,0),C=P(ax+(bx-ax)*t1,az+(bz-az)*t1,RH),D=P(ax+(bx-ax)*t0,az+(bz-az)*t0,RH);
+      if(!A||!B||!C||!D) continue; const k=0.80+(i%2)*0.05; quad(B,C,D,A,"rgb("+Math.round(124*k+18)+","+Math.round(126*k+18)+","+Math.round(130*k+16)+")","rgba(38,40,44,0.40)"); } };
+  wall(RX0,RY1,RX1,RY1,10); wall(RX1,RY0,RX1,RY1,8); wall(RX0,RX1,RX0,RY0,8); wall(RX0,RY0,RX1,RY0,10);
   // ---------- rug
   quad(P(-3.6,1.2),P(1.8,1.2),P(1.8,6.4),P(-3.6,6.4),"rgba(96,94,96,0.40)");
   quad(P(-3.2,1.6),P(1.4,1.6),P(1.4,6.0),P(-3.2,6.0),"rgba(160,158,158,0.16)");
@@ -1178,21 +1401,21 @@ function drawAptBG(){ cx.fillStyle="#14161a"; cx.fillRect(0,0,W,H);
       cx.fillStyle="rgba(250,247,238,0.92)"; cx.beginPath(); cx.moveTo(bot.x-bot.s*0.4,bot.y+bot.s*0.18); cx.lineTo(bot.x+bot.s*0.4,bot.y+bot.s*0.18); cx.lineTo(bot.x+bot.s*0.18,bot.y-bot.s*0.22); cx.lineTo(bot.x-bot.s*0.18,bot.y-bot.s*0.22); cx.closePath(); cx.fill(); cx.stroke();
       cx.globalCompositeOperation="lighter"; const g=cx.createRadialGradient(bot.x,bot.y,0,bot.x,bot.y,bot.s*3.4); g.addColorStop(0,"rgba(255,232,190,0.20)"); g.addColorStop(1,"rgba(255,232,190,0)"); cx.fillStyle=g; cx.fillRect(bot.x-bot.s*3.4,bot.y-bot.s*3.4,bot.s*6.8,bot.s*6.8); cx.restore(); } }
 }
-function WY0(){ return MY+8.6; }
+function WY0(){ const O=aptO(); return O.y+8.6; }
 function drawAptLight(){ cx.save();
   const lamps=[[-0.4,4.5,2.85,-4.9,1.0,2.45]];
   for(const L of lamps){ for(const q of [P2(L[0],L[1],L[2]),P2(L[3],L[4],L[5])]){ if(!q) continue;
     const fl=0.92+Math.sin(time*7+q.x*0.01)*0.05+Math.sin(time*19)*0.03; const R0=q.s*5.2*fl;
     cx.globalCompositeOperation="lighter"; const g=cx.createRadialGradient(q.x,q.y,0,q.x,q.y,R0); g.addColorStop(0,"rgba(255,226,176,0.22)"); g.addColorStop(1,"rgba(255,226,176,0)"); cx.fillStyle=g; cx.fillRect(q.x-R0,q.y-R0,R0*2,R0*2); } }
   cx.globalCompositeOperation="source-over";
-  const vg=cx.createRadialGradient(W/2,H*0.5,Math.min(W,H)*0.22,W/2,H*0.5,Math.max(W,H)*0.7); vg.addColorStop(0,"rgba(10,12,16,0)"); vg.addColorStop(1,"rgba(10,12,16,0.62)"); cx.fillStyle=vg; cx.fillRect(0,0,W,H); cx.restore(); }
+  const vg=cx.createRadialGradient(W/2,H*0.5,Math.min(W,H)*0.22,W/2,H*0.5,Math.max(W,H)*0.7); vg.addColorStop(0,"rgba(10,12,16,0)"); vg.addColorStop(1,"rgba(10,12,16,0.42)"); cx.fillStyle=vg; cx.fillRect(0,0,W,H); cx.restore(); }
 /* ---- v0.9: 霜之城的雪 + 窗外冷光 ---- */
 const SNOWF=[]; { const r=rng(99); for(let i=0;i<150;i++) SNOWF.push({x:r(),y:r(),sp:0.02+r()*0.055,ph:r()*6.28,sz:0.5+r()*1.5}); }
-function drawSnow(dt){ if(cine.on&&cine.scene!=="world") return; cx.save(); cx.fillStyle="rgba(255,255,255,0.9)";
+function drawSnow(dt){ if(APT.on) return; if(cine.on&&cine.scene!=="world") return; cx.save(); cx.fillStyle="rgba(255,255,255,0.9)";
   for(const f of SNOWF){ f.y+=dt*f.sp*(FF?3:1); f.x+=Math.sin(time*0.5+f.ph)*0.00035; if(f.y>1.05) f.y-=1.05; if(f.x>1) f.x-=1;
     const x=f.x*W+Math.sin(time*0.9+f.ph)*12, y=f.y*H; cx.beginPath(); cx.arc(x,y,f.sz,0,6.3); cx.fill(); }
   cx.restore(); }
-function P2(x,y,z){ return proj(MX+x,MY+y,z||0); }
+function P2(x,y,z){ const O=aptO(); return proj(O.x+x,O.y+y,z||0); }
 function drawWindowGlow(){ if(cine.scene!=="apt") return; const a=P2(3.1,8.55,2.2); if(!a) return; cx.save(); cx.globalCompositeOperation="lighter"; const R=Math.max(W,H)*0.45;
   const g=cx.createRadialGradient(a.x,a.y,0,a.x,a.y,R); g.addColorStop(0,"rgba(206,224,244,0.15)"); g.addColorStop(1,"rgba(206,224,244,0)"); cx.fillStyle=g; cx.fillRect(0,0,W,H); cx.restore(); }
 function drawVortex(){ if(cine.vortex<=0||!cine.mirror) return; const m=cine.mirror, v=cine.vortex; const c=proj(m.x,m.y,1.9); if(!c) return;
@@ -1210,7 +1433,7 @@ function drawCineOverlay(){ if(!cine.on) return; const fam=getComputedStyle(docu
     cx.font=(sb.who?"":"italic ")+"19px "+fam; const w=cx.measureText(sb.text).width; const nw=sb.who?60:0; let x0=W/2-(w+nw)/2;
     if(sb.who){ cx.fillStyle="#d8cbb0"; cx.font="bold 15px "+fam; cx.textAlign="left"; cx.fillText(sb.who,x0,y); x0+=nw; cx.font="19px "+fam; cx.fillStyle="#f3efe6"; cx.fillText("「"+txt+(n>=sb.text.length?"」":""),x0-10,y); }
     else { cx.textAlign="left"; cx.fillStyle="#cfc6b4"; cx.fillText(txt,x0,y); } cx.restore(); } }
-function beginGame(){ started=true; cine.on=0; hero.kneel=0; hero.alpha=1; demon.alpha=1; demon.z=0; hero.z=0; cam.yawT=cam.yaw; cam.distT=cam.dist; if(!Number.isFinite(hero.x)||hero.x>100){ hero.x=-1; hero.y=2.5; } hero.face=Math.PI; demon.x=-2.6; demon.y=4.8; demon.plan=S.day<=1&&!ctl.intro?[{k:'say',text:"……醒了？\n这是霜之城。外面在下雪。\n去，捡点东西回来。纸、铁片、什么破烂都行。别走远。",dur:3.6},{k:'task',def:{k:'free',T:85}}]:(demon.plan||[]); if(!ctl.intro) ctl.intro=1; demon.cur=null; demon.pose=null; ctl.mode="follow"; ctl.task=null; if(S.core===undefined) S.core=100; shards(hero.x,hero.y,1,20,4);
+function beginGame(){ started=true; setTimeout(()=>{ try{ spawnSupplyInit(); }catch(e){} },1200); cine.on=0; hero.kneel=0; hero.alpha=1; demon.alpha=1; demon.z=0; hero.z=0; cam.yawT=cam.yaw; cam.distT=cam.dist; if(!Number.isFinite(hero.x)||hero.x>100){ hero.x=-1; hero.y=2.5; } hero.face=Math.PI; demon.x=-2.6; demon.y=4.8; demon.plan=S.day<=1&&!ctl.intro?[{k:'say',text:"……醒了？\n这是霜之城。外面在下雪。\n去，捡点东西回来。纸、铁片、什么破烂都行。别走远。",dur:3.6},{k:'task',def:{k:'free',T:85}}]:(demon.plan||[]); if(!ctl.intro) ctl.intro=1; demon.cur=null; demon.pose=null; ctl.mode="follow"; ctl.task=null; if(S.core===undefined) S.core=100; shards(hero.x,hero.y,1,20,4);
   refreshUI(); setTimeout(()=>{ gainKey("bag"); },700); setTimeout(()=>note(TOUCH?"没有主人的命令，她不能自己行动 · 命令允许时：左侧按住拖动 = 移动 · 右下圆钮 = 动作 / 快进 · 双指 = 缩放视角":"没有主人的命令，她不能自己行动 · 命令允许时：WASD 移动 · 空格 动作 · Q/E 转视角"),1800);
   setTimeout(()=>note("霜之城 · 冬天｜公寓里的事也要人管：饭 · 打扫 · 暖气"),4200); updCmd(); }
 
@@ -1250,7 +1473,7 @@ function step(dt){
   if(ZN) clampZone(ZN); else ctl.warn=0;
   // river tip
   if(hero.form!=="bird"&&hasKey("quill")&&hero.y>RIVER.y0-1.4&&hero.y<RIVER.y0&&!step.riverTip){ step.riverTip=1; note("河太宽了——变成鸟 (4) 飞过去"); if(Math.hypot(demon.x-hero.x,demon.y-hero.y)<12) setTimeout(()=>say("demon","……变成鸟。这种事还要我教？",2.8),1400); }
-  demonAI(dt); ctlStep(dt); chapterStep(dt);
+  demonAI(dt); ctlStep(dt); chapterStep(dt); aptStep(dt); supplyStep(dt);
   // stars
   for(const s of STARS){ if(s.got||s.hidden) continue; if(s.pop!==undefined&&s.pop<1) s.pop+=dt*2;
 
@@ -1422,13 +1645,15 @@ function drawBubbles(){ cx.font="15px "+getComputedStyle(document.body).fontFami
     cx.fillStyle=b.who==="demon"?"#f3efe6":"#2a2622"; lines.forEach((l,i)=>cx.fillText(l,x,y0+17+i*20)); cx.restore(); } }
 function drawWin(){ if(!won) return; winT+=1/60; if(winT>9) return; const a=Math.min(1,winT/1.2,(9-winT)/1.5); cx.save(); cx.globalAlpha=a*0.9; cx.fillStyle="#2a2622"; cx.font="bold 46px "+getComputedStyle(document.body).fontFamily; cx.textAlign="center"; cx.fillText("三颗星星 · 已献给主人",W/2,H*0.26); cx.font="18px "+getComputedStyle(document.body).fontFamily; cx.fillText("她已经不需要过去了。……继续为主人效劳。",W/2,H*0.26+38); cx.restore(); }
 
+function needHUDTick(){}
 function ffOK(){ return started&&!cine.on&&!S.paused&&!zoneNow()&&!S.order&&!S.train&&!END.on; }
 function frame(now){ const dt=Math.min(0.05,(now-last)/1000); last=now; if(cine.on) cineStep(dt); FF=ffOK()&&(K.KeyF||K.ShiftLeft||K.ShiftRight); if(started&&!S.paused){ if(FF){ step(dt); step(dt); step(dt); } else step(dt); } else if(started&&S.order) updOrder(); camUpdate();
   cx.save(); if(shake>0) cx.translate((Math.random()-0.5)*10*shake,(Math.random()-0.5)*10*shake);
-  const MAN_ON=!!(cine.on&&cine.scene==="apt"); if(MAN_ON) drawAptBG(); else { drawSky(); drawGround(); }
+  const MAN_ON=!!(cine.on&&cine.scene==="apt")||APT.on; if(MAN_ON) drawAptBG(); else { drawSky(); drawGround(); }
   // depth-sorted billboards
   const list=[]; for(const e of ents){ if(e.gone||((e.kind==="man")!==MAN_ON)) continue; const p=proj(e.x,e.y,0); if(!p||p.x<-p.s*e.h||p.x>W+p.s*e.h) continue; list.push({z:p.z,d:()=>{ if(e.kind!=="grass"&&e.kind!=="mound"&&e.kind!=="mush") shadow(p,Math.max(0.4,e.rad*0.9)); const picked=e.res&&!e.ready; sprite(IMG[e.img],p,e.h*(picked?0.7:1),e.flip,e.alpha*(picked?0.55:1),1,1,(e.kind==="arch"&&e.shake>0?Math.sin(time*50)*0.03:0)+(e.kind==="grass"?Math.sin(time*1.5+e.x)*0.04:0)+(e.shake>0?Math.sin(time*60)*0.05:0)); if(e.nest) drawNest(e,p); if(e.bid==="cabinet") drawCabinetItems(e,p); if(e.bid==="tent"&&demon.hidden){ cx.fillStyle="#2a2622"; cx.font="bold "+Math.round(p.s*0.35)+"px sans-serif"; cx.textAlign="center"; cx.fillText("z",p.x+p.s*0.5,p.y-p.s*(2.4+Math.sin(time*2)*0.1)); cx.fillText("z",p.x+p.s*0.75,p.y-p.s*(2.9+Math.sin(time*2+1)*0.1)); } }}); }
   { const p=proj(hero.x,hero.y,0); if(p) list.push({z:p.z-0.01,d:drawHero}); }
+  if(!MAN_ON) for(const g of SUPPLY){ const p=proj(g.x,g.y,0); if(p) list.push({z:p.z,d:()=>drawSupply()}); }
   { const p=proj(demon.x,demon.y,0); if(p&&!demon.hidden) list.push({z:p.z-(demon.sit?0.3:0),d:drawDemon}); }
   if(!MAN_ON) for(const s of STARS){ const p=proj(s.x,s.y,0); if(p) list.push({z:p.z-0.02,d:()=>drawStar(s)}); }
   if(!MAN_ON) for(const g of gitems){ const p=proj(g.x,g.y,0); if(p&&p.x>-40&&p.x<W+40) list.push({z:p.z,d:()=>drawGItem(g)}); }
@@ -1436,7 +1661,7 @@ function frame(now){ const dt=Math.min(0.05,(now-last)/1000); last=now; if(cine.
   if(!MAN_ON) for(const b of bugs){ const p=proj(b.x,b.y,0); if(p&&p.x>-40&&p.x<W+40) list.push({z:p.z-0.005,d:()=>drawBug(b)}); }
   if(!MAN_ON) for(const d of digs){ if(d.rev<=0) continue; const p=proj(d.x,d.y,0); if(p) list.push({z:p.z+0.3,d:()=>drawDig(d)}); }
   list.sort((a,b)=>b.z-a.z); for(const it of list) it.d();
-  if(MAN_ON){ drawVortex(); drawShow(); drawWindowGlow(); } drawGhost(); drawSpot(); drawZone(); drawGlints(); drawEndWorld(); drawBeam(); drawParts(); if(MAN_ON) drawAptLight(); else drawDarkness(); drawFloats(); drawBubbles();
+  if(MAN_ON){ drawVortex(); drawShow(); drawWindowGlow(); } if(APT.on) drawAptState(); drawGhost(); drawSpot(); drawZone(); drawGlints(); drawEndWorld(); drawBeam(); drawParts(); if(MAN_ON) drawAptLight(); else drawDarkness(); drawFloats(); drawBubbles();
   // paper grain + vignette
   if(!paperPat) paperPat=cx.createPattern(paper,"repeat"); cx.globalCompositeOperation="multiply"; cx.globalAlpha=0.35; cx.fillStyle=paperPat; cx.fillRect(0,0,W,H); cx.globalAlpha=1; cx.globalCompositeOperation="source-over";
   const vg=cx.createRadialGradient(W/2,H*0.55,Math.min(W,H)*0.35,W/2,H*0.55,Math.max(W,H)*0.75); vg.addColorStop(0,"rgba(60,50,40,0)"); vg.addColorStop(1,"rgba(60,50,40,0.28)"); cx.fillStyle=vg; cx.fillRect(0,0,W,H);
@@ -1446,5 +1671,8 @@ setupResources(); setupApt(); buildInv(); refreshUI();
 requestAnimationFrame(frame);
 document.getElementById("title").onclick=()=>{ ac(); document.getElementById("title").style.display="none"; startCine(); };
 document.getElementById("cskip").onclick=e=>{ e.stopPropagation(); endCine(); };
-window.__game={END,startEnding,ctl,zoneNow,nextAgenda,makeTask,proj,gz,IMG,issueOrder,gainKey,closeCard,startTraining,hasKey,refreshUI,KEYS,get order(){return S.order;},S,gitems,flora,bugs,digs,invAdd,craft,RECIPES,useSlot,deliverAll,closeAppraisal,openCatalog,issueOrder,COL,ITEMS,ents,hero,demon,cam,transform,STARS,RING,MOUND,toggleProp,toggleDemon,builds,BUILDS,startPlace,confirmPlace,openDialog,closeDialog,pickOpt,dlg,startCine,endCine,cine,start:()=>{ document.getElementById("title").style.display="none"; endCine(); if(!started) beginGame(); },K, get FF(){return FF}};
+addEventListener("keydown",e=>{ if(e.code==="KeyV"){ if(S.paused&&document.getElementById("desire").style.display==="block") closeDesire(); else openDesire(); } if(e.code==="KeyH"){ if(APT.on) aptExit(); else if(started&&!cine.on) aptEnter(); } });
+document.getElementById("bDes").onclick=()=>{ if(started) openDesire(); };
+document.getElementById("bApt").onclick=()=>{ if(!started||cine.on) return; if(APT.on) aptExit(); else aptEnter(); };
+window.__game={APT,aptEnter,aptExit,NEED,DES,openDesire,closeDesire,aptStep,svcAvail,spawnSupply,SUPPLY,desUp,END,startEnding,ctl,zoneNow,nextAgenda,makeTask,proj,gz,IMG,issueOrder,gainKey,closeCard,startTraining,hasKey,refreshUI,KEYS,get order(){return S.order;},S,gitems,flora,bugs,digs,invAdd,craft,RECIPES,useSlot,deliverAll,closeAppraisal,openCatalog,issueOrder,COL,ITEMS,ents,hero,demon,cam,transform,STARS,RING,MOUND,toggleProp,toggleDemon,builds,BUILDS,startPlace,confirmPlace,openDialog,closeDialog,pickOpt,dlg,startCine,endCine,cine,start:()=>{ document.getElementById("title").style.display="none"; endCine(); if(!started) beginGame(); },K, get FF(){return FF}};
 </script></body></html>
