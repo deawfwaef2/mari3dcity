@@ -111,7 +111,9 @@ html,body{overscroll-behavior:none;-webkit-user-select:none;user-select:none;-we
 <button id="ff">▶▶<br><small>快进</small></button>
 <div id="stick"><div id="knob"></div></div>
 
-<div id="title"><h1>纸之魔女</h1><p>素描线稿 · 沙盒原型 v0.6</p><p style="font-size:15px;max-width:520px;text-align:center;line-height:1.9">她曾经是自由的魔女。<br>直到那天，她翻开了一本黑色的书。<br>……醒来时，她只记得一件事——<b>主人的命令</b>。</p><p style="font-size:13px;opacity:.7">探索纸之界 · 建造营地 · 收集献给主人 · 服从主人的命令</p><div class="go">开始游戏</div></div>
+<div id="title"><h1>纸之魔女 · 霜之城</h1><p>冰冷的大城市 · 两个人的公寓 · v0.9</p>
+<p style="font-size:15px;max-width:560px;text-align:center;line-height:1.9">她曾经是自由的魔女。<br>那本黑书把她带到了一座永远在下雪的城市，<br>也把她交到了「<b>51-不认识-</b>」手里。<br>……如今，她只记得一件事——<b>主人的命令</b>。</p>
+<p style="font-size:13px;opacity:.7">她叫「deawfwaef」· 做饭 · 打扫 · 取暖 · 出门找东西 · 服从 · 被调教</p><div class="go">开始游戏</div></div>
 <script>
 "use strict";
 const ASSETS=__ASSETS__;
@@ -523,7 +525,7 @@ function setupResources(){
   for(let i=0;i<60;i++) spawnFlora(); flora.push({id:"daisy",x:1.8,y:1.2,sw:0},{id:"daisy",x:-2.4,y:-0.5,sw:1});
   [["log",-3,-5],["log",3.5,-4],["stone",-4,-7],["stone",4,-7.5],["twig",-1,-4.5]].forEach(([id,x,y])=>gitems.push({x,y,id,n:1,z:0,vz:0,age:9}));
   for(const e of ents) if(!e.puzzle&&!e.say&&Math.hypot(e.x+3.5,e.y-6)<3.2) e.gone=true, e.respawn=0;
-  ents.push({t:"prop",kind:"arch",x:-3.5,y:6,h:4.4,rad:0,img:"bld_5",flip:false,alpha:1,say:"破碎的石门。\n回古宅的路，断了。"});
+  ents.push({t:"prop",kind:"arch",x:-3.5,y:6,h:4.4,rad:0,img:"bld_5",flip:false,alpha:1,say:"冻裂的门框。\n回公寓的路，从外面走不通了。"});
   for(let i=0;i<28;i++) spawnDig();
   gitems.push({x:9,y:RIVER.y0-1.3,id:"k_net",n:1,z:0,vz:0,age:9});
   genQuota();
@@ -857,13 +859,13 @@ function drawCoreGauge(fam){ cx.save(); const x=W-146,y=122,w=128; cx.fillStyle=
 /* ---- v0.8 chapters: clear goals, title cards, pacing gates ---- */
 const CH_RANK={smash:1,fly:2};
 const CHAPTERS=[
- {n:"序章",t:"新的主人",g:()=>"跟着主人。命令允许时，去找点东西献给他"},
+ {n:"序章",t:"搬进来",g:()=>"跟着主人。命令允许时，去街上捡点东西回来"},
  {n:"第一章",t:"献礼",g:()=>"完成第二次献礼（主人会自己来收）"},
- {n:"第二章",t:"土的味道",g:()=>"戴上项圈。主人会带你去土堆——用狗的鼻子挖出第一颗星"},
- {n:"第三章",t:"石阵",g:()=>rankIdx()<CH_RANK.smash?"身份提升到「"+RANKS[CH_RANK.smash][1]+"」，主人才会带你去石阵（献礼 / 训练 / 命令）":"撞开石阵，取回第二颗星"},
- {n:"第四章",t:"河的对岸",g:()=>rankIdx()<CH_RANK.fly?"身份提升到「"+RANKS[CH_RANK.fly][1]+"」，主人才会带你过河（献礼 / 训练 / 命令）":"变成鸟飞过河，取回第三颗星"},
+ {n:"第二章",t:"雪里的东西",g:()=>"戴上项圈。主人会带你去楼下的雪堆——用鼻子挖出第一颗星"},
+ {n:"第三章",t:"冻住的工地",g:()=>rankIdx()<CH_RANK.smash?"身份提升到「"+RANKS[CH_RANK.smash][1]+"」，主人才会带你去冻住的工地（献礼 / 训练 / 命令）":"撞开冻住的料堆，取回第二颗星"},
+ {n:"第四章",t:"运河对岸",g:()=>rankIdx()<CH_RANK.fly?"身份提升到「"+RANKS[CH_RANK.fly][1]+"」，主人才会带你去运河（献礼 / 训练 / 命令）":"变成鸟飞过运河，取回第三颗星"},
  {n:"终章",t:"星辰罗盘",g:()=>"把三颗折纸星星都献给主人"},
- {n:"尾声",t:"主人的东西",g:()=>"自由游玩 · 收集全部收藏"}];
+ {n:"尾声",t:"主人的东西",g:()=>"自由游玩 · 回公寓做饭、扫地、陪主人 · 收集全部收藏"}];
 function chapterIdx(){ if(won) return 6; if(!hasKey("notebook")) return 0; if(!hasKey("collar")) return 1; if(!STARS[0].got) return 2; if(!STARS[1].got) return 3; if(!STARS[2].got) return 4; return 5; }
 const chap={i:-1,t:9};
 function chapterStep(dt){ const i=chapterIdx(); if(i!==chap.i){ if(chap.i>=0||i===0){ chap.t=0; chime(); } chap.i=i; updCmd(); } const _ce=document.getElementById("cmd"); if(_ce) _ce.style.opacity=(chap.t<4.3&&started&&!cine.on)?0:1; chap.t+=dt; if((chap.u=(chap.u||0)+dt)>1.5){ chap.u=0; updCmd(); } }
@@ -1034,9 +1036,8 @@ function drawCabinetItems(e,p){ const ids=COL_IDS.filter(id=>S.given[id]&&id!=="
 /* ---- v0.6 opening: in-engine unit cinematic (Warcraft III style) ---- */
 const MX=300, MY=0;
 const cine={on:0,scene:"",gen:null,sub:null,bars:0,flash:0,title:null,vortex:0,fast:false,show:null,cam:{x:0,y:0,yaw:0.35,dist:20,k:1},man:[],arch:null};
-function setupMansion(){ const add=(img,x,y,h)=>{ const e={t:"prop",kind:"man",x:MX+x,y:MY+y,h,rad:0,img,flip:false,alpha:1}; ents.push(e); cine.man.push(e); return e; };
-  add("man_0",-6,8.6,4.6); add("man_0",-3.4,8.8,4.6); add("man_3",-0.6,9,4.9); add("man_0",2,8.8,4.6);
-  cine.mirror=add("man_1",5.4,6.4,3.8); cine.candles=[add("man_2",-0.9,4.6,3.2),add("man_2",7.4,4.2,3.2),add("man_2",-7,3.2,3.2)]; cine.chair=add("bld_1",-3,3.5,2.1); }
+function setupApt(){ const add=(img,x,y,h)=>{ const e={t:"prop",kind:"man",x:MX+x,y:MY+y,h,rad:0,img,flip:false,alpha:1}; ents.push(e); cine.man.push(e); return e; };
+  cine.chair=add("bld_1",-2.6,3.5,2.1); cine.mirror={x:MX+5.25,y:MY+8.42,h:1.05}; }
 function camTo(x,y,yaw,dist,k){ Object.assign(cine.cam,{x,y,yaw,dist,k:k||1}); }
 function camSnap(x,y,yaw,dist){ camTo(x,y,yaw,dist,1); cam.tx=x; cam.ty=y; cam.yaw=cam.yawT=yaw; cam.dist=cam.distT=dist; }
 function moveTo(a,x,y,sp){ a.goal={x,y,sp}; }
@@ -1046,47 +1047,47 @@ function* wait(s){ let t=0; while(t<s){ t+=yield; } }
 function* until(fn){ while(!fn()) yield; }
 function* line(who,text,dur){ cine.sub={who,text,t:0}; cine.fast=false; let t=0; while(t<dur+text.length*0.05&&!cine.fast){ t+=yield; } cine.fast=false; cine.sub=null; yield* wait(0.25); }
 function* script(){
-  cine.scene="mansion"; S.clock=0.12;
-  demon.x=MX-3; demon.y=MY+3.55; demon.sit=true; demon.face=cam.yaw+Math.PI; demon.z=0; demon.alpha=1; demon.moving=0;
-  hero.x=MX-1.75; hero.y=MY+2.7; hero.kneel=1; hero.form="human"; hero.z=0; hero.alpha=1; hero.moving=0; faceTo(hero,demon.x,demon.y);
-  camSnap(MX-0.5,MY+2,0.2,30); camTo(MX-2.2,MY+3,0.3,13.5,0.35);
-  cine.title={text:"古宅 · 深夜",t:0}; yield* wait(3.6);
-  yield* line("","月亮升起的夜晚。这座宅子里的钟，从来不走。",3);
-  yield* line("","她跪在主人的椅子旁边。……已经想不起，是从哪一天开始的。",3.2);
+  cine.scene="apt"; S.clock=0.12;
+  demon.x=MX-2.6; demon.y=MY+3.5; demon.sit=true; demon.face=cam.yaw+Math.PI; demon.z=0; demon.alpha=1; demon.moving=0;
+  hero.x=MX-1.35; hero.y=MY+2.9; hero.kneel=1; hero.form="human"; hero.z=0; hero.alpha=1; hero.moving=0; faceTo(hero,demon.x,demon.y);
+  camSnap(MX-0.4,MY+2.4,0.2,30); camTo(MX-1.6,MY+3.4,0.26,12.5,0.30);
+  cine.title={text:"霜之城 · 公寓 42F",t:0}; yield* wait(3.6);
+  yield* line("","这座城市的钟，一夜之间会慢掉七分钟。",3);
+  yield* line("","窗外永远在下雪。她把屋子擦得很干净——虽然不记得是谁教她的。",3.4);
   paperSnd(0.4,2200,0.2); yield* wait(0.6);
   yield* line("主人","……别盯着我看。",1.8);
   yield* line("主人","待着。别出声。你一出声，我就看不进去。",2.4);
-  paperSnd(0.5,1800,0.25); camTo(MX-2.8,MY+3.3,0.42,9.5,0.6);
-  cine.show={img:"key_6",t:0,x:demon.x+0.2,y:demon.y-0.4,z:2.3}; chime(); yield* wait(1);
-  yield* line("","黑色的书里，夹着一件东西——「星辰罗盘」。",2.8);
+  paperSnd(0.5,1800,0.25); camTo(MX-2.4,MY+3.6,0.40,8.6,0.55);
+  cine.show={img:"key_6",t:0,x:demon.x+0.2,y:demon.y-0.5,z:2.2}; chime(); yield* wait(1);
+  yield* line("","他的书里夹着一件东西——「星辰罗盘」。",2.8);
   yield* line("","罗盘上本该嵌着三颗纸星。现在，一颗都不剩。",3);
-  yield* line("主人","……掉进书页的另一边了。",2.2);
-  yield* line("主人","有意思。……归我了。",2);
-  cine.show=null; demon.sit=false; demon.y-=0.9; moveTo(demon,MX+4.3,MY+5,2.4); camTo(MX+1.8,MY+3.6,0.5,14,0.5);
+  yield* line("主人","……掉进这座城市里了。",2.2);
+  yield* line("主人","楼下、冻住的工地、运河对岸。\n去，把它们捡回来。",3.2);
+  cine.show=null; demon.sit=false; demon.y-=0.9; moveTo(demon,MX+4.9,MY+6.2,2.4); camTo(MX+2.0,MY+4.2,0.34,12.5,0.5);
   yield* until(()=>arrived(demon)); faceTo(demon,cine.mirror.x,cine.mirror.y); yield* wait(0.5);
   paperSnd(0.8,1200,0.3); for(let t=0;t<1.8;){ const dt=yield; t+=dt; cine.vortex=Math.min(1,t/1.8); if(Math.random()<dt*6) paperSnd(0.2,2000+Math.random()*1500,0.08); }
   shake=0.4;
-  yield* line("","镜子里，纸页像潮水一样旋转。",2.6);
+  yield* line("门口的雪被风卷起来，像一页一页翻过去的纸。",2.8);
   faceTo(demon,hero.x,hero.y); yield* wait(0.3);
   yield* line("主人","过来。",1.4);
-  hero.kneel=0; yield* wait(0.3); moveTo(hero,MX+3.1,MY+4.5,3.4); yield* until(()=>arrived(hero)); faceTo(hero,demon.x,demon.y);
+  hero.kneel=0; yield* wait(0.3); moveTo(hero,MX+3.9,MY+5.6,3.4); yield* until(()=>arrived(hero)); faceTo(hero,demon.x,demon.y);
   yield* line("主人","……愣着干什么。狗，是要跟着主人的。",2.4);
-  moveTo(demon,cine.mirror.x,cine.mirror.y-0.3,2.2); yield* wait(0.5); moveTo(hero,cine.mirror.x-0.3,cine.mirror.y-0.4,2.2);
+  moveTo(demon,MX+5.5,MY+8.0,2.2); yield* wait(0.5); moveTo(hero,MX+5.2,MY+8.1,2.2);
   for(let t=0;t<1.6;){ const dt=yield; t+=dt; demon.alpha=Math.max(0,1-t/1.1); hero.alpha=Math.max(0,1-(t-0.5)/1.1); cine.flash=Math.max(0,(t-0.6)/1); }
   cine.flash=1; paperSnd(0.9,2600,0.35);
-  // ---- paper world
+  // ---- out into the city
   toWorld(); yield* wait(0.3);
   for(let t=0;t<1;){ const dt=yield; t+=dt; cine.flash=Math.max(0,1-t); }
   yield* until(()=>hero.z<=0&&demon.z<=0); yield* wait(0.9);
-  yield* line("","……纸之界。",2);
+  yield* line("","……霜之城。风把雪吹成一条一条的线。",2.6);
   camTo(-3,5.2,0.35,15,0.8); yield* wait(0.8);
   cine.arch.shake=1.4; paperSnd(1.2,600,0.3); yield* wait(1.4); collapseArch(); yield* wait(1);
-  yield* line("","身后的石门，碎成了一地纸屑。",2.4);
+  yield* line("","身后的门结满了冰。裂开，落了一地。",2.6);
   faceTo(demon,cine.arch.x,cine.arch.y); yield* wait(0.4);
   yield* line("主人","……回去的路，断了。",2.2);
   faceTo(demon,hero.x,hero.y); camTo(-2.2,5.6,0.35,12.5,0.8); yield* wait(0.4);
-  yield* line("主人","搭个落脚的地方。然后，把星星找回来。",2.8);
-  yield* line("主人","别让我失望。……虽然本来也没抱什么期望。",2.8);
+  yield* line("主人","先住下。公寓，还有饭，都归你管。",2.8);
+  yield* line("主人","……然后，把三颗星找回来。别让我失望。",2.8);
   endCine(); }
 function toWorld(){ cine.scene="world"; cine.vortex=0; hero.alpha=1; demon.alpha=1; hero.goal=null; demon.goal=null;
   hero.x=-1.4; hero.y=4.2; hero.z=9; hero.vz=0; hero.face=Math.PI+cam.yaw; demon.x=-3.4; demon.y=4.4; demon.z=10.5; demon.vz=0; demon.face=cam.yaw+Math.PI; demon.sit=false; hero.kneel=0;
@@ -1105,17 +1106,95 @@ function cineStep(dt){ time+=dt; if(cine.gen){ const r=cine.gen.next(dt); if(r.d
 function startCine(){ cine.on=1; cine.bars=0; cine.arch=ents.find(e=>e.kind==="arch"); document.getElementById("cskip").style.display="block"; refreshUI(); cine.gen=script(); cine.gen.next(0); }
 function endCine(){ if(!cine.on) return; cine.gen=null; cine.sub=null; cine.title=null; cine.show=null; cine.flash=0; cine.vortex=0; if(cine.scene!=="world") toWorld(); collapseArch();
   hero.z=0; demon.z=0; hero.vz=demon.vz=0; parts.length=0; for(const e of ents) e.alpha=1; cine.on=0; document.getElementById("cskip").style.display="none"; beginGame(); }
-function drawMansionBG(){ cx.fillStyle="#16130f"; cx.fillRect(0,0,W,H);
-  const P=(x,y,z)=>proj(MX+x,MY+y,z||0); const quad=(a,b,c,d,fill)=>{ if(!a||!b||!c||!d) return; cx.fillStyle=fill; cx.beginPath(); cx.moveTo(a.x,a.y); cx.lineTo(b.x,b.y); cx.lineTo(c.x,c.y); cx.lineTo(d.x,d.y); cx.closePath(); cx.fill(); };
-  // back wall
-  quad(P(-9,9.6,0),P(10,9.6,0),P(10,9.6,7),P(-9,9.6,7),"#4a4238"); cx.strokeStyle="rgba(20,16,12,0.45)"; cx.lineWidth=1; for(let x=-9;x<=10;x+=0.7){ const a=P(x,9.6,0), b=P(x,9.6,7); if(a&&b){ cx.beginPath(); cx.moveTo(a.x,a.y); cx.lineTo(b.x,b.y); cx.stroke(); } }
-  // floor planks
-  quad(P(-9,-5),P(10,-5),P(10,9.6),P(-9,9.6),"#b7a98f");
-  cx.strokeStyle="rgba(50,40,30,0.55)"; for(let y=-5;y<=9.6;y+=0.8){ const a=P(-9,y), b=P(10,y); if(a&&b){ cx.lineWidth=Math.max(0.6,a.s*0.03); cx.beginPath(); cx.moveTo(a.x,a.y); cx.lineTo(b.x,b.y); cx.stroke(); } const off=(Math.round(y/0.8)%2)*1.6; for(let x=-9+off;x<10;x+=3.2){ const c=P(x,y), d=P(x,y+0.8); if(c&&d){ cx.beginPath(); cx.moveTo(c.x,c.y); cx.lineTo(d.x,d.y); cx.stroke(); } } }
-  // rug under chair
-  const r=[P(-5,1.5),P(-0.5,1.5),P(-0.5,5.5),P(-5,5.5)]; quad(...r,"rgba(70,50,44,0.55)"); }
-function drawMansionLight(){ cx.save(); cx.globalCompositeOperation="lighter"; for(const c of cine.candles){ const p=proj(c.x,c.y,3.1); if(!p) continue; const fl=0.9+Math.sin(time*9+c.x)*0.06+Math.sin(time*23)*0.03; const R0=p.s*5*fl; const g=cx.createRadialGradient(p.x,p.y,0,p.x,p.y,R0); g.addColorStop(0,"rgba(255,215,150,0.30)"); g.addColorStop(1,"rgba(255,215,150,0)"); cx.fillStyle=g; cx.fillRect(p.x-R0,p.y-R0,R0*2,R0*2); } cx.restore();
-  const vg=cx.createRadialGradient(W/2,H*0.5,Math.min(W,H)*0.2,W/2,H*0.5,Math.max(W,H)*0.7); vg.addColorStop(0,"rgba(10,8,6,0)"); vg.addColorStop(1,"rgba(10,8,6,0.7)"); cx.fillStyle=vg; cx.fillRect(0,0,W,H); }
+function drawAptBG(){ cx.fillStyle="#14161a"; cx.fillRect(0,0,W,H);
+  const P=(x,y,z)=>proj(MX+x,MY+y,z||0);
+  const quad=(a,b,c,d,fill,stroke)=>{ if(!a||!b||!c||!d) return; if(fill){ cx.fillStyle=fill; cx.beginPath(); cx.moveTo(a.x,a.y); cx.lineTo(b.x,b.y); cx.lineTo(c.x,c.y); cx.lineTo(d.x,d.y); cx.closePath(); cx.fill(); } if(stroke){ cx.strokeStyle=stroke; cx.lineWidth=1.4; cx.beginPath(); cx.moveTo(a.x,a.y); cx.lineTo(b.x,b.y); cx.lineTo(c.x,c.y); cx.lineTo(d.x,d.y); cx.closePath(); cx.stroke(); } };
+  const line=(a,b,col,lw)=>{ if(!a||!b) return; cx.strokeStyle=col||"rgba(30,32,36,0.45)"; cx.lineWidth=lw||1; cx.beginPath(); cx.moveTo(a.x,a.y); cx.lineTo(b.x,b.y); cx.stroke(); };
+  const RY=8.6, RZ=3.5;                            // back wall depth / height
+  const box=(x0,x1,y0,y1,z0,z1,top,front,edge)=>{ quad(P(x0,y0,z1),P(x1,y0,z1),P(x1,y1,z1),P(x0,y1,z1),top,edge); quad(P(x0,y0,z0),P(x1,y0,z0),P(x1,y0,z1),P(x0,y0,z1),front,edge); if(edge===undefined){ cx.save(); cx.strokeStyle="rgba(34,32,30,0.7)"; cx.lineWidth=1.3; const o=[[x0,y0,z0],[x1,y0,z0],[x1,y0,z1],[x0,y0,z1]]; cx.beginPath(); o.forEach((q,k)=>{ const pp=P(q[0],q[1],q[2]); if(!pp) return; k?cx.lineTo(pp.x,pp.y):cx.moveTo(pp.x,pp.y); }); cx.closePath(); cx.stroke(); cx.restore(); } };
+  // ---------- floor (light grey concrete planks) + walls
+  quad(P(-7,-1),P(7,-1),P(7,RY),P(-7,RY),"#c3bfb5");
+  cx.save(); cx.strokeStyle="rgba(70,68,64,0.35)"; for(let y=-1;y<=RY;y+=0.75){ cx.lineWidth=Math.max(0.6,1); line(P(-7,y),P(7,y)); } for(let x=-7;x<=7;x+=1.6){ line(P(x,-1),P(x,RY)); } cx.restore();
+  quad(P(-7,RY,0),P(7,RY,0),P(7,RY,RZ),P(-7,RY,RZ),"#8b8e94");
+  cx.save(); cx.strokeStyle="rgba(40,42,46,0.22)"; for(let x=-7;x<=7;x+=2.0) line(P(x,RY,0),P(x,RY,RZ)); for(let z=1.75;z<RZ;z+=1.75) line(P(-7,RY,z),P(7,RY,z)); cx.restore();
+  // ---------- rug
+  quad(P(-3.6,1.2),P(1.8,1.2),P(1.8,6.4),P(-3.6,6.4),"rgba(96,94,96,0.40)");
+  quad(P(-3.2,1.6),P(1.4,1.6),P(1.4,6.0),P(-3.2,6.0),"rgba(160,158,158,0.16)");
+  // ---------- kitchen counter (back-left) + upper cabinets
+  box(-6.8,-1.1,7.95,RY,0,1.5,"#ddd8cc","#b0aba0");
+  cx.save(); cx.strokeStyle="rgba(40,38,36,0.45)"; for(let x=-6.4;x<-1.1;x+=1.3) line(P(x,7.93,0.2),P(x,7.93,1.35)); cx.restore();
+  box(-1.0,0.6,7.9,RY,0,3.0,"#e6e2d8","#bcb8ae");                      // fridge
+  line(P(-1.0,7.88,1.9),P(0.6,7.88,1.9),"rgba(40,38,36,0.5)",1.3); line(P(-0.2,7.88,2.6),P(-0.2,7.88,2.9),"rgba(40,38,36,0.6)",1.6);
+  box(-6.8,-1.1,RY-0.35,RY,2.25,3.2,"#d8d4c8","#b4b0a6");              // wall cabinets
+  // sink + stove + pot
+  { const c=P(-5.4,7.93,1.5); if(c){ cx.save(); cx.strokeStyle="rgba(30,28,26,0.8)"; cx.lineWidth=1.6; cx.beginPath(); cx.ellipse(c.x,c.y,c.s*0.5,c.s*0.18,0,0,6.3); cx.stroke(); cx.beginPath(); cx.ellipse(c.x,c.y-c.s*0.04,c.s*0.34,c.s*0.12,0,0,6.3); cx.stroke(); cx.beginPath(); cx.moveTo(c.x-c.s*0.05,c.y-c.s*0.9); cx.lineTo(c.x-c.s*0.05,c.y-c.s*0.45); cx.stroke(); cx.restore(); } }
+  { const c=P(-3.0,7.93,1.5); if(c){ cx.save(); cx.strokeStyle="rgba(30,28,26,0.75)"; cx.lineWidth=1.4; for(let i=0;i<2;i++){ cx.beginPath(); cx.ellipse(c.x-i*c.s*0.62,c.y,c.s*0.24,c.s*0.09,0,0,6.3); cx.stroke(); } cx.restore(); } }
+  box(-3.7,-3.0,7.98,RY-0.5,1.5,2.0,"#d2cdc0","#9b968b");
+  // ---------- window (city outside) on the back wall
+  const WX0=1.6, WX1=4.6, WZ0=1.15, WZ1=3.05;
+  quad(P(WX0,RY-0.02,WZ0),P(WX1,RY-0.02,WZ0),P(WX1,RY-0.02,WZ1),P(WX0,RY-0.02,WZ1),"#e9eef4");
+  { const y=RY-0.03, base=WZ0+0.10, r=rng(31);
+    for(let k=0;k<24;k++){ const bx=WX0+0.16+k*0.185; const h=0.35+r()*1.25; const a=P(bx,y,base), b=P(bx,y,base+h);
+      if(a&&b) line(a,b,"rgba(26,28,32,"+(0.30+r()*0.4).toFixed(2)+")",Math.max(1,b.s*0.5)); }
+    for(let k=0;k<26;k++){ const bx=WX0+0.2+((k*0.6180339887)%1)*(WX1-WX0-0.4), bz=base+0.3+r()*0.9; const q=P(bx,y,bz); if(q){ cx.save(); cx.globalAlpha=0.5; cx.fillStyle="#2a2c30"; cx.fillRect(q.x-1,q.y-1.5,2,3); cx.restore(); } } }
+  { const y=RY-0.04; cx.save(); cx.globalAlpha=1; cx.fillStyle="#fff";
+    for(let i=0;i<40;i++){ const fx=WX0+0.15+((i*0.6180339887)%1)*(WX1-WX0-0.3); const fz=WZ0+0.15+(((i*0.381966)%1+(time*0.035)+i*0.011)%1)*(WZ1-WZ0-0.3); const q=P(fx,y,fz); if(!q) continue; cx.globalAlpha=0.45+0.45*Math.sin(time*3+i); cx.beginPath(); cx.arc(q.x,q.y,Math.max(1,q.s*0.03),0,6.3); cx.fill(); } cx.restore(); }
+  cx.save(); cx.strokeStyle="#3a3c40"; cx.lineWidth=2.2;
+  line(P(WX0,WY0(),WZ0),P(WX1,WY0(),WZ0),"#3a3c40",2.2); line(P(WX0,WY0(),WZ1),P(WX1,WY0(),WZ1),"#3a3c40",2.2);
+  line(P(WX0,WY0(),WZ0),P(WX0,WY0(),WZ1),"#3a3c40",2.2); line(P(WX1,WY0(),WZ0),P(WX1,WY0(),WZ1),"#3a3c40",2.2);
+  line(P((WX0+WX1)/2,RY-0.03,WZ0),P((WX0+WX1)/2,RY-0.03,WZ1),"#3a3c40",1.6); cx.restore();
+  box(WX0-0.12,WX1+0.12,RY-0.28,RY,0,0.22,"#ddd8cc","#b0aba0");
+  // radiator under the window
+  box(WX0+0.05,WX1-0.05,RY-0.22,RY-0.04,0.3,1.1,"#cfcabd","#a6a195");
+  cx.save(); cx.strokeStyle="rgba(40,38,36,0.4)"; for(let x=WX0+0.18;x<WX1-0.05;x+=0.2) line(P(x,RY-0.33,0.35),P(x,RY-0.33,1.05)); cx.restore();
+  // ---------- entrance door (right of the window)
+  const DX0=5.05, DX1=6.25;
+  quad(P(DX0,RY-0.01,0),P(DX1,RY-0.01,0),P(DX1,RY-0.01,2.15),P(DX0,RY-0.01,2.15),"#cfc9bb","#4a4741");
+  cx.save(); cx.strokeStyle="rgba(40,38,36,0.55)"; line(P(DX0+0.06,RY-0.02,0),P(DX0+0.06,RY-0.02,2.1),"rgba(40,38,36,0.35)",1); cx.restore();
+  box(DX0-0.2,DX1+0.2,RY-0.2,RY,0,0.06,"#b8b3a6","#8f8a7f");     // door mat
+  { const k=P(DX1-0.22,RY-0.05,1.05); if(k){ cx.save(); cx.fillStyle="#3a3733"; cx.beginPath(); cx.arc(k.x,k.y,Math.max(1.5,k.s*0.04),0,6.3); cx.fill(); cx.restore(); } }
+  // shoe shelf + coat hooks by the door
+  box(6.5,7.0,RY-0.7,RY,0,0.85,"#d5d0c4","#ada89d");
+  // ---------- sofa (mid-right, facing the table)
+  box(1.9,5.3,5.4,7.1,0,0.45,"#e0dcd2","#b7b3a9");
+  box(1.9,5.3,6.75,7.1,0.45,1.15,"#d7d3c9","#aeaaa0");
+  box(1.9,2.35,5.4,7.1,0.45,0.85,"#dbd7cd","#b2aea4"); box(4.85,5.3,5.4,7.1,0.45,0.85,"#dbd7cd","#b2aea4");
+  // ---------- low table + mugs + his book
+  box(-1.7,0.9,2.4,4.0,0,0.42,"#cfcabe","#a5a094");
+  box(-1.5,0.7,2.6,3.8,0.42,0.50,"#e4dfd5","#bdb8ae");
+  { const a=P(-0.9,2.75,0.52); if(a){ cx.save(); cx.strokeStyle="rgba(34,32,30,0.8)"; cx.lineWidth=1.5; cx.beginPath(); cx.ellipse(a.x,a.y,a.s*0.14,a.s*0.06,0,0,6.3); cx.stroke(); cx.restore(); } }
+  { const a=P(-0.2,3.4,0.52); if(a){ cx.save(); cx.fillStyle="rgba(60,58,54,0.75)"; cx.strokeStyle="rgba(30,28,26,0.9)"; cx.lineWidth=1.2; cx.beginPath(); cx.rect(a.x-a.s*0.18,a.y-a.s*0.05,a.s*0.36,a.s*0.10); cx.fill(); cx.stroke(); cx.restore(); } }
+  // ---------- mattress corner (she sleeps on the floor, front-left)
+  box(-6.6,-3.4,0.2,2.9,0,0.38,"#ded9ce","#b6b1a6");
+  box(-6.3,-5.4,0.5,1.3,0.38,0.62,"#eeece5","#c9c6bd");
+  box(-4.4,-3.6,0.45,2.6,0.36,0.52,"#c4bfb4","#9c978c");
+  // ---------- floor lamp (left of his chair)
+  { const base=P(-4.9,1.0,0), mid=P(-4.9,1.0,2.3), sh=P(-4.9,1.0,2.45);
+    if(base&&mid&&sh){ cx.save(); cx.strokeStyle="rgba(40,38,36,0.65)"; cx.lineWidth=1.6; cx.beginPath(); cx.moveTo(base.x,base.y); cx.lineTo(mid.x,mid.y); cx.stroke();
+      cx.fillStyle="rgba(250,246,232,0.9)"; cx.beginPath(); cx.moveTo(sh.x-sh.s*0.42,sh.y+sh.s*0.22); cx.lineTo(sh.x+sh.s*0.42,sh.y+sh.s*0.22); cx.lineTo(sh.x+sh.s*0.22,sh.y-sh.s*0.2); cx.lineTo(sh.x-sh.s*0.22,sh.y-sh.s*0.2); cx.closePath(); cx.fill(); cx.stroke(); cx.restore(); } }
+  // ---------- ceiling lamp over the table + its cone
+  { const top=P(-0.4,4.5,RZ+0.35), bot=P(-0.4,4.5,2.85);
+    if(top&&bot){ cx.save(); cx.strokeStyle="rgba(40,38,36,0.5)"; cx.lineWidth=1.4; cx.beginPath(); cx.moveTo(top.x,top.y); cx.lineTo(bot.x,bot.y); cx.stroke();
+      cx.fillStyle="rgba(250,247,238,0.92)"; cx.beginPath(); cx.moveTo(bot.x-bot.s*0.4,bot.y+bot.s*0.18); cx.lineTo(bot.x+bot.s*0.4,bot.y+bot.s*0.18); cx.lineTo(bot.x+bot.s*0.18,bot.y-bot.s*0.22); cx.lineTo(bot.x-bot.s*0.18,bot.y-bot.s*0.22); cx.closePath(); cx.fill(); cx.stroke();
+      cx.globalCompositeOperation="lighter"; const g=cx.createRadialGradient(bot.x,bot.y,0,bot.x,bot.y,bot.s*3.4); g.addColorStop(0,"rgba(255,232,190,0.20)"); g.addColorStop(1,"rgba(255,232,190,0)"); cx.fillStyle=g; cx.fillRect(bot.x-bot.s*3.4,bot.y-bot.s*3.4,bot.s*6.8,bot.s*6.8); cx.restore(); } }
+}
+function WY0(){ return MY+8.6; }
+function drawAptLight(){ cx.save();
+  const lamps=[[-0.4,4.5,2.85,-4.9,1.0,2.45]];
+  for(const L of lamps){ for(const q of [P2(L[0],L[1],L[2]),P2(L[3],L[4],L[5])]){ if(!q) continue;
+    const fl=0.92+Math.sin(time*7+q.x*0.01)*0.05+Math.sin(time*19)*0.03; const R0=q.s*5.2*fl;
+    cx.globalCompositeOperation="lighter"; const g=cx.createRadialGradient(q.x,q.y,0,q.x,q.y,R0); g.addColorStop(0,"rgba(255,226,176,0.22)"); g.addColorStop(1,"rgba(255,226,176,0)"); cx.fillStyle=g; cx.fillRect(q.x-R0,q.y-R0,R0*2,R0*2); } }
+  cx.globalCompositeOperation="source-over";
+  const vg=cx.createRadialGradient(W/2,H*0.5,Math.min(W,H)*0.22,W/2,H*0.5,Math.max(W,H)*0.7); vg.addColorStop(0,"rgba(10,12,16,0)"); vg.addColorStop(1,"rgba(10,12,16,0.62)"); cx.fillStyle=vg; cx.fillRect(0,0,W,H); cx.restore(); }
+/* ---- v0.9: 霜之城的雪 + 窗外冷光 ---- */
+const SNOWF=[]; { const r=rng(99); for(let i=0;i<150;i++) SNOWF.push({x:r(),y:r(),sp:0.02+r()*0.055,ph:r()*6.28,sz:0.5+r()*1.5}); }
+function drawSnow(dt){ if(cine.on&&cine.scene!=="world") return; cx.save(); cx.fillStyle="rgba(255,255,255,0.9)";
+  for(const f of SNOWF){ f.y+=dt*f.sp*(FF?3:1); f.x+=Math.sin(time*0.5+f.ph)*0.00035; if(f.y>1.05) f.y-=1.05; if(f.x>1) f.x-=1;
+    const x=f.x*W+Math.sin(time*0.9+f.ph)*12, y=f.y*H; cx.beginPath(); cx.arc(x,y,f.sz,0,6.3); cx.fill(); }
+  cx.restore(); }
+function P2(x,y,z){ return proj(MX+x,MY+y,z||0); }
+function drawWindowGlow(){ if(cine.scene!=="apt") return; const a=P2(3.1,8.55,2.2); if(!a) return; cx.save(); cx.globalCompositeOperation="lighter"; const R=Math.max(W,H)*0.45;
+  const g=cx.createRadialGradient(a.x,a.y,0,a.x,a.y,R); g.addColorStop(0,"rgba(206,224,244,0.15)"); g.addColorStop(1,"rgba(206,224,244,0)"); cx.fillStyle=g; cx.fillRect(0,0,W,H); cx.restore(); }
 function drawVortex(){ if(cine.vortex<=0||!cine.mirror) return; const m=cine.mirror, v=cine.vortex; const c=proj(m.x,m.y,1.9); if(!c) return;
   cx.save(); cx.globalAlpha=v*0.7; const g=cx.createRadialGradient(c.x,c.y,0,c.x,c.y,c.s*1.1); g.addColorStop(0,"rgba(20,16,12,0.95)"); g.addColorStop(1,"rgba(20,16,12,0)"); cx.fillStyle=g; cx.beginPath(); cx.ellipse(c.x,c.y,c.s*0.75,c.s*1.25,0,0,6.3); cx.fill(); cx.restore();
   for(let i=0;i<70;i++){ const f=((i*0.137+time*0.35)%1); const r=(1-f)*1.5*v, a=i*2.39996+time*(2+2*(1-f)); const p=proj(m.x+Math.cos(a)*r*0.8*cam.r[0],m.y+Math.cos(a)*r*0.8*cam.r[1]-0.05,1.9+Math.sin(a)*r*1.2); if(!p) continue; const sz=p.s*(0.05+0.1*(1-f));
@@ -1126,13 +1205,14 @@ function drawShow(){ const sh=cine.show; if(!sh) return; const p=proj(sh.x,sh.y,
 function drawCineOverlay(){ if(!cine.on) return; const fam=getComputedStyle(document.body).fontFamily; const bh=H*0.12*cine.bars;
   if(cine.flash>0){ cx.fillStyle=`rgba(250,248,240,${Math.min(1,cine.flash)})`; cx.fillRect(0,0,W,H); }
   cx.fillStyle="#0c0a08"; cx.fillRect(0,0,W,bh); cx.fillRect(0,H-bh,W,bh);
-  if(cine.title){ const t=cine.title.t; const a=Math.max(0,Math.min(1,t/0.8,(3.4-t)/0.8)); if(a>0){ cx.save(); cx.globalAlpha=a; cx.fillStyle=cine.scene==="mansion"?"#efe7d6":"#2a2622"; cx.font="44px "+fam; cx.textAlign="center"; cx.textBaseline="middle"; cx.fillText(cine.title.text,W/2,H*0.2); cx.font="15px "+fam; cx.fillText("— 很久以前，或者就在昨天 —",W/2,H*0.2+40); cx.restore(); } }
+  if(cine.title){ const t=cine.title.t; const a=Math.max(0,Math.min(1,t/0.8,(3.4-t)/0.8)); if(a>0){ cx.save(); cx.globalAlpha=a; cx.fillStyle=cine.scene==="apt"?"#efe7d6":"#2a2622"; cx.font="44px "+fam; cx.textAlign="center"; cx.textBaseline="middle"; cx.fillText(cine.title.text,W/2,H*0.2); cx.font="15px "+fam; cx.fillText("— 很久以前，或者就在昨天 —",W/2,H*0.2+40); cx.restore(); } }
   if(cine.sub){ const sb=cine.sub; const n=Math.floor(sb.t*28); const txt=sb.text.slice(0,n); cx.save(); cx.textAlign="center"; cx.textBaseline="middle"; const y=H-bh/2;
     cx.font=(sb.who?"":"italic ")+"19px "+fam; const w=cx.measureText(sb.text).width; const nw=sb.who?60:0; let x0=W/2-(w+nw)/2;
     if(sb.who){ cx.fillStyle="#d8cbb0"; cx.font="bold 15px "+fam; cx.textAlign="left"; cx.fillText(sb.who,x0,y); x0+=nw; cx.font="19px "+fam; cx.fillStyle="#f3efe6"; cx.fillText("「"+txt+(n>=sb.text.length?"」":""),x0-10,y); }
     else { cx.textAlign="left"; cx.fillStyle="#cfc6b4"; cx.fillText(txt,x0,y); } cx.restore(); } }
-function beginGame(){ started=true; cine.on=0; hero.kneel=0; hero.alpha=1; demon.alpha=1; demon.z=0; hero.z=0; cam.yawT=cam.yaw; cam.distT=cam.dist; if(!Number.isFinite(hero.x)||hero.x>100){ hero.x=-1; hero.y=2.5; } hero.face=Math.PI; demon.x=-2.6; demon.y=4.8; demon.plan=S.day<=1&&!ctl.intro?[{k:'say',text:"……醒了？\n去。给我捡点东西回来。\n花、石头……什么都行。别走远。",dur:3.4},{k:'task',def:{k:'free',T:85}}]:(demon.plan||[]); if(!ctl.intro) ctl.intro=1; demon.cur=null; demon.pose=null; ctl.mode="follow"; ctl.task=null; if(S.core===undefined) S.core=100; shards(hero.x,hero.y,1,20,4);
-  refreshUI(); setTimeout(()=>{ gainKey("bag"); },700); setTimeout(()=>note(TOUCH?"没有主人的命令，她不能自己行动 · 命令允许时：左侧按住拖动 = 移动 · 右下圆钮 = 动作 / 快进 · 双指 = 缩放视角":"没有主人的命令，她不能自己行动 · 命令允许时：WASD 移动 · 空格 动作 · Q/E 转视角"),1800); updCmd(); }
+function beginGame(){ started=true; cine.on=0; hero.kneel=0; hero.alpha=1; demon.alpha=1; demon.z=0; hero.z=0; cam.yawT=cam.yaw; cam.distT=cam.dist; if(!Number.isFinite(hero.x)||hero.x>100){ hero.x=-1; hero.y=2.5; } hero.face=Math.PI; demon.x=-2.6; demon.y=4.8; demon.plan=S.day<=1&&!ctl.intro?[{k:'say',text:"……醒了？\n这是霜之城。外面在下雪。\n去，捡点东西回来。纸、铁片、什么破烂都行。别走远。",dur:3.6},{k:'task',def:{k:'free',T:85}}]:(demon.plan||[]); if(!ctl.intro) ctl.intro=1; demon.cur=null; demon.pose=null; ctl.mode="follow"; ctl.task=null; if(S.core===undefined) S.core=100; shards(hero.x,hero.y,1,20,4);
+  refreshUI(); setTimeout(()=>{ gainKey("bag"); },700); setTimeout(()=>note(TOUCH?"没有主人的命令，她不能自己行动 · 命令允许时：左侧按住拖动 = 移动 · 右下圆钮 = 动作 / 快进 · 双指 = 缩放视角":"没有主人的命令，她不能自己行动 · 命令允许时：WASD 移动 · 空格 动作 · Q/E 转视角"),1800);
+  setTimeout(()=>note("霜之城 · 冬天｜公寓里的事也要人管：饭 · 打扫 · 暖气"),4200); updCmd(); }
 
 /* ---------------- update ---------------- */
 let last=performance.now(), time=0, started=false, won=false, winT=0, FF=false;
@@ -1157,7 +1237,7 @@ function step(dt){
   if(hero.dash>0){ hero.dash-=dt; sp=24; if(!(mx||my)){ mx=Math.sin(hero.face); my=Math.cos(hero.face); } }
   if(mx||my){ const nx=hero.x+mx*sp*dt, ny=hero.y+my*sp*dt; const bk=blocked(nx,ny,flying);
     if(!bk){ hero.x=nx; hero.y=ny; }
-    else { if(bk!==true&&bk.puzzle==="smash"&&hero.form==="unicorn"&&hero.dash>0&&!bk.gone){ bk.gone=true; shards(bk.x,bk.y,1,26,7,"#dcd6ca"); dirt(bk.x,bk.y,20); thud(); shake=0.35; hero.dash=0; drop(bk.x,bk.y,wpick(BOULDER_TAB),1); if(RING.filter(b=>!b.gone).length<=5){ if(!RING.msg){RING.msg=1; drop(20,-8,"k_quill",1); note("石阵被撞开了");} } }
+    else { if(bk!==true&&bk.puzzle==="smash"&&hero.form==="unicorn"&&hero.dash>0&&!bk.gone){ bk.gone=true; shards(bk.x,bk.y,1,26,7,"#dcd6ca"); dirt(bk.x,bk.y,20); thud(); shake=0.35; hero.dash=0; drop(bk.x,bk.y,wpick(BOULDER_TAB),1); if(RING.filter(b=>!b.gone).length<=5){ if(!RING.msg){RING.msg=1; drop(20,-8,"k_quill",1); note("冻住的料堆被撞开了");} } }
       else if(bk!==true&&(bk.kind==="dead"||bk.kind==="stump")&&hero.form==="unicorn"&&hero.dash>0&&!bk.gone){ bk.gone=true; bk.respawn=200; drop(bk.x,bk.y,"log",1); if(bk.kind==="dead"){ drop(bk.x,bk.y,"log",1); drop(bk.x,bk.y,"twig",1); } shards(bk.x,bk.y,1,14,5,"#e8dfcc"); thud(); shake=0.25; hero.dash=0; }
       else if(bk!==true&&(bk.kind==="rocks"||bk.kind==="boulder")&&!bk.puzzle&&hero.form==="unicorn"&&hero.dash>0&&!bk.gone){ breakRock(bk); shards(bk.x,bk.y,0.8,16,6,"#dcd6ca"); dirt(bk.x,bk.y,12); thud(); shake=0.25; hero.dash=0; }
       else if(bk!==true&&bk.puzzle==="smash"&&hero.form!=="unicorn"&&!bk.tip){ bk.tip=1; note(hasKey("horn")?"推不动——需要独角兽的冲撞":"推不动。要是有一只角……"); }
@@ -1345,7 +1425,7 @@ function drawWin(){ if(!won) return; winT+=1/60; if(winT>9) return; const a=Math
 function ffOK(){ return started&&!cine.on&&!S.paused&&!zoneNow()&&!S.order&&!S.train&&!END.on; }
 function frame(now){ const dt=Math.min(0.05,(now-last)/1000); last=now; if(cine.on) cineStep(dt); FF=ffOK()&&(K.KeyF||K.ShiftLeft||K.ShiftRight); if(started&&!S.paused){ if(FF){ step(dt); step(dt); step(dt); } else step(dt); } else if(started&&S.order) updOrder(); camUpdate();
   cx.save(); if(shake>0) cx.translate((Math.random()-0.5)*10*shake,(Math.random()-0.5)*10*shake);
-  const MAN_ON=!!(cine.on&&cine.scene==="mansion"); if(MAN_ON) drawMansionBG(); else { drawSky(); drawGround(); }
+  const MAN_ON=!!(cine.on&&cine.scene==="apt"); if(MAN_ON) drawAptBG(); else { drawSky(); drawGround(); }
   // depth-sorted billboards
   const list=[]; for(const e of ents){ if(e.gone||((e.kind==="man")!==MAN_ON)) continue; const p=proj(e.x,e.y,0); if(!p||p.x<-p.s*e.h||p.x>W+p.s*e.h) continue; list.push({z:p.z,d:()=>{ if(e.kind!=="grass"&&e.kind!=="mound"&&e.kind!=="mush") shadow(p,Math.max(0.4,e.rad*0.9)); const picked=e.res&&!e.ready; sprite(IMG[e.img],p,e.h*(picked?0.7:1),e.flip,e.alpha*(picked?0.55:1),1,1,(e.kind==="arch"&&e.shake>0?Math.sin(time*50)*0.03:0)+(e.kind==="grass"?Math.sin(time*1.5+e.x)*0.04:0)+(e.shake>0?Math.sin(time*60)*0.05:0)); if(e.nest) drawNest(e,p); if(e.bid==="cabinet") drawCabinetItems(e,p); if(e.bid==="tent"&&demon.hidden){ cx.fillStyle="#2a2622"; cx.font="bold "+Math.round(p.s*0.35)+"px sans-serif"; cx.textAlign="center"; cx.fillText("z",p.x+p.s*0.5,p.y-p.s*(2.4+Math.sin(time*2)*0.1)); cx.fillText("z",p.x+p.s*0.75,p.y-p.s*(2.9+Math.sin(time*2+1)*0.1)); } }}); }
   { const p=proj(hero.x,hero.y,0); if(p) list.push({z:p.z-0.01,d:drawHero}); }
@@ -1356,13 +1436,13 @@ function frame(now){ const dt=Math.min(0.05,(now-last)/1000); last=now; if(cine.
   if(!MAN_ON) for(const b of bugs){ const p=proj(b.x,b.y,0); if(p&&p.x>-40&&p.x<W+40) list.push({z:p.z-0.005,d:()=>drawBug(b)}); }
   if(!MAN_ON) for(const d of digs){ if(d.rev<=0) continue; const p=proj(d.x,d.y,0); if(p) list.push({z:p.z+0.3,d:()=>drawDig(d)}); }
   list.sort((a,b)=>b.z-a.z); for(const it of list) it.d();
-  if(MAN_ON){ drawVortex(); drawShow(); } drawGhost(); drawSpot(); drawZone(); drawGlints(); drawEndWorld(); drawBeam(); drawParts(); if(MAN_ON) drawMansionLight(); else drawDarkness(); drawFloats(); drawBubbles();
+  if(MAN_ON){ drawVortex(); drawShow(); drawWindowGlow(); } drawGhost(); drawSpot(); drawZone(); drawGlints(); drawEndWorld(); drawBeam(); drawParts(); if(MAN_ON) drawAptLight(); else drawDarkness(); drawFloats(); drawBubbles();
   // paper grain + vignette
   if(!paperPat) paperPat=cx.createPattern(paper,"repeat"); cx.globalCompositeOperation="multiply"; cx.globalAlpha=0.35; cx.fillStyle=paperPat; cx.fillRect(0,0,W,H); cx.globalAlpha=1; cx.globalCompositeOperation="source-over";
   const vg=cx.createRadialGradient(W/2,H*0.55,Math.min(W,H)*0.35,W/2,H*0.55,Math.max(W,H)*0.75); vg.addColorStop(0,"rgba(60,50,40,0)"); vg.addColorStop(1,"rgba(60,50,40,0.28)"); cx.fillStyle=vg; cx.fillRect(0,0,W,H);
-  drawHUD(); drawWin(); cx.restore(); drawCineOverlay();
+  drawSnow(dt); drawHUD(); drawWin(); cx.restore(); drawCineOverlay();
   requestAnimationFrame(frame); }
-setupResources(); setupMansion(); buildInv(); refreshUI();
+setupResources(); setupApt(); buildInv(); refreshUI();
 requestAnimationFrame(frame);
 document.getElementById("title").onclick=()=>{ ac(); document.getElementById("title").style.display="none"; startCine(); };
 document.getElementById("cskip").onclick=e=>{ e.stopPropagation(); endCine(); };
