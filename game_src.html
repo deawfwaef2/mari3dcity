@@ -318,7 +318,9 @@ function transform(to,auto){ if(hero.tf||hero.form===to||!formOK(to)||S.paused) 
 const TF_DUR=1.05;
 
 /* ---------------- actions ---------------- */
-function action(){ if(hero.tf) return; if(S.order&&S.order.k==="quiet"){ S.order.broke=1; return; } const f=hero.form; const nearM=Math.hypot(demon.x-hero.x,demon.y-hero.y)<3.2&&!demon.hidden;
+function action(){ if(hero.tf) return; hero.act2=1; setTimeout(()=>{ hero.act2=0; },260); if(S.order&&S.order.k==="quiet"){ S.order.broke=1; return; } const f=hero.form; const nearM=Math.hypot(demon.x-hero.x,demon.y-hero.y)<3.2&&!demon.hidden;
+  if(S.order&&(S.order.k==="massage"||S.order.k==="kneel")){ if(S.order.k==="massage") note("把手放上去……然后别动。"); else note("（低头）是，主人。"); return; }
+  if(S.order&&S.order.k==="blind"){ S.order.broke=1; note("……动作键不允许。主人说了：闭眼，什么都不许做。"); return; }
   if(APT.on){ if(f!=="human"){ note("先变回人形（1）再做家务。"); return; } if(aptServeTea()) return; if(aptAction()) return; }
   if(placing){ confirmPlace(); return; }
   if(nearM){ openDialog(); return; }
@@ -592,6 +594,9 @@ const CMDS={
  clean:{t:"擦干净。地上一层灰。",T:110,svc:1,st:"走到每个灰点，按动作键擦掉"},
  heat:{t:"冷。去添煤。",T:95,svc:1,st:"在暖气里加一块煤"},
  tea:{t:"倒杯水来。",T:70,svc:1,st:"在水槽接水，端到主人手上"},
+ kneel:{t:"跪坐着。报数。",T:30,srv:1,st:"在主人脚边跪好——动作键开始，然后一动不动"},
+ massage:{t:"手放上来。肩。",T:34,srv:1,st:"走到主人身边，动作键开始按肩，保持 6 秒"},
+ blind:{t:"闭上眼睛。不许出声。",T:20,srv:1,st:"闭眼站着——不许移动、不许按动作键、不许变身"},
 };
 const CMD_LINES={
  come:{ok:["……嗯。铃一响就到，这才像话。","来了就行。站好。"],slow:["慢死了。下次我可不等。","……你是爬过来的？"],fail:["叫你过来。你耳朵是纸糊的？","算了。我不指望你。"]},
@@ -606,6 +611,9 @@ const CMD_LINES={
  clean:{ok:["嗯。看得见地板了。","……凑合。明天还会脏。"],fail:["灰还在。你眼睛是装饰。","我说擦干净。这叫干净？"]},
  heat:{ok:["……暖了。算是做了件事。","嗯。手别抖了。"],fail:["还是冷。你在干什么？","煤呢。……我等你等得都冻僵了。"]},
  tea:{ok:["……温的。还行。","放下。继续去忙。"],fail:["一杯水都要这么久。","我渴着。你站着。"]},
+ kneel:{ok:["……数到十，一个都没错。\n乖。","跪得挺稳。……就这样待着。"],fail:["跪都跪不住。\n……你身上没有一根骨头是听话的。","我说了报数。你走神了。"]},
+ massage:{ok:["……嗯。手劲还行。\n继续。……我说继续。","……那里。对。别停。"],fail:["手放上来都不会？\n……算了。别碰了。","按得像在揉面团。下去。"]},
+ blind:{ok:["……很好。眼睛闭着，什么都不知道。\n这样最省心。","嗯。安静。听话。"],fail:["我说闭眼。你动了。\n……你连装都装不像。","……又是你。睁开眼就忘事。"]},
 };
 const BRING_POOL=["daisy","dandelion","twig","stone","grass","flint","thistle"];
 const GRADES=["低等偏下","低等","中等偏下","中等","中等偏上","上等"];
@@ -639,11 +647,19 @@ function orderStep(dt){ const o=S.order;
   else if(o.k==="clean"){ if(!NEED.mess.some(m=>!m.cleaned)) ok=true; }
   else if(o.k==="heat"){ if(NEED.warm>=70) ok=true; }
   else if(o.k==="tea"){ if(hero.carry&&hero.carry.id==="tea"&&d<2.9){ ok=true; hero.carry=0; hero.pose={i:3,t:1.2}; S.favor+=2; desUp("use",3); say("demon",pick(["……放下。","温的。可以。"]),2.2); } }
+  else if(o.k==="kneel"){ if(d>4.6){ o.hold=0; } else { if(!o.started){ o.started=1; hero.pose={i:0,t:1e9}; note("跪坐 —— 动作键可以低头示意，但别起身。"); } hero.pose={i:0,t:1e9};
+      if(hero.moving<0.05&&hero.z<0.4){ o.hold+=dt; const n=Math.floor(o.hold/2); if(n>=(o.cnt||0)+1&&n<=5){ o.cnt=n; say("demon",String(n)+"。",0.9); paperSnd(0.12,1800,0.1); } if(o.hold>=10) ok=true; } else o.hold=Math.max(0,o.hold-dt*3); } }
+  else if(o.k==="massage"){ if(d<2.4){ if(!o.started){ note("动作键：把手放上去。"); } if(o.started){ hero.pose={i:4,t:1e9}; if(hero.moving<0.05){ o.hold+=dt; if(o.hold>=6) ok=true; } else o.hold=Math.max(0,o.hold-dt*4); }
+      if(!o.started&&hero.act2){ o.started=1; hero.pose={i:4,t:1e9}; demon.sit=1; say("demon",pick(["……嗯。", "手放上来。"]),1.6); hero.act2=0; } } else { note("走近一点——主人身边。"); } }
+  else if(o.k==="blind"){ if(hero.moving>0.06||o.broke||hero.form!=="human") fail=true; else { o.hold+=dt; hero.pose={i:1,t:1e9}; if(o.hold>=12) ok=true; } }
   if(!ok&&o.left<=0) fail=true;
   if(ok||fail){ const fr=o.left/o.T; const fixed=o.k==="leave"||o.k==="quiet"||o.k==="sit"||o.k==="spot"; const sc=fail?0:fixed?3:fr>0.5?3:fr>0.2?2:1;
     const L=CMD_LINES[o.k]; let line=fail?pick(L.fail):(sc===1&&L.slow?pick(L.slow):pick(L.ok));
     if(o.src==="train"){ S.train.scores.push({k:o.k,t:o.t,sc}); }
-    else { const dObey=fail?-6:sc>=2?4:2; S.obey=Math.max(0,Math.min(100,S.obey+dObey)); if(!fail) S.favor+=1; floatTxt(hero.x,hero.y,"服从度 "+(dObey>0?"+":"")+dObey); if(o.k==="come"&&!fail){ S.comeOK++; if(!hasKey("whistle")&&hasKey("collar")) setTimeout(()=>gainKey("whistle"),2600); } }
+    else { const dObey=fail?-6:sc>=2?4:2; S.obey=Math.max(0,Math.min(100,S.obey+dObey)); if(!fail) S.favor+=1;
+      if(!fail&&o.k==="kneel"){ desUp("company",5); desUp("recog",4); desUp("use",2); }
+      if(!fail&&o.k==="massage"){ desUp("use",7); desUp("recog",4); }
+      if(!fail&&o.k==="blind"){ desUp("obey",6); desUp("fear",3); } floatTxt(hero.x,hero.y,"服从度 "+(dObey>0?"+":"")+dObey); if(o.k==="come"&&!fail){ S.comeOK++; if(!hasKey("whistle")&&hasKey("collar")) setTimeout(()=>gainKey("whistle"),2600); } }
     say("demon",line,2.6); if(!fail) chime(); endOrder(); }
   updOrder(); }
 function endOrder(){ const o=S.order; S.order=null; for(let i=gitems.length-1;i>=0;i--) if(gitems[i].id==="stick"||gitems[i].id==="bait") gitems.splice(i,1); hero.carry=0; if(S.train) S.train.gap=2.4; updOrder(); }
@@ -752,7 +768,7 @@ function aptAction(){ if(!APT.on) return false; if(aptDoClean()) return true; co
     else if(hero.carry&&hero.carry.id==="tea"&&nearM===false){}
     return true; }
   return false; }
-function aptServeTea(){ if(!(hero.carry&&hero.carry.id==="tea")) return false; const d=Math.hypot(demon.x-hero.x,demon.y-hero.y); if(d>3.6){ note("水在手上——端到主人身边再按动作键"); return false; }
+function aptServeTea(){ if(S.order&&S.order.k==="massage"&&S.order.started) return false; if(!(hero.carry&&hero.carry.id==="tea")) return false; const d=Math.hypot(demon.x-hero.x,demon.y-hero.y); if(d>3.6){ note("水在手上——端到主人身边再按动作键"); return false; }
   hero.carry=0; hero.pose={i:3,t:1.2}; S.favor+=3; desUp("use",4); desUp("recog",3); chime(); floatTxt(demon.x,demon.y,"满意度 +3");
   say("demon",pick(["……放这儿。温的。下次记得。","嗯。嗓子刚好干。"],),2.4); return true; }
 function drawAptState(){ if(!APT.on) return; const o={x:APT.x,y:APT.y};
@@ -787,6 +803,7 @@ function aptDemon(dt){ if(demon.pose&&demon.pose.t<1e8){ demon.pose.t-=dt; if(de
     if(demon.act==="window"&&Math.random()<dt*0.5) say("demon",pick(["……雪下得没完。","那条街的灯，又坏了两盏。","……屋里还行。"]),2.4); }
   // he reads her core now and then -> desire analysis
   aptAnalyze(dt);
+  if(NEED.eat>0){ NEED.eat-=dt; }
 }
 function aptAnalyze(dt){ const cd=140-Math.min(60,rankIdx()*12); if(time-(APT.anT||-99)<cd) return; if(S.order||ctl.task||S.paused||dlg.open) return;
   if(Math.hypot(demon.x-hero.x,demon.y-hero.y)>7) return; APT.anT=time;
@@ -936,7 +953,7 @@ function demonAI(dt){ if(APT.on&&!END.on){ demon.hidden=false; aptDemon(dt); ret
 /* ---- v0.7 CONTROL: she cannot move on her own. Movement only inside a zone granted by a command ---- */
 const ctl={qSeen:{},waitTw:0,twT:0,mode:"follow",task:null,at:null,fl:0,flare:0,twitch:0,warn:0,resNote:0,pullNote:0,punish:false,spd:1,idle:0};
 const HP_H=[0.74,1,0.93,1,1,0.7,0.68,1,1], DP_H=[1,1,1,0.9];
-const ORDER_ZONE={come:{c:"d",r:90},sit:{c:"d",r:5},fetch:{c:"d",r:15},bring:{c:"d",r:22},leave:{c:"h",r:5},spot:{c:"d",r:13},spin:{c:"h",r:5},quiet:null,cook:{c:"a"},clean:{c:"a"},heat:{c:"a"},tea:{c:"d",r:26}};
+const ORDER_ZONE={come:{c:"d",r:90},sit:{c:"d",r:5},fetch:{c:"d",r:15},bring:{c:"d",r:22},leave:{c:"h",r:5},spot:{c:"d",r:13},spin:{c:"h",r:5},quiet:null,cook:{c:"a"},clean:{c:"a"},heat:{c:"a"},tea:{c:"d",r:26},kneel:{c:"d",r:4.5},massage:{c:"d",r:4.5},blind:{c:"h",r:5}};
 const WALK_L=["跟上。","走了。","……别掉队。","这边。"], FREE_L=["……随你找。别跑出我的视线。","去吧。时间一到就回来。","给你一点时间。别浪费。"],
  WAIT_L=["站在这里。等我的命令。","站好。别动。","……在这里站着。我没说话之前，别动。"], PUNISH_L=["做不好就站着。站到我满意为止。","罚站。好好想想你做了什么。","……站着。别让我看见你动。"],
  KNEEL_L=["跪坐在这里。别出声。","坐下。安静点。","待在脚边。我看书。"], CAMP_L=["我看书。你在营地里干活。别走出营地。","营地里的事自己看着办。"],
@@ -1194,6 +1211,18 @@ function leave(){ closeDialog(); }
 function eff(e){ if(!e) return; if(e.obey){ S.obey=Math.min(100,S.obey+e.obey); } if(e.favor){ S.favor+=e.favor; } }
 function rootNode(back){ const o=[]; const hasCol=S.inv.some(s=>s&&ITEMS[s.id].col);
   if(hasCol) o.push({t:"「主人，这是今天找到的东西。」（献上收藏）",f:()=>{ closeDialog(); deliverAll(); }});
+  o.push({t:"「主人，让我侍奉您。」",f:()=>{
+    const mk=(k,txt)=>({t:txt,f:()=>{ const p=0.30+S.obey/220+(APT.on?0.15:0); if(Math.random()<p){ closeDialog(); setTimeout(()=>{ issueOrder(k,"serve"); },320); } else reply(pick(["……现在不想。","手拿开。我在看书。","用不着。……自己找点事做。","……看你表现。先把屋子收拾了。"])); }});
+    showNode({line:"侍奉？\n你说说，你会什么。",opts:[
+      mk("kneel","「我可以跪在旁边，安安静静地待着。」"),
+      mk("massage","「我会按肩。手很稳的。」"),
+      mk("blind","「……让我闭上眼睛，什么都不知道。」"),
+      mk("tea","「先给您倒杯水吧。」"),
+      {t:"「（低下头，等主人开口）」",f:()=>reply("……嗯。跪着吧。\n我叫你起来之前，别动。",[{t:"「是，主人。」",f:()=>{ closeDialog(); setTimeout(()=>issueOrder("kneel","serve"),320); }}])}
+    ]}); }});
+  o.push({t:"「主人，今天也请调教我。」",f:()=>{
+    if(hasKey("whistle")){ if(S.trainDay===S.day) reply("今天练过了。\n……练两遍也不会变聪明。"); else { closeDialog(); setTimeout(()=>{ S.trainDay=S.day; startTraining(); },300); } }
+    else reply("……调教？\n先把自己卖出个价再说。"); }});
   o.push({t:"「主人，有什么吩咐吗？我什么都愿意做。」",f:()=>{ if(Math.random()<0.6){ closeDialog(); setTimeout(()=>{ issueOrder(); },300); } else reply(pick(["献礼单上写着。自己看。","没有。别在我眼前晃。","……去给我找点像样的东西。别空着手回来。","我真用不到你。……现在。","什么都愿意做？\n那就先学会安静。"])); }});
   if(hasKey("whistle")&&S.trainDay!==S.day&&!S.train) o.push({t:"「主人……今天的训练，可以开始了吗？」",f:()=>{ closeDialog(); startTraining(); }});
   if(!ctl.task&&!S.train) o.push({t:"「主人，我可以自己去找找东西吗？」",f:()=>{ if(time<dlg.followCD){ reply("刚说过了。不行。"); return; } const p=0.3+S.obey/200+rankIdx()*0.06;
