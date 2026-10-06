@@ -91,6 +91,7 @@ html,body{overscroll-behavior:none;-webkit-user-select:none;user-select:none;-we
  body.mo #cmd{top:calc(112px + env(safe-area-inset-top));font-size:11px;padding:5px 10px;max-width:40vw;transition:opacity .3s}
  @media (orientation:portrait){
   body.mo #cmd{top:calc(196px + env(safe-area-inset-top))}
+  body.mo #need{top:calc(300px + env(safe-area-inset-top));width:118px}
   body.mo #act{bottom:calc(88px + env(safe-area-inset-bottom))}
   body.mo #ff{bottom:calc(96px + env(safe-area-inset-bottom))}
   body.mo #forms{bottom:calc(214px + env(safe-area-inset-bottom))}
@@ -99,6 +100,9 @@ html,body{overscroll-behavior:none;-webkit-user-select:none;user-select:none;-we
   body.mo #dlg{bottom:calc(300px + env(safe-area-inset-bottom))}
  }
  body.mo #side{top:calc(156px + env(safe-area-inset-top));gap:4px} body.mo .sb{padding:4px 9px;font-size:12px}
+ body.mo #need{left:auto;right:calc(10px + env(safe-area-inset-right));top:calc(214px + env(safe-area-inset-top));width:126px;font-size:11px;padding:3px 6px}
+ body.mo #need .nn{width:26px} body.mo #need .nv{width:20px}
+ body.mo #desire{width:94vw;padding:10px 12px}
  body.mo #notes{top:auto;bottom:calc(210px + env(safe-area-inset-bottom));left:8px;max-width:44vw}
  body.mo .nt{font-size:11px;padding:2px 6px}
  body.mo #dlg{bottom:calc(150px + env(safe-area-inset-bottom));max-height:56vh;overflow-y:auto;padding:8px 10px 6px}
@@ -657,6 +661,11 @@ function orderStep(dt){ const o=S.order;
     const L=CMD_LINES[o.k]; let line=fail?pick(L.fail):(sc===1&&L.slow?pick(L.slow):pick(L.ok));
     if(o.src==="train"){ S.train.scores.push({k:o.k,t:o.t,sc}); }
     else { const dObey=fail?-6:sc>=2?4:2; S.obey=Math.max(0,Math.min(100,S.obey+dObey)); if(!fail) S.favor+=1;
+      if((o.src==="svc"||o.src==="serve")&&!fail){ const st=NEED.stat; st.svc++; if(o.k==="cook") st.meals++; if(o.k==="tea") st.tea++; if(o.k==="heat") st.coal++; if(o.k==="clean") st.clean++;
+        const fast=1-Math.min(1,(o.left||0)/o.T); st.score.push(fast);
+        if(st.svc%4===0){ const avg=st.score.slice(-4).reduce((a,b)=>a+b,0)/4; const g=avg>0.62?"S":avg>0.45?"A":avg>0.3?"B":avg>0.15?"C":"D";
+          stamp(g); const L={S:"四次。都很快。\n……今天你算好用。",A:"四次做完。勉强像个佣人。",B:"四次。不快不慢。",C:"四次。……磨磨蹭蹭。",D:"四次。我等到雪都停了。"}[g];
+          S.favor+={S:6,A:3,B:1,C:0,D:0}[g]; if(g==="S") S.obey=Math.min(100,S.obey+3); setTimeout(()=>say("demon",L,3),900); } }
       if(!fail&&o.k==="kneel"){ desUp("company",5); desUp("recog",4); desUp("use",2); }
       if(!fail&&o.k==="massage"){ desUp("use",7); desUp("recog",4); }
       if(!fail&&o.k==="blind"){ desUp("obey",6); desUp("fear",3); } floatTxt(hero.x,hero.y,"服从度 "+(dObey>0?"+":"")+dObey); if(o.k==="come"&&!fail){ S.comeOK++; if(!hasKey("whistle")&&hasKey("collar")) setTimeout(()=>gainKey("whistle"),2600); } }
@@ -694,7 +703,7 @@ const APT_HS=[
  {k:"table",x:-0.4,y:3.6,r:1.6,n:"桌子 · 端上"},
  {k:"chair",x:-2.6,y:3.2,r:1.5,n:"主人的椅子"}
 ];
-const NEED={food:66,clean:74,warm:52,trash:1,mess:[],cook:0,ready:0,eat:0,sinkT:0,lastWarn:{},feedT:-99,serveT:-99,cleanT:-99,heatT:-99};
+const NEED={food:66,clean:74,warm:52,trash:1,mess:[],cook:0,ready:0,eat:0,sinkT:0,lastWarn:{},feedT:-99,serveT:-99,cleanT:-99,heatT:-99,stat:{meals:0,tea:0,coal:0,spot:0,svc:0,score:[],clean:0}};
 function aptFreeSpot(){ for(let i=0;i<40;i++){ const x=-6.0+Math.random()*11.6, y=0.2+Math.random()*6.6; let bad=false; for(const b of APT_BLOCK) if(x>b[0]-0.4&&x<b[1]+0.4&&y>b[2]-0.4&&y<b[3]+0.4) bad=true; if(!bad) return {x,y}; } return {x:0,y:2}; }
 function spawnMess(n){ for(let i=0;i<n;i++){ const p=aptFreeSpot(); NEED.mess.push({x:p.x,y:p.y,cleaned:0,a:Math.random()*6.28}); } }
 function aptInit(){ if(APT.inited) return; APT.inited=1; spawnMess(4); }
@@ -727,7 +736,7 @@ function supplyStep(dt){ for(let i=SUPPLY.length-1;i>=0;i--){ const g=SUPPLY[i];
 function spawnSupplyInit(){ if(!SUPPLY.length){ spawnSupply(); spawnSupply(); } }
 
 /* ---- needs ---- */
-function needStep(dt){ if(!APT.on) return; if(S.paused) return;
+function needStep(dt){ if(S.paused) return;
   NEED.food=Math.max(0,NEED.food-dt*0.42); NEED.clean=Math.max(0,NEED.clean-dt*0.13); NEED.warm=Math.max(0,NEED.warm-dt*0.34); NEED.trash=Math.min(6,NEED.trash+dt*0.045);
   if(NEED.mess.filter(m=>!m.cleaned).length===0&&NEED.clean>10&&(NEED.mess._t=(NEED.mess._t||0)+dt)>34){ NEED.mess._t=0; spawnMess(1+(Math.random()<0.4?1:0)); NEED.clean=Math.max(0,NEED.clean-6); note("又落了一层灰。"); }
   if(NEED.cook>0){ NEED.cook-=dt; if(NEED.cook<=0){ NEED.cook=0; NEED.ready=1; chime(); note("饭热好了——端给主人。"); say("demon","……还没好？我等着。",2); } }
@@ -740,9 +749,9 @@ function needStep(dt){ if(!APT.on) return; if(S.paused) return;
     const line=lv>88?pick(["……嗯。还行。","勉强算是饭。下次快一点。"]):pick(["……还热着。算你有点用。","吃了。碗自己收。"]);
     say("demon",line,2.8); chime(); floatTxt(demon.x,demon.y,"满意度 +7"); } }
 }
-function updNeed(){ const el=document.getElementById("need"); if(!el) return; if(!(started&&!cine.on&&APT.on)){ el.style.display="none"; return; } el.style.display="block";
+function updNeed(){ const el=document.getElementById("need"); if(!el) return; if(!(started&&!cine.on&&APT.entered)){ el.style.display="none"; return; } el.style.display="block";
   const bar=(n,v,inv)=>{ const w=Math.round(Math.max(0,Math.min(100,v))); return `<div class='nr'><span class='nn'>${n}</span><span class='nb'><i style='width:${w}%'></i></span><span class='nv'>${Math.round(v)}${inv?"":"%" }</span></div>`; };
-  el.innerHTML="<div style='font-size:11px;letter-spacing:.2em;opacity:.6;text-align:center'>公寓状态</div>"+
+  el.innerHTML="<div style='font-size:11px;letter-spacing:.2em;opacity:.6;text-align:center'>"+(APT.on?"公寓状态":"公寓（回 H）")+"</div>"+
     bar("饭",NEED.food)+bar("净",NEED.clean)+bar("暖",NEED.warm)+bar("垃圾",Math.max(0,100-NEED.trash/6*100)); }
 function drawNeedWorld(){ if(!started||cine.on||!APT.on) return; }
 
@@ -769,7 +778,7 @@ function aptAction(){ if(!APT.on) return false; if(aptDoClean()) return true; co
     return true; }
   return false; }
 function aptServeTea(){ if(S.order&&S.order.k==="massage"&&S.order.started) return false; if(!(hero.carry&&hero.carry.id==="tea")) return false; const d=Math.hypot(demon.x-hero.x,demon.y-hero.y); if(d>3.6){ note("水在手上——端到主人身边再按动作键"); return false; }
-  hero.carry=0; hero.pose={i:3,t:1.2}; S.favor+=3; desUp("use",4); desUp("recog",3); chime(); floatTxt(demon.x,demon.y,"满意度 +3");
+  hero.carry=0; hero.pose={i:3,t:1.2}; S.favor+=3; NEED.stat.tea++; desUp("use",4); desUp("recog",3); chime(); vz(20); floatTxt(demon.x,demon.y,"满意度 +3");
   say("demon",pick(["……放这儿。温的。下次记得。","嗯。嗓子刚好干。"],),2.4); return true; }
 function drawAptState(){ if(!APT.on) return; const o={x:APT.x,y:APT.y};
   // dirt spots
@@ -837,6 +846,8 @@ function openDesire(byMaster){ const el=document.getElementById("desire"); if(!e
     return `<svg width='100%' viewBox='0 0 ${w} ${h+6}' style='margin-top:6px'>${line("recog","#2a2622")}${line("use","#8a8378")}${line("fear","#b01828")}</svg><div class='dsub'>认可欲 —— · 被使用欲 — — · 恐惧</div>`; })():"";
   el.innerHTML=`<div class='dh2'>核心分析 · 欲望数据</div><div class='dsub'>读取对象：deawfwaef ／ 主人：51-不认识-</div>${rows}${sp}
     <div class='dcon'><b>主人的分析</b><br>${desConclusion().replace(/\n/g,"<br>")}</div>
+    <div class='dcon' style='font-size:12px;opacity:.85'><b>服务记录</b><br>端饭 ${NEED.stat.meals} · 端水 ${NEED.stat.tea} · 添煤 ${NEED.stat.coal} · 擦地 ${NEED.stat.clean} · 合计 ${NEED.stat.svc}
+      <br>当前：饭 ${Math.round(NEED.food)} · 干净 ${Math.round(NEED.clean)} · 室温 ${Math.round(NEED.warm)}</div>
     <div class='ab' onclick='closeDesire()'>（低下头）</div>`;
   el.style.display="block"; chime(); vz(20); if(byMaster) paperSnd(0.5,1600,0.25); updNeed(); }
 function closeDesire(){ const el=document.getElementById("desire"); if(el.style.display!=="block") return false; el.style.display="none"; S.paused=0;
@@ -849,7 +860,7 @@ function svcDirector(dt){ if(!APT.on||S.paused||cine.on||END.on) return; if(S.or
   svcDirector.t=(svcDirector.t||90)+dt; if(svcDirector.t<110) return; svcDirector.t=0;
   const pool=["clean","cook","heat","tea"].filter(svcAvail); if(!pool.length) return;
   issueOrder(pick(pool),"svc"); }
-function aptStep(dt){ if(!APT.on) return; needStep(dt); svcDirector(dt); desTick();
+function aptStep(dt){ if(!APT.entered||cine.on) return; needStep(dt*(APT.on?1:0.35)); if(APT.on) svcDirector(dt); desTick();
   if((updNeed._t=(updNeed._t||0)+dt)>0.35){ updNeed._t=0; updNeed(); } }
 
 /* ---- per-frame tick ---- */
@@ -1098,8 +1109,12 @@ function chapterIdx(){ if(won) return 6; if(!hasKey("notebook")) return 0; if(!h
 const chap={i:-1,t:9};
 function chapterStep(dt){ const i=chapterIdx(); if(i!==chap.i){ if(chap.i>=0||i===0){ chap.t=0; chime(); } chap.i=i; updCmd(); } const _ce=document.getElementById("cmd"); if(_ce) _ce.style.opacity=(chap.t<4.3&&started&&!cine.on)?0:1; chap.t+=dt; if((chap.u=(chap.u||0)+dt)>1.5){ chap.u=0; updCmd(); } }
 function drawChapter(fam){ if(chap.t>4.2||chap.i<0) return; const C=CHAPTERS[chap.i]; const a=Math.min(1,chap.t/0.6,(4.2-chap.t)/0.8); cx.save(); cx.globalAlpha=a;
-  cx.fillStyle="rgba(247,243,234,0.88)"; cx.fillRect(0,H*0.3,W,H*0.22); cx.strokeStyle="#2a2622"; cx.lineWidth=1.5; cx.beginPath(); cx.moveTo(W*0.2,H*0.3+8); cx.lineTo(W*0.8,H*0.3+8); cx.moveTo(W*0.2,H*0.52-8); cx.lineTo(W*0.8,H*0.52-8); cx.stroke();
-  cx.fillStyle="#2a2622"; cx.textAlign="center"; cx.textBaseline="middle"; cx.font=Math.round(16*Math.min(1,W/880))+"px "+fam; cx.fillText(C.n,W/2,H*0.35); const fsz=Math.min(1,W/880); cx.font="bold "+Math.round(40*fsz)+"px "+fam; cx.fillText("「"+C.t+"」",W/2,H*0.415); cx.font="14px "+fam; cx.globalAlpha=a*0.8; cx.fillText(C.g(),W/2,H*0.48); cx.restore(); }
+  const narrow=W<560; const y0=narrow?H*0.23:H*0.30, hh=narrow?H*0.17:H*0.22, y1=y0+hh;
+  cx.fillStyle="rgba(247,243,234,0.92)"; cx.fillRect(0,y0,W,hh); cx.strokeStyle="#2a2622"; cx.lineWidth=1.5; cx.beginPath(); cx.moveTo(W*0.12,y0+8); cx.lineTo(W*0.88,y0+8); cx.moveTo(W*0.12,y1-8); cx.lineTo(W*0.88,y1-8); cx.stroke();
+  const fs=Math.min(1,W/880); cx.fillStyle="#2a2622"; cx.textAlign="center"; cx.textBaseline="middle";
+  cx.font=Math.round((narrow?13:16)*fs)+"px "+fam; cx.fillText(C.n,W/2,y0+hh*0.22);
+  cx.font="bold "+Math.round((narrow?28:40)*fs)+"px "+fam; cx.fillText("「"+C.t+"」",W/2,y0+hh*0.50);
+  cx.font=Math.round((narrow?12:14)*fs)+"px "+fam; cx.globalAlpha=a*0.85; cx.fillText(C.g(),W/2,y0+hh*0.80); cx.restore(); }
 function drawFF(fam){ if(!started||cine.on||END.on) return; const ok=ffOK(); if(!ok) return; cx.save(); cx.font="13px "+fam; cx.textAlign="right"; cx.textBaseline="alphabetic"; cx.fillStyle=FF?"#2a2622":"rgba(42,38,34,0.55)"; cx.fillText(FF?"▶▶ 快进中":(TOUCH?"按住 ▶▶ 快进等待":"按住 F 快进等待"),W-(TOUCH?150:20),H-122); cx.restore(); }
 
 
